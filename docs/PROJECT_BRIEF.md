@@ -16,7 +16,8 @@ cancel sunbeds, umbrellas and other spots from a live map of the beach.
 Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regulars).
 
 ## What gets booked
-- **Spots** (sunbeds, umbrellas and similar) laid out in rows on a map, grouped into **areas**.
+- **Umbrellas** (each with a number of sunbeds) and any **standalone sunbeds**, laid out in rows
+  on a map, grouped into **areas**.
 - One club with one area at launch. Further areas can be added later without code changes.
 - Booking units: **full day**, **several consecutive days**, and **season pass** (whole season).
   No half days or hourly slots (ADR 0004).
@@ -25,8 +26,12 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
 - [ ] Staff and admin login
 - [ ] Areas and spots set up by the admin, laid out on a visual map
 - [ ] Live map per day: free / booked / checked in, updated across devices within seconds
-- [ ] Create, move and cancel a booking (customer name + phone), with no double bookings:
-      one day, several days, or a season pass
+- [ ] **Quick book**: name, phone, number of umbrellas and sunbeds; the system suggests spots,
+      staff confirm in one tap (ADR 0004)
+- [ ] **Date view**: pick any date and see umbrellas and sunbeds free vs total, plus a map by row
+- [ ] Create, move and cancel a booking with no double bookings: one day, several days, or a
+      season pass
+- [ ] **Release days** of a season pass so the spot can be sold for those days
 - [ ] Seasons set up by the admin (start and end dates)
 - [ ] Search bookings by customer name or phone
 - [ ] Nightly encrypted backups to OneDrive (ADR 0003)

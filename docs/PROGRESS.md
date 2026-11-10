@@ -11,7 +11,7 @@ on-site bookings. No application code yet.
 ## Done this session
 - Skeleton, agents and commands merged; branch ruleset scoped to `main`
 - ADR 0003 rewritten for local hosting (Docker Compose, Caddy, UPS, Tailscale, rclone → OneDrive)
-- ADR 0004: whole-day date-range bookings, season passes, DB-enforced no overlap
+- ADR 0004: per-day occupancy, season passes with released days, quick book, date view
 - PROJECT_BRIEF drafted; domain is Venue → Area → Spot, plus Customer (no login)
 
 ## Next up
@@ -20,7 +20,7 @@ on-site bookings. No application code yet.
 3. Roadmap item: "Scaffold app, lint/format, test runner, CI green"
 
 ## Open questions
-- Season pass: can staff re-sell a pass holder's spot on a day they're not coming?
+- Sunbeds: how many come with each umbrella, and are there standalone sunbeds (no umbrella)?
 - Interface language: Italian, English or both?
 - Is storing encrypted backups on the company OneDrive OK with whoever manages Microsoft 365?
 - Hardware: mini PC chosen yet?

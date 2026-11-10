@@ -12,21 +12,24 @@ screens within seconds. Customers never use the app. They are contact details on
 - **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded)
 - **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout
   and opening season. Adding an area is a data change, not a code change.
-- **Spot** (the bookable resource): a sunbed, umbrella or other unit in an area, with type, row and
-  position on the area map
+- **Row**: area, label, order on the map
+- **Spot**: row, position, kind (umbrella | sunbed), included_sunbeds, max_sunbeds
 - **User**: a staff login. id, name, role (admin | staff)
 - **Customer**: name, phone, optional email and notes (no login)
 - **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
 - **Season**: area, name, start_date, end_date
-- **Booking**: spot, customer, start_date, end_date (inclusive local dates), kind
-  (day | multi_day | season), season (if kind = season), status (confirmed | cancelled) (ADR 0004)
+- **Booking**: customer, kind (day | multi_day | season), start_date, end_date (inclusive local
+  dates), season, status, notes
+- **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella)
+- **SpotDay**: spot, date, booking_spot, state (booked | released). Unique per (spot, date)
+  while occupied (ADR 0004)
 - **CheckIn**: booking, date, checked-in time, staff user
 - **AuditLog**: user, action, booking, before/after, timestamp
 - **Payment** (later): booking, amount, method (cash/card at desk), staff user
 
 ## Invariants
-- No two active bookings for the same spot may overlap in dates. This is enforced in the database
-  (PostgreSQL exclusion constraint on a daterange), not only in application code.
+- A spot can be occupied by at most one booking per day. This is enforced in the database
+  (unique (spot, date) on SpotDay), not only in application code.
 - Booking days are local calendar dates (`Europe/Rome`); timestamps are stored in UTC (ADR 0004).
 - Status changes go through a single service function so they can be audited.
 
