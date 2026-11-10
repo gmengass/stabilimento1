@@ -32,5 +32,9 @@
 
 ## Consequences
 - Code mistakes are undone with a Git revert; data mistakes with a database point-in-time restore.
-- Expected cost at 5–10 users: free or low tiers. Revisit if usage grows a lot.
+- Expected cost: roughly $15–25/month for production. This is a commercial business, so free
+  hobby plans that forbid commercial use (e.g. Vercel Hobby) or that sleep or delete databases
+  (e.g. Render free instances) are only for testing. Platform seats are for whoever deploys
+  (the owner), not for the 5–10 staff who use the app. Prices checked Nov 2026; re-check at the
+  Deploy item.
 - Secrets are kept in the platform's environment settings and never in the repo.
