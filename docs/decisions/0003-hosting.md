@@ -1,40 +1,73 @@
-# 0003. Hosting and environments
+# 0003. Hosting: local server on the club network
 
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-10
 
 ## Context
-- One beach club, with the option to add more booking areas later.
-- 5–10 staff users in total, several working at the same time and updating bookings.
-- The owner wants low maintenance, easy recovery from mistakes, and an open-source, self-hostable app.
-- Users and data are in Europe (owner in the UK), so GDPR applies.
+- One beach club, possibly with more booking areas later.
+- Only staff make bookings, on site. 5–10 staff users in total, several at once.
+- No public website or customer accounts are needed.
+- The owner wants low running costs, easy recovery from mistakes, and an open-source, self-hostable app.
+- Personal data (customer names, phone numbers) is covered by GDPR.
+- The owner already has a company OneDrive (Microsoft 365) account.
 
 ## Decision
-- **App**: a managed platform that deploys automatically when changes are merged to `main`
-  (Vercel or Render; the final choice is made in the "Deploy" roadmap item).
-- **Database**: managed PostgreSQL (e.g. Neon) in an **EU region**, with automatic backups and
-  point-in-time restore.
-- **Environments**:
-  - *Production*: deployed from `main`.
-  - *Preview*: a temporary copy deployed for each pull request, with its own database branch and
-    seed data. Real customer data never touches it.
-- **Portability**: the repo also ships a `docker-compose.yml` (app + PostgreSQL), so anyone,
-  including us, can self-host on a single server (option B) without code changes.
-- **Live updates**: staff screens refresh changes within a few seconds (Server-Sent Events or
-  short polling). No extra message broker at this scale.
-- **Concurrency**: the database rejects overlapping bookings (exclusion constraint). Application
-  checks are a convenience, not the guarantee.
+### Server
+- One always-on **mini PC with an SSD**, kept indoors and ventilated, on a small **UPS**.
+  A Raspberry Pi 5 *with an SSD* is acceptable. Avoid SD-card-only setups for the database.
+- Runs **Docker Compose**: app + PostgreSQL + Caddy (reverse proxy for HTTPS).
+- Staff use a browser on phones/tablets at a fixed local address (e.g. `https://stabilimento.local`).
+
+### Network
+- The app is reachable only on a **dedicated staff Wi-Fi network**, separate from any guest Wi-Fi.
+- Nothing is exposed to the public internet. No router port-forwarding.
+- Everyone logs in with their own account, even on the staff network.
+
+### Remote access (optional): Tailscale
+- The server joins a private Tailscale network, so the owner (and chosen staff) can reach the app
+  from anywhere on their own devices, with no ports opened.
+- Tailscale also provides valid HTTPS certificates for the server's Tailscale name.
+
+### Backups: OneDrive
+- Every night the server makes a **database dump** (`pg_dump`). It keeps a local copy on a USB drive
+  and uploads an **encrypted** copy to a dedicated folder on the company OneDrive using
+  `rclone` (OneDrive remote + `crypt` layer). OneDrive only ever sees encrypted files.
+- Retention: 14 daily, 8 weekly, 12 monthly.
+- Before every app update, a backup is taken automatically (restore point for the data).
+- **Monthly restore test**: a script restores the latest backup into a throwaway database and
+  checks it. Backups that are never tested are not backups.
+- The encryption password is stored in the owner's password manager. Without it, the backups
+  cannot be read.
+- The backup job sends an alert (e.g. email) if a run fails.
+
+### Updates
+- Code changes still go through reviewed PRs on GitHub (see CLAUDE.md).
+- On the server, `scripts/update.sh` does: backup → pull the tagged release → apply migrations →
+  restart. `scripts/rollback.sh` returns to the previous release plus its pre-update backup.
+- Only tagged releases (`vX.Y.Z`) are installed, never the tip of an unreleased branch.
+
+### Testing changes
+- There are no cloud preview environments. Changes are tried on a laptop or a second Docker stack
+  with seed data. Real customer data never leaves the server and its backups.
+
+### Live updates
+- Staff screens refresh changes within a few seconds (Server-Sent Events). No message broker.
+- The database rejects overlapping bookings (exclusion constraint).
 
 ## Alternatives considered
-- **Own virtual server (Docker)**: cheapest and most portable, but you own patching, backups and
-  uptime. It stays available via `docker-compose.yml`.
-- **Supabase all-in-one**: fast to start, but it ties auth and live updates to one vendor's APIs.
+- **Managed cloud (Render / Vercel + Neon)**: about $15–25/month, with remote access and previews
+  built in. Not needed for staff-only, on-site use. Still possible later with no code changes,
+  thanks to Docker.
 
 ## Consequences
-- Code mistakes are undone with a Git revert; data mistakes with a database point-in-time restore.
-- Expected cost: roughly $15–25/month for production. This is a commercial business, so free
-  hobby plans that forbid commercial use (e.g. Vercel Hobby) or that sleep or delete databases
-  (e.g. Render free instances) are only for testing. Platform seats are for whoever deploys
-  (the owner), not for the 5–10 staff who use the app. Prices checked Nov 2026; re-check at the
-  Deploy item.
-- Secrets are kept in the platform's environment settings and never in the repo.
+- Running cost: about £0/month after the one-off hardware (mini PC, UPS, USB drive). Tailscale's
+  free personal plan or a low-cost business plan, depending on Tailscale's terms for company use;
+  check at setup. The OneDrive storage is already paid for.
+- It works during internet outages. Only Tailscale access and offsite backup uploads pause.
+- The owner is responsible for the box being powered on. A failure is recovered by restoring the
+  latest backup onto any machine with Docker (documented in `docs/RUNBOOK.md`, written at the
+  Deploy item).
+- Confirm with whoever manages the company Microsoft 365 that storing encrypted backups containing
+  customer data there is allowed.
+- HTTPS on plain Wi-Fi: Caddy's internal certificate must be trusted once per staff device, or staff
+  use the Tailscale address. Decided at the Deploy item.
