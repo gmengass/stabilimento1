@@ -43,9 +43,9 @@ Tech decisions: `docs/decisions/` (ADRs). Never contradict an accepted ADR. Prop
 ## Code standards
 - Stack: see `docs/decisions/0002-tech-stack.md`.
 - Small functions, typed interfaces, no dead code, no commented-out code.
-- Every feature ships with tests. Booking logic (availability, overlaps, time zones,
-  cancellations) needs edge-case tests: double booking, DST changes, concurrent requests.
-- Store times in UTC; convert only at the edges (UI / notifications).
+- Every feature ships with tests. Booking logic (availability, overlapping date ranges, season
+  passes, cancellations) needs edge-case tests: double booking, range boundaries, concurrent requests.
+- Booking days are local `date`s (ADR 0004); timestamps are UTC, converted only at the edges.
 
 ## Commands
 (Fill in once the stack is set up.)

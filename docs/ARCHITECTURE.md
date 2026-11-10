@@ -16,15 +16,18 @@ screens within seconds. Customers never use the app. They are contact details on
   position on the area map
 - **User**: a staff login. id, name, role (admin | staff)
 - **Customer**: name, phone, optional email and notes (no login)
-- **AvailabilityRule**: recurring hours, plus exceptions (holidays, one-off blocks)
-- **Booking**: resource, customer, start_utc, end_utc, status
-  (pending | confirmed | cancelled | completed | no_show)
-- **Payment** (optional): booking, amount, provider reference, status
+- **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
+- **Season**: area, name, start_date, end_date
+- **Booking**: spot, customer, start_date, end_date (inclusive local dates), kind
+  (day | multi_day | season), season (if kind = season), status (confirmed | cancelled) (ADR 0004)
+- **CheckIn**: booking, date, checked-in time, staff user
+- **AuditLog**: user, action, booking, before/after, timestamp
+- **Payment** (later): booking, amount, method (cash/card at desk), staff user
 
 ## Invariants
-- No two active bookings for the same resource may overlap. This is enforced in the database
-  (e.g. a PostgreSQL exclusion constraint), not only in application code.
-- All times are stored in UTC, along with the resource's IANA time zone.
+- No two active bookings for the same spot may overlap in dates. This is enforced in the database
+  (PostgreSQL exclusion constraint on a daterange), not only in application code.
+- Booking days are local calendar dates (`Europe/Rome`); timestamps are stored in UTC (ADR 0004).
 - Status changes go through a single service function so they can be audited.
 
 ## Directory layout
