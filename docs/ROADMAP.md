@@ -6,8 +6,10 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 ## Milestone 0 — Foundations
 - [x] Repo, license, agents, workflow docs
 - [ ] Confirm tech stack (ADR 0002 → Accepted)
+- [x] Hosting decision (ADR 0003)
 - [ ] Scaffold app, lint/format, test runner, CI green
-- [ ] Database + first migration, seed data
+- [ ] Deploy: production + per-PR preview environments, EU database with backups (ADR 0003)
+- [ ] Database + first migration (Venue, Area, Spot), seed data
 - [ ] Auth (sign up, log in, roles)
 
 ## Milestone 1 — Core booking (MVP)

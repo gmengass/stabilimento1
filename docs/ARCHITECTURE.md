@@ -3,11 +3,17 @@
 > High-level map of the system. Update it when structure changes. Details belong in ADRs.
 
 ## Overview
-_To be written once the stack is accepted (ADR 0002)._
+One web app and one PostgreSQL database, shared by all users (ADR 0003). Single venue (one beach
+club) with one or more booking areas. 5–10 staff users; changes appear on other staff screens
+within seconds.
 
 ## Core domain (stack-independent)
-- **User**: id, role (customer | provider | admin), contact details
-- **Resource**: what can be booked (person, room, item, class), owned by a provider
+- **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded)
+- **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout
+  and opening season. Adding an area is a data change, not a code change.
+- **Spot** (the bookable resource): a sunbed, umbrella or other unit in an area, with type, row and
+  position on the area map
+- **User**: id, role (admin | staff | customer), contact details
 - **AvailabilityRule**: recurring hours, plus exceptions (holidays, one-off blocks)
 - **Booking**: resource, customer, start_utc, end_utc, status
   (pending | confirmed | cancelled | completed | no_show)

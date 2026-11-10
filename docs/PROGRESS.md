@@ -4,21 +4,24 @@
 > Git history keeps the old versions.
 
 ## Current state
-Project skeleton set up: license, Claude agents, workflow and docs. No application code yet.
+Foundations merged (PR #1). `main` protected by a ruleset (PR required, CI required, no force
+push, no deletion). Hosting decided (ADR 0003). No application code yet.
 
 ## Done this session
-- Created repo structure, CLAUDE.md, agents (planner, tester, debugger, reviewer, security)
-- Added the slash commands /start, /feature, /wrap-up, /checkpoint
-- Added Git safeguards (.claude/settings.json deny list) and CI placeholder
+- Skeleton, agents and commands merged to `main`
+- Branch ruleset scoped to the default branch only
+- ADR 0003: managed app platform + managed EU PostgreSQL, per-PR previews, Docker for self-hosting
+- Domain updated: Venue → Area → Spot (one club, more areas possible; 5–10 staff)
 
 ## Next up
-1. Fill in docs/PROJECT_BRIEF.md
+1. Fill in docs/PROJECT_BRIEF.md (who books what, payments, staff needs)
 2. Accept or change the tech stack in ADR 0002
 3. Roadmap item: "Scaffold app, lint/format, test runner, CI green"
 
 ## Open questions
-- What is being booked (appointments, rooms, classes, rentals)?
-- Are payments needed in v1?
+- Do customers book online themselves, or do only staff enter bookings?
+- Booking units: full day, half day, multi-day or season passes?
+- Payments in v1?
 
 ## Known issues
 - None
