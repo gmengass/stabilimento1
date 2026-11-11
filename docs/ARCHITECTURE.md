@@ -52,6 +52,9 @@ screens within seconds. Customers never use the app. They are contact details on
 - `messages/it.json`, `messages/en.json`: all UI text; a unit test enforces key parity
 - `tests/unit/`, `tests/integration/`: Vitest; integration tests only touch a `*_test` database
 - `e2e/`: Playwright specs (`npm run test:e2e`, builds and starts the app)
+- `deploy/Caddyfile`: HTTPS (internal CA) and the `X-Real-IP` header the app trusts (ADR 0008)
+- `scripts/update.sh`, `rollback.sh`, `pre-update-backup.sh`: POSIX sh deploy scripts; operator steps
+  in `docs/RUNBOOK.md`
 
 ## Authorization
 - Every page, Server Action and route handler checks the user itself (`requireUser`,
