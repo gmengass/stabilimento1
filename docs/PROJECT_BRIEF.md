@@ -47,7 +47,6 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
 - Regular-customer history (who had which spot last season)
 - Remote access via Tailscale (ADR 0003)
 - Additional booking areas
-- Italian / English interface
 
 ## Out of scope
 - Public website or online booking by customers

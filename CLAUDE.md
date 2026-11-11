@@ -46,6 +46,7 @@ Tech decisions: `docs/decisions/` (ADRs). Never contradict an accepted ADR. Prop
 - Every feature ships with tests. Booking logic (availability, overlapping date ranges, season
   passes, cancellations) needs edge-case tests: double booking, range boundaries, concurrent requests.
 - Booking days are local `date`s (ADR 0004); timestamps are UTC, converted only at the edges.
+- UI text lives in `messages/{it,en}.json` (ADR 0005); format dates and money with `src/i18n/format.ts`.
 
 ## Commands
 Node 24 (`.nvmrc`). Copy `.env.example` to `.env` first.
