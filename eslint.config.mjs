@@ -12,6 +12,14 @@ export default defineConfig([
     files: ["src/app/**/*.tsx", "src/components/**/*.tsx"],
     rules: {
       "react/jsx-no-literals": ["error", { noStrings: true, ignoreProps: true }],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "JSXAttribute[name.name=/^(alt|title|placeholder|label|aria-(label|description|placeholder|roledescription|valuetext))$/] :matches(Literal, TemplateLiteral):not(CallExpression > *)",
+          message: "User-facing text belongs in messages/*.json (ADR 0005).",
+        },
+      ],
     },
   },
   globalIgnores([
