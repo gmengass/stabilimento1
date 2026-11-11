@@ -7,7 +7,7 @@ export const demoLayout = {
   venue: { name: "Lido Demo", slug: "lido-demo" },
   area: { name: "Spiaggia principale", slug: "main" },
   lines: 6,
-  umbrellasPerLine: 20,
+  umbrellasPerLine: 18,
 } as const;
 
 type Tx = Transaction<DB>;

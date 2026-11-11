@@ -7,7 +7,7 @@ import type { DB } from "@/db/types";
 import { testDatabaseUrl } from "./test-database";
 
 const LINES = 6;
-const SPOTS_PER_LINE = 20;
+const SPOTS_PER_LINE = 18;
 
 let db: Kysely<DB>;
 let migrated = false;
@@ -97,7 +97,7 @@ function expectedSpots(): SpotRow[] {
 }
 
 describe("AC6: demo seed", () => {
-  it("loads one venue, one area, 6 lines and 120 default umbrellas numbered line × 100 + position", async () => {
+  it("loads one venue, one area, 6 lines and 108 default umbrellas numbered line × 100 + position", async () => {
     await seedDemo(db);
 
     const venues = await sql<{ slug: string }>`select slug from venue`.execute(db);
@@ -116,9 +116,9 @@ describe("AC6: demo seed", () => {
     expect(spots).toEqual(expectedSpots());
     const numbers = spots.map((s) => s.number);
     expect(numbers.slice(0, 2)).toEqual([101, 102]);
-    expect(numbers[SPOTS_PER_LINE - 1]).toBe(120);
+    expect(numbers[SPOTS_PER_LINE - 1]).toBe(118);
     expect(numbers[SPOTS_PER_LINE]).toBe(201);
-    expect(numbers.at(-1)).toBe(620);
+    expect(numbers.at(-1)).toBe(618);
   });
 
   it("gives the same row counts and ids on a second run", async () => {
@@ -140,7 +140,7 @@ describe("AC6: demo seed", () => {
     if (!line6) throw new Error("seed did not create line 6");
     const added = await sql<{ id: number }>`
       insert into spot (area_id, line_id, number, position, kind)
-      values (${line6.area_id}, ${line6.line_id}, 621, 21, 'umbrella')
+      values (${line6.area_id}, ${line6.line_id}, 619, 19, 'umbrella')
       returning id
     `.execute(db);
     const addedId = added.rows[0]?.id;
@@ -148,9 +148,9 @@ describe("AC6: demo seed", () => {
     await seedDemo(db);
 
     const survivor = await sql<{ id: number; number: number; position: number }>`
-      select id, number, position from spot where number = 621
+      select id, number, position from spot where number = 619
     `.execute(db);
-    expect(survivor.rows).toEqual([{ id: addedId, number: 621, position: 21 }]);
+    expect(survivor.rows).toEqual([{ id: addedId, number: 619, position: 19 }]);
     expect(await ids("spot")).toHaveLength(LINES * SPOTS_PER_LINE + 1);
   });
 
