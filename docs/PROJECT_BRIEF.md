@@ -18,6 +18,8 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
 ## What gets booked
 - **Umbrellas** (ombrelloni), standard **2 sunbeds** (lettini) each, **max 3**, laid out in
   **lines** (file). **Line 1 is closest to the shore.** Lines are grouped into **areas**.
+- Umbrella numbers: **line × 100 + position** (line 1: 101, 102…; line 2: 201…). Position 1 is
+  the leftmost umbrella when facing the sea, in every line. Exceptions are allowed (ADR 0004).
 - Standalone sunbeds (no umbrella) are supported but not used at launch.
 - One club with one area at launch. Further areas can be added later without code changes.
 - Booking units: **full day**, **several consecutive days**, and **season pass** (whole season).

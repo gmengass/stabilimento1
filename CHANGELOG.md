@@ -16,3 +16,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Admins manage staff accounts at `/admin/staff`: create, disable/enable, reset password.
 - First admin account via `npm run db:seed-admin` (or `docker compose run --rm seed-admin`).
 - The interface language is saved on the user and follows them to any device.
+
+### Changed
+- Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),
+  position 1 being the leftmost umbrella facing the sea. The demo beach has 18 per line (108).

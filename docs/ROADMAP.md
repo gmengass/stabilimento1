@@ -13,6 +13,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Database + first migration (Venue, Area, Spot), seed data
 - [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
+- [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
 
 ## Milestone 1 — Core booking (MVP)
 - [ ] Bookable resources/services (CRUD for providers)
