@@ -11,21 +11,24 @@ require_env_file
 cd "$DEPLOY_ROOT"
 acquire_lock
 
-current=$(read_state current)
+# After a failed update, `in-progress` names the release that was being installed.
+from=$(read_state in-progress)
+from=${from:-$(read_state current)}
 previous=$(read_state previous)
 dump=$(read_state last-backup)
 [ -n "$previous" ] || die "no previous release recorded: nothing to roll back to"
 [ -s "$dump" ] || die "pre-update dump not found: '$dump'"
 
-log "Rollback $current → $previous, restoring $dump"
+log "Rollback $from → $previous, restoring $dump"
 log "Everything entered after $(basename "$dump" | cut -d_ -f1) (UTC) will be LOST."
 if [ "${1:-}" != "--yes" ]; then
 	printf 'Type yes to continue: ' >&2
-	read -r answer
+	read -r answer || answer=
 	[ "$answer" = "yes" ] || die "aborted"
 fi
 
 git -c advice.detachedHead=false checkout --quiet "$previous"
+compose_at "$previous" up -d --wait db
 compose_at "$previous" stop app
 # shellcheck disable=SC2016 # expanded inside the db container
 compose_at "$previous" exec -T db sh -c \
@@ -39,4 +42,5 @@ wait_healthy "$previous" || die "$previous did not pass the health check after t
 write_state current "$previous"
 clear_state previous
 clear_state last-backup
+clear_state in-progress
 log "rolled back to $previous"

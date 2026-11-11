@@ -16,23 +16,28 @@ cd "$DEPLOY_ROOT"
 acquire_lock
 
 current=$(read_state current)
+pending=$(read_state in-progress)
+# A failed update left the DB possibly migrated: a new dump would replace the good restore point.
+[ -z "$pending" ] || die "update to $pending did not finish: run scripts/rollback.sh first"
 [ "$current" != "$tag" ] || die "$tag is already installed"
 git fetch --quiet --tags origin || log "warning: git fetch failed, using local tags"
 git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || die "tag $tag not found"
 
 on_failure() {
 	status=$?
-	rmdir "$LOCK_DIR" 2>/dev/null || true
+	cleanup
 	[ "$status" -eq 0 ] && return
 	log "update to $tag FAILED."
-	[ -n "$current" ] && log "To return to $current: scripts/rollback.sh"
+	[ -n "$current" ] && log "To return to $current and its pre-update dump: scripts/rollback.sh"
 }
 trap on_failure EXIT
 
 compose_at "${current:-$tag}" up -d --wait db
 if [ -n "$current" ]; then
-	dump=$("$(dirname "$0")/pre-update-backup.sh" "$current-before-$tag")
+	dump=$(sh "$(dirname "$0")/pre-update-backup.sh" "$current-before-$tag")
 	write_state last-backup "$dump"
+	write_state previous "$current"
+	write_state in-progress "$tag"
 else
 	log "first install: no previous release, skipping backup"
 fi
@@ -46,7 +51,7 @@ compose_at "$tag" run --rm migrate
 compose_at "$tag" up -d --no-deps app caddy
 wait_healthy "$tag" || die "$tag did not pass the health check"
 
-[ -n "$current" ] && write_state previous "$current"
 write_state current "$tag"
+clear_state in-progress
 prune_images
 log "installed $tag"

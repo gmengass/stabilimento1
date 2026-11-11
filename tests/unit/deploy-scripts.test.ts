@@ -4,8 +4,10 @@ import {
   cpSync,
   existsSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -200,7 +202,83 @@ describe("update.sh", () => {
   });
 });
 
+describe("recovery after a failed update", () => {
+  it("rollback targets the release that was running and restores its own dump", () => {
+    run("update.sh", ["v0.0.1"]);
+    const failed = run("update.sh", ["v0.0.2"], { STUB_HEALTH: "fail" });
+    expect(failed.status).not.toBe(0);
+    const dump = state("last-backup");
+    expect(dump).toMatch(/v0\.0\.1-before-v0\.0\.2\.dump$/);
+    const result = run("rollback.sh", ["--yes"]);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stderr).toMatch(/v0\.0\.2 → v0\.0\.1/);
+    expect(result.stderr).toContain(dump);
+    expect(readFileSync(join(repo, "VERSION"), "utf8").trim()).toBe("v0.0.1");
+    expect(state("current")).toBe("v0.0.1");
+    expect(state("in-progress")).toBeUndefined();
+  });
+
+  it("refuses to retry an update until the failed one is rolled back, keeping the good dump", () => {
+    run("update.sh", ["v0.0.1"]);
+    run("update.sh", ["v0.0.2"], { STUB_HEALTH: "fail" });
+    const dump = state("last-backup");
+    const retry = run("update.sh", ["v0.0.2"]);
+    expect(retry.status).not.toBe(0);
+    expect(retry.stderr).toMatch(/update to v0\.0\.2 did not finish.*rollback\.sh/);
+    expect(retry.calls.some((call) => call.includes("pg_dump"))).toBe(false);
+    expect(state("last-backup")).toBe(dump);
+  });
+
+  it("a failed first install can simply be retried", () => {
+    expect(run("update.sh", ["v0.0.1"], { STUB_HEALTH: "fail" }).status).not.toBe(0);
+    const retry = run("update.sh", ["v0.0.1"]);
+    expect(retry.status, retry.stderr).toBe(0);
+    expect(state("current")).toBe("v0.0.1");
+  });
+});
+
+describe("hygiene", () => {
+  it("writes dumps readable by the owner only and keeps the newest 3", () => {
+    const tags = ["v0.0.3", "v0.0.4", "v0.0.5"];
+    tags.forEach(release);
+    run("update.sh", ["v0.0.1"]);
+    for (const tag of ["v0.0.2", ...tags]) {
+      const result = run("update.sh", [tag]);
+      expect(result.status, result.stderr).toBe(0);
+    }
+    const dir = join(repo, "backups", "pre-update");
+    const dumps = readdirSync(dir).sort();
+    expect(dumps).toHaveLength(3);
+    expect(dumps[2]).toMatch(/v0\.0\.4-before-v0\.0\.5\.dump$/);
+    expect(statSync(dir).mode & 0o777).toBe(0o700);
+    expect(statSync(join(dir, dumps[2] ?? "")).mode & 0o777).toBe(0o600);
+  });
+
+  it("removes its temporary copy of scripts/, also after a refusal", () => {
+    const scratch = join(repo, "..", "scratch");
+    spawnSync("mkdir", [scratch]);
+    run("update.sh", ["v0.0.1"], { TMPDIR: scratch });
+    run("update.sh", ["v0.0.9"], { TMPDIR: scratch });
+    expect(readdirSync(scratch)).toEqual([]);
+  });
+});
+
 describe("rollback.sh", () => {
+  it("starts the database before touching it", () => {
+    run("update.sh", ["v0.0.1"]);
+    run("update.sh", ["v0.0.2"]);
+    const result = run("rollback.sh", ["--yes"]);
+    expect(indexOf(result.calls, "up -d --wait db")).toBeLessThan(indexOf(result.calls, "dropdb"));
+  });
+
+  it("aborts with a message on end of input", () => {
+    run("update.sh", ["v0.0.1"]);
+    run("update.sh", ["v0.0.2"]);
+    const result = run("rollback.sh");
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/aborted/);
+  });
+
   it("refuses when no previous release is recorded", () => {
     run("update.sh", ["v0.0.1"]);
     const result = run("rollback.sh", ["--yes"]);
