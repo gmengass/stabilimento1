@@ -141,6 +141,46 @@ describe("createBooking", () => {
     expect(await spotDayCount()).toBe(3);
   });
 
+  it("handles crossed concurrent bookings (101+102 vs 102+101) without a deadlock error", async () => {
+    for (let round = 0; round < 5; round++) {
+      await sql`truncate booking, booking_spot, spot_day restart identity cascade`.execute(db);
+      const results = await Promise.all([
+        createBooking(
+          db,
+          USER,
+          booking({
+            spots: [
+              { spotId: spot[101], sunbeds: 2 },
+              { spotId: spot[102], sunbeds: 2 },
+            ],
+          }),
+        ),
+        createBooking(
+          db,
+          USER,
+          booking({
+            spots: [
+              { spotId: spot[102], sunbeds: 2 },
+              { spotId: spot[101], sunbeds: 2 },
+            ],
+          }),
+        ),
+      ]);
+      expect(results.filter((r) => r.ok)).toHaveLength(1);
+      expect(results.find((r) => !r.ok)).toMatchObject({ ok: false, error: "taken" });
+      expect(await spotDayCount()).toBe(6);
+    }
+  });
+
+  it("books a day a season holder released (only booked days are occupied)", async () => {
+    await createBooking(db, USER, booking({ endDate: "2027-07-10" }));
+    await db.updateTable("spot_day").set({ state: "released" }).execute();
+    expect(await loadOccupancy(db, areaId, "2027-07-10")).toEqual({});
+    expect(await createBooking(db, USER, booking({ endDate: "2027-07-10" }))).toMatchObject({
+      ok: true,
+    });
+  });
+
   it("refuses more sunbeds than the umbrella holds", async () => {
     const result = await createBooking(
       db,
@@ -195,7 +235,9 @@ describe("cancelBooking", () => {
   it("frees every day and keeps the booking as cancelled history", async () => {
     const created = await createBooking(db, USER, booking());
     if (!created.ok) throw new Error("setup failed");
-    expect(await cancelBooking(db, USER, { bookingId: created.bookingId })).toEqual({ ok: true });
+    expect(await cancelBooking(db, USER, { bookingId: created.bookingId }, "2027-07-01")).toEqual({
+      ok: true,
+    });
     expect(await spotDayCount()).toBe(0);
     const row = await db
       .selectFrom("booking")
@@ -205,11 +247,29 @@ describe("cancelBooking", () => {
     expect(await createBooking(db, USER, booking())).toMatchObject({ ok: true });
   });
 
+  it("cancelled partway through, keeps the days already used and frees the rest", async () => {
+    const created = await createBooking(db, USER, booking());
+    if (!created.ok) throw new Error("setup failed");
+    const result = await cancelBooking(db, USER, { bookingId: created.bookingId }, "2027-07-11");
+    expect(result).toEqual({ ok: true });
+    expect(await loadOccupancy(db, areaId, "2027-07-10")).toHaveProperty(String(spot[101]));
+    expect(await loadOccupancy(db, areaId, "2027-07-11")).toEqual({});
+    expect(await loadOccupancy(db, areaId, "2027-07-12")).toEqual({});
+  });
+
+  it("refuses to cancel a booking that has ended", async () => {
+    const created = await createBooking(db, USER, booking());
+    if (!created.ok) throw new Error("setup failed");
+    const result = await cancelBooking(db, USER, { bookingId: created.bookingId }, "2027-07-13");
+    expect(result).toEqual({ ok: false, error: "ended" });
+    expect(await spotDayCount()).toBe(3);
+  });
+
   it("reports notFound for a missing or already cancelled booking", async () => {
     const created = await createBooking(db, USER, booking());
     if (!created.ok) throw new Error("setup failed");
-    await cancelBooking(db, USER, { bookingId: created.bookingId });
-    expect(await cancelBooking(db, USER, { bookingId: created.bookingId })).toEqual({
+    await cancelBooking(db, USER, { bookingId: created.bookingId }, "2027-07-01");
+    expect(await cancelBooking(db, USER, { bookingId: created.bookingId }, "2027-07-01")).toEqual({
       ok: false,
       error: "notFound",
     });

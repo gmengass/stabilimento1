@@ -8,7 +8,8 @@ import type { MapSpot } from "@/lib/beach/layout";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
 import { cancelBookingAction, createBookingAction } from "./booking-actions";
 
-type ErrorKey = "invalid" | "sunbeds" | "taken" | "forbidden" | "notFound" | "generic";
+type ErrorKey =
+  "invalid" | "sunbeds" | "taken" | "takenNow" | "forbidden" | "notFound" | "ended" | "generic";
 interface Failure {
   key: ErrorKey;
   clashes?: Clash[];
@@ -41,6 +42,15 @@ function ErrorLine({ failure }: { failure: Failure | null }) {
   );
 }
 
+type CreateFailure = Exclude<Awaited<ReturnType<typeof createBookingAction>>, { ok: true }>;
+
+/** A lost race whose winner is already gone has no clash to name: ask to try again. */
+function toFailure(result: CreateFailure): Failure {
+  if (result.error !== "taken") return { key: result.error };
+  if (result.clashes.length === 0) return { key: "takenNow" };
+  return { key: "taken", clashes: result.clashes };
+}
+
 interface NewProps {
   date: string;
   spots: MapSpot[];
@@ -53,6 +63,12 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [startDate, setStartDate] = useState(date);
+  const [endDate, setEndDate] = useState(date);
+
+  function changeStart(value: string) {
+    setStartDate(value);
+    if (value > endDate) setEndDate(value);
+  }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,11 +85,7 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
       try {
         const result = await createBookingAction(input);
         if (result.ok) onDone();
-        else
-          setFailure({
-            key: result.error,
-            clashes: "clashes" in result ? result.clashes : undefined,
-          });
+        else setFailure(toFailure(result));
       } catch {
         setFailure({ key: "generic" });
       }
@@ -135,7 +147,7 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
             type="date"
             required
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => changeStart(e.target.value)}
             className={field}
           />
         </label>
@@ -146,7 +158,8 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
             type="date"
             required
             min={startDate}
-            defaultValue={date}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             className={field}
           />
         </label>
@@ -154,6 +167,7 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
       <label className="flex flex-col gap-1 text-sm">
         {t("notes")}
         <textarea name="notes" maxLength={500} rows={2} className={field} />
+        <span className="text-gray-600">{t("notesHint")}</span>
       </label>
       <button
         type="submit"

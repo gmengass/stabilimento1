@@ -146,7 +146,10 @@
       "clash": "Umbrella {number} on {date}",
       "forbidden": "Your session has ended. Log in again.",
       "notFound": "This booking no longer exists or was already cancelled.",
-      "generic": "Something went wrong. Try again."
-    }
+      "generic": "Something went wrong. Try again.",
+      "takenNow": "Someone just booked one of these umbrellas. Check the map and try again.",
+      "ended": "This booking has already ended and can't be cancelled."
+    },
+    "notesHint": "No health or payment details here."
   }
 }
