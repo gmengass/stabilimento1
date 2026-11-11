@@ -10,8 +10,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <nav className="flex items-center gap-4 border-b px-4 py-2 text-sm">
-        <Link href="/">{t("home")}</Link>
-        {user.role === "admin" && <Link href="/admin/staff">{t("staff")}</Link>}
+        <Link href="/">{t("map")}</Link>
+        {user.role === "admin" && (
+          <>
+            <Link href="/admin/beach">{t("beach")}</Link>
+            <Link href="/admin/staff">{t("staff")}</Link>
+          </>
+        )}
         <span className="ml-auto">{t("signedInAs", { name: user.name })}</span>
         <form action={logout}>
           <button type="submit" className="rounded border px-2 py-1">

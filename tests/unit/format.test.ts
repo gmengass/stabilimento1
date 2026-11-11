@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { formatBookingDate, formatEur, formatTimestamp } from "@/i18n/format";
+import {
+  addDays,
+  formatBookingDate,
+  formatEur,
+  formatTimestamp,
+  isBookingDate,
+  venueToday,
+} from "@/i18n/format";
 
 /** Intl uses U+00A0 / U+202F between number and symbol; compare with plain spaces. */
 function normalizeSpaces(value: string): string {
@@ -72,5 +79,38 @@ describe("formatTimestamp", () => {
 
   it("rolls the date over at Rome midnight, not UTC midnight", () => {
     expect(formatTimestamp(new Date("2026-06-30T22:30:00Z"), "it")).toContain("01/07/26");
+  });
+});
+
+describe("isBookingDate", () => {
+  it.each(["2026-07-01", "2028-02-29"])("accepts %s", (value) => {
+    expect(isBookingDate(value)).toBe(true);
+  });
+
+  it.each(["2026-02-30", "2027-02-29", "2026-7-1", "01/07/2026", "", undefined, ["2026-07-01"]])(
+    "rejects %o",
+    (value) => {
+      expect(isBookingDate(value)).toBe(false);
+    },
+  );
+});
+
+describe("addDays", () => {
+  it.each([
+    ["2026-07-31", 1, "2026-08-01"],
+    ["2026-01-01", -1, "2025-12-31"],
+    ["2028-02-28", 1, "2028-02-29"],
+    ["2026-03-28", 2, "2026-03-30"],
+    ["2026-10-24", 2, "2026-10-26"],
+  ] as const)("%s + %i = %s, across month, year, leap day and DST changes", (date, days, out) => {
+    expect(addDays(date, days)).toBe(out);
+  });
+});
+
+describe("venueToday", () => {
+  it("uses the Rome calendar day, not UTC", () => {
+    expect(venueToday(new Date("2026-07-01T22:30:00Z"))).toBe("2026-07-02");
+    expect(venueToday(new Date("2026-12-31T22:59:00Z"))).toBe("2026-12-31");
+    expect(venueToday(new Date("2026-12-31T23:00:00Z"))).toBe("2027-01-01");
   });
 });

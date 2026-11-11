@@ -20,7 +20,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   with an automatic pre-update database dump. Setup and recovery steps are in `docs/RUNBOOK.md`
   (Windows with WSL2, or Linux).
 
+- Beach map on the home screen: sea at the top, line 1 nearest to it, umbrellas left to right.
+  Pick any date, or step a day back or forward.
+- Admins set up a fresh beach at `/admin/beach`: club name, number of lines and umbrellas per
+  line, numbered line × 100 + position.
+
 ### Changed
+- Roadmap Milestone 1 now lists the beach club features from the project brief.
 - Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),
   position 1 being the leftmost umbrella facing the sea. The demo beach has 18 per line (108).
 - The full Docker stack is served at `https://localhost` (port 3000 is no longer published).

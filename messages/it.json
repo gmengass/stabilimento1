@@ -6,9 +6,6 @@
       "en": "English"
     }
   },
-  "home": {
-    "title": "Benvenuto allo stabilimento"
-  },
   "meta": {
     "title": "Stabilimento",
     "description": "Prenotazione di ombrelloni e lettini"
@@ -30,7 +27,8 @@
     }
   },
   "appShell": {
-    "home": "Home",
+    "map": "Mappa spiaggia",
+    "beach": "Impostazione spiaggia",
     "staff": "Personale",
     "signedInAs": "Accesso come {name}",
     "logout": "Esci"
@@ -82,6 +80,39 @@
       "self": "Non puoi disattivare il tuo account.",
       "lastAdmin": "Almeno un amministratore deve restare attivo.",
       "notFound": "Account non trovato.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    }
+  },
+  "map": {
+    "sea": "Mare",
+    "line": "Fila {number}",
+    "spotFree": "Ombrellone {number}, libero",
+    "previousDay": "← Giorno prima",
+    "today": "Oggi",
+    "nextDay": "Giorno dopo →",
+    "pickDate": "Data",
+    "go": "Mostra",
+    "emptyTitle": "La spiaggia non è ancora impostata",
+    "emptyAdmin": "Imposta file e ombrelloni",
+    "emptyStaff": "Chiedi a un amministratore di impostare file e ombrelloni."
+  },
+  "beachSetup": {
+    "title": "Impostazione spiaggia",
+    "intro": "Indica quante file di ombrelloni ha la spiaggia e quanti ombrelloni ci sono in ogni fila. I singoli ombrelloni si potranno modificare in seguito.",
+    "venueName": "Nome dello stabilimento",
+    "lines": "Numero di file",
+    "linesHint": "La fila 1 è quella più vicina al mare.",
+    "umbrellasPerLine": "Ombrelloni per fila",
+    "numberingHint": "Gli ombrelloni sono numerati fila × 100 + posizione: 101, 102… nella fila 1, 201… nella fila 2. La posizione 1 è la prima a sinistra guardando il mare.",
+    "submit": "Crea la spiaggia",
+    "submitting": "Creazione…",
+    "summary": "{name}: {lines, plural, one {# fila} other {# file}}, {umbrellas, plural, one {# ombrellone} other {# ombrelloni}}.",
+    "editLater": "La modifica di file e singoli ombrelloni arriverà con un prossimo aggiornamento.",
+    "openMap": "Apri la mappa della spiaggia",
+    "errors": {
+      "invalid": "Controlla i campi e riprova.",
+      "exists": "La spiaggia è già impostata.",
+      "forbidden": "Solo gli amministratori possono farlo.",
       "generic": "Qualcosa è andato storto. Riprova."
     }
   }

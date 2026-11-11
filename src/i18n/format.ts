@@ -19,6 +19,29 @@ function parseBookingDate(date: string): Date {
   return parsed;
 }
 
+/** True for a real calendar day written as `YYYY-MM-DD`. */
+export function isBookingDate(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    parseBookingDate(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Adds whole days to a booking day; no time zone is involved. */
+export function addDays(date: string, days: number): string {
+  const parsed = parseBookingDate(date);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+/** Today's booking day at the venue (Europe/Rome), whatever the server's own time zone. */
+export function venueToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
+}
+
 /** Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. */
 export function formatBookingDate(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {
