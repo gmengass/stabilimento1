@@ -10,5 +10,9 @@
     "label": "Lingua",
     "it": "Italiano",
     "en": "English"
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "body": "La pagina richiesta non esiste."
   }
 }

@@ -5,6 +5,7 @@ import { Suspense, type ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import "./globals.css";
 
+/** Reads the locale cookie outside Suspense; fine while metadata is dynamic, revisit before "use cache". */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
   return { title: t("title"), description: t("description") };
