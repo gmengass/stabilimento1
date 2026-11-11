@@ -34,7 +34,12 @@ const files = { it: it_, en };
 
 describe("message files", () => {
   it("it.json is non-empty and has the required keys", () => {
-    const required = ["common.languageSwitcher.label", "home.title", "meta.title", "meta.description"];
+    const required = [
+      "common.languageSwitcher.label",
+      "home.title",
+      "meta.title",
+      "meta.description",
+    ];
     const missing = required.filter((key) => !(key in it_));
     expect(Object.keys(it_).length, "it.json is empty").toBeGreaterThan(0);
     expect(missing, `it.json is missing required keys: ${missing.join(", ")}`).toEqual([]);
