@@ -6,14 +6,17 @@
 ## Current state
 DB schema merged (PR #6). Branch `feat/i18n` adds next-intl (IT default, EN) without URL locales:
 locale from `locale` cookie → `it` (`src/i18n/`), switcher in the root layout header, typed message
-keys, `formatBookingDate`/`formatEur`, lint rule against JSX string literals, Playwright e2e in CI.
-Root layout renders per request (ADR 0006). 115 Vitest tests + 2 e2e pass locally.
+keys, `formatBookingDate`/`formatTimestamp`/`formatEur`, lint rules against JSX text and
+user-facing attribute literals, translated 404 + bilingual global error, Playwright e2e in CI.
+Root layout renders per request (ADR 0006). 144 Vitest tests + 2 e2e pass locally.
 
 ## Done this session
 - Plan `docs/plans/i18n.md`; `setLocale` server action (Zod, httpOnly, Lax, Secure in prod)
 - Message parity/placeholder test; `resolveLocale` ready for a user preference (Auth)
 - Playwright added (`npm run test:e2e`), CI `e2e` job; reviewer + security passed after fixes
 - ADR 0006 (per-request rendering); ARCHITECTURE layout and Rendering section
+- Merged in a parallel session's extras: attribute lint, `formatTimestamp` + TZ/DST tests,
+  request-config test, `not-found.tsx` (real 404), `global-error.tsx`
 
 ## Next up
 1. Open and merge the `feat/i18n` PR once CI (incl. the new e2e job) is green
@@ -21,6 +24,8 @@ Root layout renders per request (ADR 0006). 115 Vitest tests + 2 e2e pass locall
 3. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004
 
 ## Open questions
+- `formatEur` takes euros; switch to integer cents before the Prices item?
+- Delete the leftover branch `feat/i18n-session2` (superseded by `feat/i18n`)
 - Roadmap Milestone 1 (providers, working hours, customer search, email) contradicts the brief
   and ADR 0004: rewrite it in a docs PR
 - Alphanumeric umbrella labels ("A12")? Only integers for now

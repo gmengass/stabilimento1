@@ -41,7 +41,7 @@ screens within seconds. Customers never use the app. They are contact details on
 - `src/db/migrations/`: numbered migrations, each with `up` and `down`; run by `migrate.ts`
 - `src/db/seed-data.ts`, `seed.ts`: idempotent demo seed (`npm run db:seed`, refused in production)
 - `src/i18n/`: next-intl setup (ADR 0005): `config.ts` (locales), `resolve-locale.ts`, `request.ts`,
-  `actions.ts` (`setLocale`), `format.ts` (booking days, EUR)
+  `actions.ts` (`setLocale`), `format.ts` (booking days, Rome timestamps, EUR)
 - `src/components/`: shared UI (`language-switcher.tsx` in the root layout header)
 - `messages/it.json`, `messages/en.json`: all UI text; a unit test enforces key parity
 - `tests/unit/`, `tests/integration/`: Vitest; integration tests only touch a `*_test` database
