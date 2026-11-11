@@ -7,11 +7,10 @@ type LoginError = "invalid" | "rateLimited" | "generic";
 
 const TOO_MANY_REQUESTS = 429;
 
+// The API answers 401 for an unknown user, a wrong password and a disabled account alike.
 function errorFor(status: number): LoginError {
   if (status === TOO_MANY_REQUESTS) return "rateLimited";
-  // 401 (unknown user, wrong password) and 403 (disabled account) look the same on purpose.
-  if (status === 401 || status === 403) return "invalid";
-  return "generic";
+  return status === 401 ? "invalid" : "generic";
 }
 
 async function signIn(username: string, password: string): Promise<LoginError | null> {
