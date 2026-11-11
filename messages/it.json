@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "title": "Stabilimento",
+    "description": "Prenotazione di ombrelloni e lettini"
+  },
+  "home": {
+    "title": "Stabilimento"
+  },
+  "languageSwitcher": {
+    "label": "Lingua",
+    "it": "Italiano",
+    "en": "English"
+  }
+}
