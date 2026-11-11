@@ -134,7 +134,7 @@ jobs:
           done
           test "$code" = 429
       - name: Roll back the migration in the container
-        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0003_auth"
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0004_bookings"
       - name: Logs on failure
         if: failure()
         run: docker compose logs
