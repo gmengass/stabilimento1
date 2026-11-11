@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultLocale, LOCALE_COOKIE, locales, VENUE_TIME_ZONE } from "@/i18n/config";
+import { defaultLocale, LOCALE_COOKIE, locales, VENUE_TIME_ZONE, type Locale } from "@/i18n/config";
 import {
   getUserLocalePreference,
   isLocale,
@@ -30,6 +30,11 @@ describe("isLocale", () => {
 });
 
 describe("resolveLocale", () => {
+  it("ignores an invalid stored preference and falls back to the cookie", () => {
+    const userPreference = "../secrets" as unknown as Locale;
+    expect(resolveLocale({ userPreference, cookie: "en" })).toBe("en");
+  });
+
   it("defaults to Italian with no preference and no cookie", () => {
     expect(resolveLocale({ userPreference: null, cookie: undefined })).toBe("it");
   });

@@ -11,7 +11,7 @@ interface LocaleSources {
 
 /** ADR 0005: saved user preference, then the `locale` cookie, then Italian. */
 export function resolveLocale({ userPreference, cookie }: LocaleSources): Locale {
-  if (userPreference) return userPreference;
+  if (isLocale(userPreference)) return userPreference;
   return isLocale(cookie) ? cookie : defaultLocale;
 }
 
