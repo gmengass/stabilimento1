@@ -28,10 +28,10 @@ export function BeachMap({ lines }: { lines: MapLine[] }) {
                 <li
                   key={spot.id}
                   style={{ gridColumn: spot.position }}
-                  aria-label={t("spotFree", { number: spot.number })}
                   className="flex h-11 items-center justify-center rounded border border-green-600 bg-green-50 text-sm font-semibold text-green-900"
                 >
-                  {spot.number}
+                  <span aria-hidden>{spot.number}</span>
+                  <span className="sr-only">{t("spotFree", { number: spot.number })}</span>
                 </li>
               ))}
             </ol>

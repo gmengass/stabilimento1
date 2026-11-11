@@ -83,16 +83,23 @@ describe("formatTimestamp", () => {
 });
 
 describe("isBookingDate", () => {
-  it.each(["2026-07-01", "2028-02-29"])("accepts %s", (value) => {
+  it.each(["2026-07-01", "2028-02-29", "2000-01-01", "2099-12-31"])("accepts %s", (value) => {
     expect(isBookingDate(value)).toBe(true);
   });
 
-  it.each(["2026-02-30", "2027-02-29", "2026-7-1", "01/07/2026", "", undefined, ["2026-07-01"]])(
-    "rejects %o",
-    (value) => {
-      expect(isBookingDate(value)).toBe(false);
-    },
-  );
+  it.each([
+    "2026-02-30",
+    "2027-02-29",
+    "1999-12-31",
+    "2100-01-01",
+    "2026-7-1",
+    "01/07/2026",
+    "",
+    undefined,
+    ["2026-07-01"],
+  ])("rejects %o", (value) => {
+    expect(isBookingDate(value)).toBe(false);
+  });
 });
 
 describe("addDays", () => {

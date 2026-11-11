@@ -19,12 +19,15 @@ function parseBookingDate(date: string): Date {
   return parsed;
 }
 
-/** True for a real calendar day written as `YYYY-MM-DD`. */
+const FIRST_YEAR = 2000;
+const LAST_YEAR = 2099;
+
+/** True for a real calendar day written as `YYYY-MM-DD`, within years the app can book. */
 export function isBookingDate(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
-    parseBookingDate(value);
-    return true;
+    const year = parseBookingDate(value).getUTCFullYear();
+    return year >= FIRST_YEAR && year <= LAST_YEAR;
   } catch {
     return false;
   }
