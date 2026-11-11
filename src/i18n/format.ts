@@ -1,4 +1,4 @@
-import type { Locale } from "./config";
+import { timeZone, type Locale } from "./config";
 
 /** Intl tags per interface locale: English uses day-month order. */
 const intlTag: Record<Locale, string> = { it: "it-IT", en: "en-GB" };
@@ -27,6 +27,15 @@ export function formatBookingDate(date: string, locale: Locale): string {
     year: "numeric",
     timeZone: "UTC",
   }).format(parseBookingDate(date));
+}
+
+/** Formats a UTC instant in the venue time zone; convert only here, at the edge (ADR 0004). */
+export function formatTimestamp(at: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(intlTag[locale], {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone,
+  }).format(at);
 }
 
 export function formatEur(amount: number, locale: Locale): string {
