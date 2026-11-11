@@ -7,8 +7,7 @@
     }
   },
   "home": {
-    "title": "Benvenuto allo stabilimento",
-    "noteLabel": "Nota"
+    "title": "Benvenuto allo stabilimento"
   },
   "meta": {
     "title": "Stabilimento",
@@ -17,5 +16,72 @@
   "notFound": {
     "title": "Pagina non trovata",
     "body": "La pagina richiesta non esiste."
+  },
+  "login": {
+    "title": "Accedi",
+    "username": "Nome utente",
+    "password": "Password",
+    "submit": "Accedi",
+    "submitting": "Accesso in corso…",
+    "errors": {
+      "invalid": "Nome utente o password errati.",
+      "rateLimited": "Troppi tentativi. Attendi un minuto e riprova.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    }
+  },
+  "appShell": {
+    "home": "Home",
+    "staff": "Personale",
+    "signedInAs": "Accesso come {name}",
+    "logout": "Esci"
+  },
+  "staff": {
+    "title": "Account del personale",
+    "columns": {
+      "username": "Nome utente",
+      "name": "Nome",
+      "role": "Ruolo",
+      "status": "Stato",
+      "actions": "Azioni"
+    },
+    "roles": {
+      "admin": "Amministratore",
+      "staff": "Personale"
+    },
+    "status": {
+      "active": "Attivo",
+      "disabled": "Disattivato"
+    },
+    "disable": "Disattiva",
+    "enable": "Riattiva",
+    "reset": {
+      "label": "Nuova password per {username}",
+      "submit": "Reimposta password"
+    },
+    "create": {
+      "title": "Nuovo account",
+      "username": "Nome utente",
+      "name": "Nome",
+      "password": "Password",
+      "role": "Ruolo",
+      "submit": "Crea account"
+    },
+    "hints": {
+      "username": "3–30 caratteri: lettere, cifre, . e _",
+      "password": "Almeno 10 caratteri"
+    },
+    "done": {
+      "created": "Account creato.",
+      "updated": "Account aggiornato.",
+      "passwordReset": "Password reimpostata. L'utente è stato disconnesso."
+    },
+    "errors": {
+      "invalid": "Controlla i campi e riprova.",
+      "forbidden": "Solo gli amministratori possono farlo.",
+      "usernameTaken": "Questo nome utente è già in uso.",
+      "self": "Non puoi disattivare il tuo account.",
+      "notFound": "Account non trovato.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    }
   }
 }

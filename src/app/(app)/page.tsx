@@ -1,14 +1,12 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { requireUser } from "@/lib/auth/session";
 
-export default function Home() {
-  const t = useTranslations("home");
+export default async function Home() {
+  await requireUser();
+  const t = await getTranslations("home");
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
-      <label className="flex flex-col gap-1 text-sm">
-        {t("noteLabel")}
-        <input data-testid="i18n-probe" className="rounded border px-2 py-1" />
-      </label>
     </main>
   );
 }
