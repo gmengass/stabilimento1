@@ -1,0 +1,12 @@
+# Reverse proxy and HTTPS for the club box (ADR 0003, ADR 0008).
+# SITE_ADDRESS lists every name/IP staff use, e.g. "stabilimento.local, 192.168.1.10".
+{$SITE_ADDRESS:localhost} {
+	# Caddy's own CA: works offline; each staff device trusts its root once (RUNBOOK).
+	tls internal
+	encode zstd gzip
+	reverse_proxy app:3000 {
+		# The only client-IP header the app trusts. Overwrites anything the client sent.
+		header_up X-Real-IP {remote_host}
+	}
+	log
+}
