@@ -4,36 +4,36 @@
 > Git history keeps the old versions.
 
 ## Current state
-- PR #10 (`feat/deploy`) is open with CI green.
-  - It adds Caddy HTTPS (internal CA), auth that trusts only `X-Real-IP`, strict `TRUSTED_ORIGINS`,
-    the update/rollback scripts and the RUNBOOK.
-  - Decisions: ADR 0003 (amended: WSL2 now, native Linux later) and ADR 0008. 326 tests pass.
+- v0.1.1 is deployed. It had only login and staff accounts: the booking features were never built.
+- PR #13 `feat/beach-map`: admin beach setup (`/admin/beach`) and the beach map per date. CI green.
+- PR #14 `feat/bookings` (on top of #13): create and cancel day / multi-day bookings from the map,
+  SpotDay rows with a partial unique index (ADR 0004). Reviewer and security agents run, fixes in.
+- 413 tests pass.
 
 ## Done this session
-- ADR 0008 and `docs/plans/deploy.md`.
-- CI: HTTPS health check, port 3000 closed, spoofed headers still hit 429, shellcheck, and an
-  end-to-end install → update → rollback with a data check.
-- Review fixes: rollback after a failed update, owner-only dumps (3 kept), and RUNBOOK checks for
-  the CA key, firewall and network.
+- Roadmap Milestone 1 rewritten to match the brief (it was the generic template).
+- Map: sea at the top, line 1 nearest, names on booked umbrellas, tap to book or open a booking.
+- Bookings: clashes listed by umbrella and day, concurrency tests (8 at once; crossed spot sets),
+  cancel keeps days already used, can't cancel an ended booking.
 
 ## Next up
-1. Merge PR #10, then tag `v0.1.0` from GitHub (sessions can't push tags). Run the RUNBOOK on the box.
-2. Backups item: nightly encrypted pg_dump to OneDrive (rclone), retention, restore test, alert.
-   Share the lock with `update.sh`. Back up `caddy_data` too.
-3. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004.
+1. Merge #13, then #14. Tag `v0.2.0` on GitHub and run `scripts/update.sh v0.2.0` on the box.
+   Then an admin opens "Impostazione spiaggia" once to create the lines and umbrellas.
+2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
+3. Seasons and season passes with released days.
+4. Backups (USB + OneDrive) before the first real season.
 
 ## Open questions
+- GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
+- AuditLog table (ADR 0004 mentions it) is not built yet: create and cancel write no audit entry.
+- No rate limit on booking actions; spots aren't checked against the area (one area at launch).
+- Venue name accepts control characters; setup numbers accept `true`/`1e1` (bounds still hold).
+- A partly used booking that is cancelled still shows on its past days (by design, for history).
 - Verify on the box: does WSL2 mirrored networking keep LAN source IPs (RUNBOOK check)?
-- Hardening for later: a shared-secret header from Caddy to the app, the db port in a dev-only
-  file, signed tags, the Caddy image pinned by digest, a per-username lockout, keep-data rollback.
-- Existing dev databases keep the old 1–120 numbers: re-create the DB.
 - Session length on shared tablets: 12 h absolute, or end of day (Europe/Rome)?
-- Password policy is length-only, staff can't change their own password, and expired sessions are
-  never deleted (GDPR cleanup).
-- `formatEur` takes euros: switch to cents before the Prices item? VenueSettings: columns or 1:1?
+- `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 
 ## Known issues
-- Sessions can't pull Docker images, download Playwright browsers or push tags (HTTP 403).
-  Docker and e2e are verified in CI, and releases are tagged on GitHub.
+- Sessions can't pull Docker images or push tags (HTTP 403). Docker and e2e are verified in CI.
 - Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean.
