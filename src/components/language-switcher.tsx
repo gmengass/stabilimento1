@@ -1,7 +1,6 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useId, useTransition, type ChangeEvent } from "react";
 import { locales } from "@/i18n/config";
 import { setLocale } from "@/i18n/actions";
@@ -9,15 +8,14 @@ import { setLocale } from "@/i18n/actions";
 export function LanguageSwitcher() {
   const t = useTranslations("common.languageSwitcher");
   const locale = useLocale();
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const id = useId();
 
   function onChange(event: ChangeEvent<HTMLSelectElement>) {
     const next = event.target.value;
+    // A cookie set in a Server Action re-renders the current route in the same response.
     startTransition(async () => {
-      const result = await setLocale(next);
-      if (result.ok) router.refresh();
+      await setLocale(next);
     });
   }
 

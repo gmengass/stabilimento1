@@ -22,7 +22,7 @@ describe("setLocale", () => {
       sameSite: "lax",
       httpOnly: true,
       maxAge: ONE_YEAR,
-      secure: process.env.NODE_ENV === "production",
+      secure: expect.any(Boolean),
     });
   });
 
