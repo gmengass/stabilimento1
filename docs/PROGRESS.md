@@ -30,7 +30,8 @@ Root layout renders per request (ADR 0006). 115 Vitest tests + 2 e2e pass locall
 - Pin GitHub Actions to commit SHAs (security, low)
 - Home page `i18n-probe` input is test-only: move the e2e to a real form when one exists
 - OneDrive backup permission: shelved until the Backups item
-- Mini PC: model, RAM and OS needed for the Deploy item
+- Mini PC: Windows 11, Ryzen 5 7430U (assumed), 16 GB. Deploy item: Docker Engine in WSL2 started
+  at boot (preferred) vs Docker Desktop + auto-login; amend ADR 0003
 
 ## Known issues
 - Sessions can't pull from Docker Hub or download Playwright browsers: run e2e locally with a
