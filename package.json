@@ -24,6 +24,7 @@
   "dependencies": {
     "kysely": "0.29.8",
     "next": "16.4.6",
+    "next-intl": "4.14.10",
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
