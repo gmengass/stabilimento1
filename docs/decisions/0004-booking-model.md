@@ -64,12 +64,12 @@
 
 ### Quick book
 - Inputs: customer name, phone, date(s) or season, number of umbrellas, number of sunbeds.
-- The system **suggests** spots: free umbrellas side by side in the same row first, with
+- The system **suggests** spots: free umbrellas side by side in the same line first, with
   sunbeds spread across them up to `max_sunbeds`, and any remainder on standalone sunbeds.
 - Staff confirm in one tap, or tap a different spot on the map before confirming.
 
 ### Date view
-- For any date: totals (umbrellas free / total, sunbeds free / total) and a **map by row**,
+- For any date: totals (umbrellas free / total, sunbeds free / total) and a **map by line**,
   colored by state: free, booked, season pass, released (available), no-show (available),
   checked in. Late-arrival holds show their time (e.g. "hold 13:30").
 - It updates live across devices (ADR 0003).

@@ -16,8 +16,9 @@ cancel sunbeds, umbrellas and other spots from a live map of the beach.
 Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regulars).
 
 ## What gets booked
-- **Umbrellas** (each with a number of sunbeds) and any **standalone sunbeds**, laid out in rows
-  on a map, grouped into **areas**.
+- **Umbrellas** (ombrelloni), standard **2 sunbeds** (lettini) each, **max 3**, laid out in
+  **lines** (file). **Line 1 is closest to the shore.** Lines are grouped into **areas**.
+- Standalone sunbeds (no umbrella) are supported but not used at launch.
 - One club with one area at launch. Further areas can be added later without code changes.
 - Booking units: **full day**, **several consecutive days**, and **season pass** (whole season).
   No half days or hourly slots (ADR 0004).
@@ -28,10 +29,14 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
 - [ ] Live map per day: free / booked / checked in, updated across devices within seconds
 - [ ] **Quick book**: name, phone, number of umbrellas and sunbeds; the system suggests spots,
       staff confirm in one tap (ADR 0004)
-- [ ] **Date view**: pick any date and see umbrellas and sunbeds free vs total, plus a map by row
+- [ ] **Date view**: pick any date and see umbrellas and sunbeds free vs total, plus a map by line
 - [ ] Create, move and cancel a booking with no double bookings: one day, several days, or a
       season pass
-- [ ] **Release days** of a season pass so the spot can be sold for those days
+- [ ] **Release days** of a season pass so the spot can be sold for those days; the pass shows its
+      first day and number of released days
+- [ ] **11:00 hold rule**: reservations not checked in by 11:00 free up automatically; per-booking
+      later hold time for customers who said they'd be late
+- [ ] Check-in of arrivals
 - [ ] Seasons set up by the admin (start and end dates)
 - [ ] Search bookings by customer name or phone
 - [ ] Nightly encrypted backups to OneDrive (ADR 0003)

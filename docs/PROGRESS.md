@@ -11,7 +11,8 @@ on-site bookings. No application code yet.
 ## Done this session
 - Skeleton, agents and commands merged; branch ruleset scoped to `main`
 - ADR 0003 rewritten for local hosting (Docker Compose, Caddy, UPS, Tailscale, rclone → OneDrive)
-- ADR 0004: per-day occupancy, season passes with released days, quick book, date view
+- ADR 0004: per-day occupancy, season passes (first day, released-day count), quick book,
+  date view by line, 11:00 hold rule with per-booking override; 2–3 sunbeds per umbrella
 - PROJECT_BRIEF drafted; domain is Venue → Area → Spot, plus Customer (no login)
 
 ## Next up
@@ -20,7 +21,7 @@ on-site bookings. No application code yet.
 3. Roadmap item: "Scaffold app, lint/format, test runner, CI green"
 
 ## Open questions
-- Sunbeds: how many come with each umbrella, and are there standalone sunbeds (no umbrella)?
+- Does the 11:00 no-show rule also apply to season-pass holders? (Assumed yes: "all reservations")
 - Interface language: Italian, English or both?
 - Is storing encrypted backups on the company OneDrive OK with whoever manages Microsoft 365?
 - Hardware: mini PC chosen yet?
