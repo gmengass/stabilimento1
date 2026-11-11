@@ -33,6 +33,18 @@ You need Windows 11 22H2 or later for mirrored networking. Use Docker Engine, no
    - Windows Update: active hours set to the club's opening hours.
 2. **WSL and Ubuntu**: in an admin PowerShell, run `wsl --install -d Ubuntu-24.04`, then reboot and
    create the Linux user.
+   **Shortcut for steps 3–4 and "First install":** inside Ubuntu, run
+   ```sh
+   git clone https://github.com/gmengass/stabilimento1 ~/stabilimento1
+   cd ~/stabilimento1 && sh scripts/setup-wsl.sh vX.Y.Z
+   ```
+   - It enables systemd. Then run `wsl --shutdown` in PowerShell and run the script again.
+   - It installs Docker Engine 28 or later.
+   - It asks for the box's name and IP, writes `.env` with fresh secrets, installs the release and
+     creates the first admin.
+   - It exports the root certificate (also to Windows Downloads) and makes an encrypted backup of
+     the CA key in `~/secrets`.
+   - Every step is safe to run again. Steps 5–8 below are still done in Windows.
 3. **systemd**: in Ubuntu, create `/etc/wsl.conf`, then run `wsl --shutdown` from PowerShell:
    ```ini
    [boot]
