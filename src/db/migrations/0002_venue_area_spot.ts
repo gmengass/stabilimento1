@@ -17,7 +17,7 @@ const upStatements: RawBuilder<unknown>[] = [
   sql`create type spot_kind as enum ('umbrella', 'sunbed')`,
   sql`create table venue (
     id integer generated always as identity primary key,
-    name text not null check (btrim(name) <> ''),
+    name text not null check (name ~ '\\S'),
     slug text not null unique check (slug ~ ${sql.lit(SLUG)}),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -25,7 +25,7 @@ const upStatements: RawBuilder<unknown>[] = [
   sql`create table area (
     id integer generated always as identity primary key,
     venue_id integer not null references venue (id) on delete restrict,
-    name text not null check (btrim(name) <> ''),
+    name text not null check (name ~ '\\S'),
     slug text not null check (slug ~ ${sql.lit(SLUG)}),
     sort_order integer not null default 0,
     created_at timestamptz not null default now(),

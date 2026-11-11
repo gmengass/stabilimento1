@@ -151,7 +151,7 @@ describe("AC6: demo seed", () => {
 
   it("refuses to run when NODE_ENV is production and writes nothing", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    await expect((async () => seedDemo(db))()).rejects.toThrow(Error);
+    await expect(seedDemo(db)).rejects.toThrow(Error);
     vi.unstubAllEnvs();
     expect(await snapshot()).toEqual({ venues: [], areas: [], lines: [], spots: [] });
   });

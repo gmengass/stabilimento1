@@ -57,7 +57,12 @@ async function ensureLine(tx: Tx, areaId: number, lineNumber: number): Promise<n
   return row.id;
 }
 
-async function ensureUmbrellas(tx: Tx, areaId: number, lineId: number, lineNumber: number) {
+async function ensureUmbrellas(
+  tx: Tx,
+  areaId: number,
+  lineId: number,
+  lineNumber: number,
+): Promise<void> {
   const { umbrellasPerLine } = demoLayout;
   const values = Array.from({ length: umbrellasPerLine }, (_, i) => ({
     area_id: areaId,
