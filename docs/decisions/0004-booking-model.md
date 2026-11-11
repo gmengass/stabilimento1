@@ -13,7 +13,8 @@
   which lines they're in.
 - Umbrellas stand in **lines**. Line 1 is closest to the shore.
 - Standard is **2 sunbeds per umbrella, maximum 3**.
-- Unclaimed reservations free up at **11:00** unless the customer said they'd arrive late.
+- Unclaimed day and multi-day reservations free up at **11:00** unless the customer said they'd
+  arrive late. Season passes are exempt.
 
 ## Decision
 ### Things that can be booked
@@ -32,7 +33,6 @@
   **first day**, which can be later than the season's opening day. `end_date` defaults to the
   season's last day. The **number of released days** is shown on the pass and in reports. It is
   counted from SpotDay rows (`state = released`), so it can never drift out of sync.
-  No-show days are counted separately.
 - **BookingSpot**: which spots a booking uses, and how many sunbeds go with each umbrella.
   One booking can hold several umbrellas (e.g. a family with 2 umbrellas + 5 sunbeds,
   i.e. 3 + 2, within each umbrella's max of 3).
@@ -48,19 +48,23 @@
   - `no_show`: not checked in by the hold time (see below).
   Only `booked` counts as occupied, so a new booking can be made on a released or no-show day.
   A released or no-show day can be restored only while the spot is still free that day.
-
-### Hold rule (11:00)
-- Venue setting `default_hold_until` = **11:00** (local time). It applies to every reservation:
-  day, multi-day and season.
-- Each booking can override it with `hold_until` (e.g. 13:30) when the customer has said
-  they'll be late. The override applies to all of its days, or can be set for a single day.
-- At the hold time, today's `booked` SpotDays with no check-in become `no_show`. A job runs every
-  minute and writes an AuditLog entry. The spot then shows as free on every screen.
-- If the customer arrives later: if the spot is still free, staff tap "restore" (back to `booked`
-  plus check-in); otherwise they quick-book them another spot.
 - Scale check: 200 spots × 120 season days ≈ 24k rows a season. Trivial for PostgreSQL.
 - This replaces the date-range exclusion constraint. Per-day rows make releasing, the date view
   and counts simple queries.
+
+### Hold rule (11:00)
+- Venue setting `default_hold_until` = **11:00** (local time). It applies to **day and multi-day
+  bookings**. **Season passes are exempt**: their spots are never freed automatically, only by
+  releasing days.
+- Each booking can override it with `hold_until` (e.g. 13:30) when the customer has said
+  they'll be late. The override applies to all of its days, or can be set for a single day.
+- At the hold time, today's `booked` SpotDays (non-season) with no check-in become `no_show`.
+  A job runs every minute and writes an AuditLog entry. The spot becomes bookable again.
+- **No-show spots stay flagged on the map**: a distinct color with the original customer's
+  name and "no-show 11:00", so staff recognize a latecomer at a glance. Staff can rebook the spot.
+  The map then shows the new booking, with a small marker that opens the no-show's details.
+- If the customer arrives later: if the spot is still free, staff tap "restore" (back to `booked`
+  plus check-in); otherwise they quick-book them another spot.
 
 ### Quick book
 - Inputs: customer name, phone, date(s) or season, number of umbrellas, number of sunbeds.
@@ -70,8 +74,8 @@
 
 ### Date view
 - For any date: totals (umbrellas free / total, sunbeds free / total) and a **map by line**,
-  colored by state: free, booked, season pass, released (available), no-show (available),
-  checked in. Late-arrival holds show their time (e.g. "hold 13:30").
+  colored by state: free, booked, season pass, released (available), no-show (available, shows the
+  original name), checked in. Late-arrival holds show their time (e.g. "hold 13:30").
 - It updates live across devices (ADR 0003).
 
 ### Also

@@ -34,8 +34,9 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
       season pass
 - [ ] **Release days** of a season pass so the spot can be sold for those days; the pass shows its
       first day and number of released days
-- [ ] **11:00 hold rule**: reservations not checked in by 11:00 free up automatically; per-booking
-      later hold time for customers who said they'd be late
+- [ ] **11:00 hold rule**: day/multi-day reservations not checked in by 11:00 free up
+      automatically (season passes exempt); per-booking later hold time for late arrivals;
+      no-show spots stay flagged on the map with the customer's name
 - [ ] Check-in of arrivals
 - [ ] Seasons set up by the admin (start and end dates)
 - [ ] Search bookings by customer name or phone
