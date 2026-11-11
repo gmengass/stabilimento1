@@ -9,7 +9,7 @@ position (line 1: 101…, line 2: 201…), position 1 = leftmost facing the sea 
 rule only, no migration, no DB constraint. 290 Vitest pass; lint, types, format clean.
 
 ## Done this session
-- Seed formula (`src/db/seed-data.ts`) and seed test with boundary checks (101, 120, 201, 620)
+- Seed formula (`src/db/seed-data.ts`) and seed test with boundary checks (101, 118, 201, 618); demo is 6 lines × 18 = 108
 - Rule recorded in ADR 0004, PROJECT_BRIEF, ARCHITECTURE, CHANGELOG; ROADMAP item ticked
 
 ## Next up
@@ -18,8 +18,7 @@ rule only, no migration, no DB constraint. 290 Vitest pass; lint, types, format 
 3. Deploy item: Caddy in front (sets X-Forwarded-For), `trustedProxies`, `APP_URL` https
 
 ## Open questions
-- Existing dev databases keep the old 1–120 numbers (seed never updates rows): re-create or
-  renumber by hand. Real beach: line lengths (18 per line?) once the layout is entered
+- Existing dev databases keep the old 1–120 numbers (seed never updates rows): re-create the DB
 - Session length on shared tablets: 12 h absolute now; end of day (Europe/Rome) instead?
 - Password policy is length-only (10–128); staff can't change their own password
 - Expired `session` rows (IP, user agent) are never deleted: cleanup job + retention (GDPR)

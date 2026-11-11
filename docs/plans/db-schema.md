@@ -62,8 +62,8 @@ matches the schema, and an idempotent seed loads a realistic demo beach.
 2. `feat:` migration 0002 (`/checkpoint` first); check the round trip with `db:migrate`/`db:rollback`
 3. `chore:` types: local Postgres if available, then `npm run db:types`; else hand-write and let CI (AC 7) confirm
 4. `test:` + `feat:` seed: one transaction, `insert ... on conflict (natural key) do nothing`, then select ids,
-   never deletes. Demo: fictional "Lido Demo", area "Spiaggia principale" (`main`), 6 lines × 20 umbrellas
-   at defaults (120 spots; numbered 1–120 at first, now line × 100 + position, see ADR 0004), no standalone sunbeds
+   never deletes. Demo: fictional "Lido Demo", area "Spiaggia principale" (`main`), 6 lines × 18 umbrellas
+   at defaults (108 spots, numbered line × 100 + position, see ADR 0004; first drafted as 20 per line, 1–120), no standalone sunbeds
 5. `ci:` types drift check
 6. `docs:` ARCHITECTURE layout, PROGRESS
 
