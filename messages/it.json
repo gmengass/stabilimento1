@@ -94,7 +94,11 @@
     "go": "Mostra",
     "emptyTitle": "La spiaggia non è ancora impostata",
     "emptyAdmin": "Imposta file e ombrelloni",
-    "emptyStaff": "Chiedi a un amministratore di impostare file e ombrelloni."
+    "emptyStaff": "Chiedi a un amministratore di impostare file e ombrelloni.",
+    "spotBooked": "Ombrellone {number}, prenotato da {name}",
+    "legendFree": "Liberi: {count}",
+    "legendBooked": "Prenotati: {count}",
+    "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo."
   },
   "beachSetup": {
     "title": "Impostazione spiaggia",
@@ -113,6 +117,35 @@
       "invalid": "Controlla i campi e riprova.",
       "exists": "La spiaggia è già impostata.",
       "forbidden": "Solo gli amministratori possono farlo.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    }
+  },
+  "booking": {
+    "newTitle": "Nuova prenotazione",
+    "sunbeds": "Lettini",
+    "remove": "Togli",
+    "removeSpot": "Togli l'ombrellone {number}",
+    "customerName": "Nome cliente",
+    "customerPhone": "Telefono",
+    "from": "Dal",
+    "to": "Al (incluso)",
+    "notes": "Note",
+    "book": "{count, plural, one {Prenota # ombrellone} other {Prenota # ombrelloni}}",
+    "saving": "Salvataggio…",
+    "close": "Chiudi",
+    "range": "{from} – {to}",
+    "spotLine": "Ombrellone {number} · {sunbeds, plural, one {# lettino} other {# lettini}}",
+    "cancel": "Annulla prenotazione",
+    "cancelConfirm": "Annullare tutta la prenotazione, per ogni ombrellone e ogni giorno?",
+    "cancelYes": "Sì, annulla",
+    "cancelNo": "No, tienila",
+    "errors": {
+      "invalid": "Controlla i campi: nome, un numero di telefono e una data di fine uguale o successiva all'inizio (massimo 60 giorni).",
+      "sunbeds": "Troppi lettini per uno degli ombrelloni.",
+      "taken": "Già prenotato:",
+      "clash": "Ombrellone {number} il {date}",
+      "forbidden": "La sessione è scaduta. Accedi di nuovo.",
+      "notFound": "Questa prenotazione non esiste più o è già stata annullata.",
       "generic": "Qualcosa è andato storto. Riprova."
     }
   }

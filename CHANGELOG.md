@@ -25,6 +25,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Admins set up a fresh beach at `/admin/beach`: club name, number of lines and umbrellas per
   line, numbered line × 100 + position.
 
+- Bookings from the map: tap free umbrellas, enter name and phone, pick the days and the
+  sunbeds per umbrella, and book. Booked umbrellas show the customer's name; tap one to see the
+  booking or cancel it. The database refuses double bookings, even from two tablets at once,
+  and staff see which umbrella and day clashed.
+
 ### Changed
 - Roadmap Milestone 1 now lists the beach club features from the project brief.
 - Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),
