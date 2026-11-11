@@ -16,8 +16,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "tsx src/db/migrate.ts up",
-    "db:rollback": "tsx src/db/migrate.ts down",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts up",
+    "db:rollback": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts down",
     "db:types": "kysely-codegen --dialect postgres --out-file src/db/types.ts"
   },
   "dependencies": {
