@@ -20,7 +20,8 @@
     "db:rollback": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts down",
     "db:seed": "node --env-file-if-exists=.env --import tsx src/db/seed.ts",
     "db:types": "kysely-codegen --dialect postgres --date-parser string --out-file src/db/types.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:seed-admin": "node --env-file-if-exists=.env --import tsx src/db/seed-admin.ts"
   },
   "dependencies": {
     "better-auth": "1.7.20",
