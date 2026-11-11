@@ -38,6 +38,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: Shellcheck deploy scripts
+        run: shellcheck -s sh -x scripts/*.sh scripts/lib/common.sh
       - run: npm run format:check
       - run: npm run typecheck
       - name: Migrate, roll back, migrate again
@@ -133,6 +135,51 @@ jobs:
           test "$code" = 429
       - name: Roll back the migration in the container
         run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0003_auth"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
+
+  deploy-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Box-like .env and two local release tags
+        run: |
+          {
+            echo "POSTGRES_PASSWORD=ci0only0password"
+            echo "AUTH_SECRET=ci-only-auth-secret-0123456789abcdef"
+            echo "APP_URL=https://localhost"
+            echo "SITE_ADDRESS=localhost"
+          } > .env
+          git tag v0.0.1 && git tag v0.0.2
+      - name: First install v0.0.1
+        run: scripts/update.sh v0.0.1
+      - name: Data entered on v0.0.1
+        run: |
+          docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' <<'SQL'
+          create table deploy_marker (label text);
+          insert into deploy_marker values ('before-update');
+          SQL
+      - name: Update to v0.0.2 (takes the pre-update dump)
+        run: scripts/update.sh v0.0.2 && test "$(cat .deploy/current)" = v0.0.2
+      - name: Data entered on v0.0.2
+        run: |
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "insert into deploy_marker values ('"'"'after-update'"'"')"'
+      - name: Roll back to v0.0.1 and its dump
+        run: scripts/rollback.sh --yes && test "$(cat .deploy/current)" = v0.0.1
+      - name: Restored data is the pre-update state, app healthy over HTTPS
+        run: |
+          rows=$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select label from deploy_marker order by label"')
+          echo "rows: $rows"
+          test "$rows" = before-update
+          test "$(curl -fsSk https://localhost/health)" = '{"status":"ok","db":"ok"}'
       - name: Logs on failure
         if: failure()
         run: docker compose logs
