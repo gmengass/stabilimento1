@@ -1,7 +1,8 @@
 import type { Kysely, Transaction } from "kysely";
 import type { DB } from "./types";
 
-// Fictional demo beach. Lines are numbered from the shore; umbrellas carry one number per area.
+// Fictional demo beach. Lines are numbered from the shore. Umbrella number = line × 100 + position,
+// position 1 being the leftmost umbrella when facing the sea (ADR 0004).
 export const demoLayout = {
   venue: { name: "Lido Demo", slug: "lido-demo" },
   area: { name: "Spiaggia principale", slug: "main" },
@@ -68,7 +69,7 @@ async function ensureUmbrellas(
     area_id: areaId,
     line_id: lineId,
     position: i + 1,
-    number: (lineNumber - 1) * umbrellasPerLine + i + 1,
+    number: lineNumber * 100 + i + 1,
   }));
   await tx
     .insertInto("spot")
