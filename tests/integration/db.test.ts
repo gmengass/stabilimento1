@@ -1,6 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDb } from "@/db/client";
+import { createDb, getDb } from "@/db/client";
 import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { testDatabaseUrl } from "./test-database";
@@ -13,6 +13,7 @@ beforeAll(() => {
 
 afterAll(async () => {
   await db.destroy();
+  await getDb().destroy();
 });
 
 async function appliedMigrations(): Promise<string[]> {
@@ -24,6 +25,13 @@ describe("database", () => {
   it("connects", async () => {
     const { rows } = await sql<{ one: number }>`select 1 as one`.execute(db);
     expect(rows).toEqual([{ one: 1 }]);
+  });
+
+  it("points the app's getDb() at the test database", async () => {
+    const { rows } = await sql<{ name: string }>`select current_database() as name`.execute(
+      getDb(),
+    );
+    expect(rows[0]?.name).toMatch(/_test$/);
   });
 
   it("applies and rolls back the baseline migration", async () => {
