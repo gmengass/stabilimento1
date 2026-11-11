@@ -8,7 +8,11 @@ function bookingDayToUtc(day: string): Date {
   if (!match) throw new RangeError(`Invalid booking day: ${JSON.stringify(day)}`);
   const [year, month, date] = match.slice(1).map(Number);
   const utc = new Date(Date.UTC(year, month - 1, date));
-  if (utc.getUTCFullYear() !== year || utc.getUTCMonth() !== month - 1 || utc.getUTCDate() !== date) {
+  if (
+    utc.getUTCFullYear() !== year ||
+    utc.getUTCMonth() !== month - 1 ||
+    utc.getUTCDate() !== date
+  ) {
     throw new RangeError(`Invalid booking day: ${JSON.stringify(day)}`);
   }
   return utc;
