@@ -1,32 +1,42 @@
 # 0002. Tech stack
 
-- Status: **Proposed** (needs owner approval)
-- Date: 2026-11-10
+- Status: Accepted
+- Date: 2026-11-11 (proposed 2026-11-10; revised for local hosting, ADR 0003)
 
 ## Context
-We need a widely used, open-source, self-hostable stack with strong typing, good testing tools,
-and a database that can enforce "no overlapping bookings".
+We need a widely used, open-source, self-hostable stack with strong typing and good testing tools.
+It must run in Docker on a small local server (ADR 0003) and let the database enforce
+"one booking per spot per day" (ADR 0004). Migrations must have a rollback path (CLAUDE.md).
 
-## Proposed decision
+## Decision
 | Layer | Choice | Why |
 |-------|--------|-----|
-| Language | TypeScript | One language front to back, typed |
-| Web framework | Next.js (App Router) | Full-stack, large community |
-| Database | PostgreSQL | Exclusion constraints prevent double booking |
-| ORM / migrations | Prisma or Drizzle (decide at scaffold) | Typed queries, versioned migrations |
-| Auth | Auth.js | Open source, many providers |
-| Tests | Vitest (unit/integration), Playwright (e2e) | Fast, standard |
+| Runtime | Node.js 24 LTS | Current LTS; one language front to back |
+| Language | TypeScript (strict) | Typed |
+| Web framework | Next.js (App Router), `output: "standalone"` | Full-stack, large community, small Docker image |
+| Database | PostgreSQL 17 | Unique and partial indexes, transactions, `LISTEN/NOTIFY` for live updates |
+| Queries | Kysely | Typed SQL builder, close to plain SQL, no hidden behavior |
+| Migrations | Kysely migrator (`up` + `down` per file) | Meets the rollback rule; plain SQL inside |
+| DB types | `kysely-codegen` generated from the migrated DB | The schema lives in one place: migrations |
+| Auth | Better Auth (username + password, DB sessions, admin/staff roles) | Open source, Kysely support, no external service |
+| Validation | Zod | One schema for forms and server actions |
+| UI | Tailwind CSS | Fast to build a touch-friendly map UI |
+| Live updates | Server-Sent Events fed by Postgres `LISTEN/NOTIFY` | No extra services (ADR 0003) |
+| Scheduled jobs | In-app minute ticker (11:00 hold rule) + host cron for backups | Simple; no queue system |
+| Tests | Vitest (unit + integration against a real Postgres), Playwright (e2e) | Fast, standard |
 | Lint/format | ESLint + Prettier | Standard |
-| Email | Nodemailer + any SMTP | No vendor lock-in |
-| Payments (optional) | Stripe Checkout | Hosted flow, no card data stored |
-| Deploy | Docker Compose (self-host); Vercel/Fly/Render optional | Open-source friendly |
-| CI | GitHub Actions | Free for public repos |
+| Package manager | npm, with `package-lock.json` committed | Reproducible installs |
+| Deploy | Docker Compose: app + Postgres + Caddy (ADR 0003) | Self-hosted |
+| CI | GitHub Actions with a Postgres service container | Free for public repos |
+
+Not used in v1: payments (Stripe), email providers, any hosted platform.
 
 ## Alternatives considered
-- Python/Django: excellent admin panel and batteries included. A good choice if you prefer Python.
-- Laravel (PHP): mature, cheap hosting.
-- Fork an existing open-source scheduler (e.g. Cal.com, Easy!Appointments): fastest route if the
-  use case is plain appointments, but less of your own design.
+- Prisma / Drizzle: good DX, but partial unique indexes and down-migrations are awkward. With
+  Kysely the constraints are plain SQL.
+- Auth.js: its credentials (password) login is discouraged and has no DB sessions.
+- Python/Django: excellent admin, but splits the language between front end and back end.
 
 ## Consequences
-Once this ADR is accepted, CLAUDE.md "Commands" and the CI workflow get filled in for this stack.
+- CLAUDE.md "Commands" and CI are filled in by the scaffold item (`docs/plans/scaffold.md`).
+- Exact package versions are pinned in `package-lock.json` at install time.
