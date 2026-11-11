@@ -59,4 +59,4 @@ Customers do **not** use the app. Staff enter all bookings (walk-in, phone, regu
 - Hosting budget: one-off hardware, no monthly hosting fees.
 - Must keep working without internet.
 - Personal data (names, phone numbers) handled under GDPR.
-- Languages / currency: _(to confirm)_ Italian and/or English; EUR.
+- Languages / currency: Italian and English, switchable per user (ADR 0005); EUR.
