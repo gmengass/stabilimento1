@@ -83,5 +83,5 @@
   Deploy item).
 - Confirm with whoever manages the company Microsoft 365 that storing encrypted backups containing
   customer data there is allowed.
-- HTTPS on plain Wi-Fi: Caddy's internal certificate must be trusted once per staff device, or staff
-  use the Tailscale address. Decided at the Deploy item.
+- HTTPS on plain Wi-Fi: Caddy's internal certificate, trusted once per staff device
+  ([ADR 0008](0008-deploy-details.md)).
