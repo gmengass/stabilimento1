@@ -1,0 +1,20 @@
+# Throwaway PostgreSQL for integration tests: `docker compose -f docker-compose.test.yml up -d`.
+# Data lives in memory and is gone when the container stops.
+name: stabilimento-test
+
+services:
+  db-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking
+      POSTGRES_DB: booking_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking -d booking_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 15

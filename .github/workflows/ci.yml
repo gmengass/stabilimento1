@@ -5,36 +5,67 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: booking
+          POSTGRES_PASSWORD: booking
+          POSTGRES_DB: booking_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U booking -d booking_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
+      TEST_DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
     steps:
       - uses: actions/checkout@v4
-
-      # Placeholder until the stack is scaffolded (ADR 0002).
-      # Replace with: install → lint → typecheck → test → build.
-      - name: Detect project
-        run: |
-          if [ -f package.json ]; then
-            echo "node=true" >> "$GITHUB_OUTPUT"
-          fi
-        id: detect
-
       - uses: actions/setup-node@v4
-        if: steps.detect.outputs.node == 'true'
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - name: Migrate, roll back, migrate again
+        run: npm run db:migrate && npm run db:rollback && npm run db:migrate
+      - run: npm test
+      - run: npm run build
 
-      - name: Install, lint, test, build
-        if: steps.detect.outputs.node == 'true'
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: docker compose build
+      - name: Migrate
+        run: docker compose run --rm migrate
+      - name: Start app
+        run: docker compose up -d --no-deps --wait app
+      - name: Health check
         run: |
-          npm ci
-          npm run lint --if-present
-          npm run typecheck --if-present
-          npm test --if-present
-          npm run build --if-present
-
-      - name: No app yet
-        if: steps.detect.outputs.node != 'true'
-        run: echo "No application code yet. CI passes."
+          body=$(curl -fsS http://localhost:3000/health)
+          echo "$body"
+          test "$body" = '{"status":"ok","db":"ok"}'
+      - name: Roll back the migration in the container
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0001_init"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
