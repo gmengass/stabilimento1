@@ -1,4 +1,4 @@
-import { APIError } from "better-auth/api";
+import { isAPIError } from "better-auth/api";
 import type { Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
@@ -31,11 +31,23 @@ const resetSchema = z.object({ userId: z.string().min(1), password: passwordSche
 
 const fail = (error: StaffError): StaffResult => ({ ok: false, error });
 
-const USERNAME_TAKEN_CODES = new Set(["USERNAME_IS_ALREADY_TAKEN", "USER_ALREADY_EXISTS"]);
+const USERNAME_TAKEN_CODES = new Set([
+  "USERNAME_IS_ALREADY_TAKEN",
+  "USER_ALREADY_EXISTS",
+  "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
+]);
+
+const PG_UNIQUE_VIOLATION = "23505";
+
+function isUniqueViolation(error: unknown): boolean {
+  return (error as { code?: unknown } | null)?.code === PG_UNIQUE_VIOLATION;
+}
 
 /** Maps Better Auth admin-endpoint errors to our result codes; anything else is rethrown. */
 function toResult(error: unknown): StaffResult {
-  if (!(error instanceof APIError)) throw error;
+  // Two admins creating the same username at once: the loser hits the unique index.
+  if (isUniqueViolation(error)) return fail("usernameTaken");
+  if (!isAPIError(error)) throw error;
   const code = typeof error.body?.code === "string" ? error.body.code : "";
   if (USERNAME_TAKEN_CODES.has(code)) return fail("usernameTaken");
   if (error.status === "FORBIDDEN" || error.status === "UNAUTHORIZED") return fail("forbidden");
