@@ -7,8 +7,8 @@ import type { DB } from "@/db/types";
 export const BASE_URL = "http://localhost:3000";
 const TEST_SECRET = "test-secret-not-for-production-0123456789";
 
-export function testAuth(db: Kysely<DB>, baseURL = BASE_URL): Auth {
-  return createAuth({ db, secret: TEST_SECRET, baseURL });
+export function testAuth(db: Kysely<DB>, baseURL = BASE_URL, trustedOrigins?: string[]): Auth {
+  return createAuth({ db, secret: TEST_SECRET, baseURL, trustedOrigins });
 }
 
 export async function truncateAuth(db: Kysely<DB>): Promise<void> {
@@ -27,18 +27,20 @@ interface PostOptions {
   ip?: string;
   headers?: Headers;
   baseURL?: string;
+  origin?: string;
 }
 
 export function post(
   auth: Auth,
   path: string,
   body: unknown,
-  { ip = uniqueIp(), headers, baseURL = BASE_URL }: PostOptions = {},
+  { ip = uniqueIp(), headers, baseURL = BASE_URL, origin = baseURL }: PostOptions = {},
 ): Promise<Response> {
   const merged = new Headers(headers);
   merged.set("content-type", "application/json");
-  merged.set("origin", baseURL);
-  merged.set("x-forwarded-for", ip);
+  merged.set("origin", origin);
+  // Caddy overwrites this header with the peer address (ADR 0008).
+  merged.set("x-real-ip", ip);
   return auth.handler(
     new Request(`${baseURL}/api/auth${path}`, {
       method: "POST",

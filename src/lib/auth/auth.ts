@@ -61,13 +61,16 @@ export interface AuthDeps {
   baseURL: string;
   /** Rate limiting is on by default; Better Auth would only enable it in production. */
   rateLimit?: boolean;
+  /** Origins allowed besides `baseURL`, e.g. the box's IP (ADR 0008). */
+  trustedOrigins?: string[];
 }
 
-export function createAuth({ db, secret, baseURL, rateLimit = true }: AuthDeps) {
+export function createAuth({ db, secret, baseURL, rateLimit = true, trustedOrigins }: AuthDeps) {
   return betterAuth({
     appName: "Stabilimento",
     secret,
     baseURL,
+    trustedOrigins,
     database: { db: db.withPlugin(new CamelCasePlugin()), type: "postgres" },
     disabledPaths: DISABLED_PATHS,
     advanced: {
@@ -75,7 +78,10 @@ export function createAuth({ db, secret, baseURL, rateLimit = true }: AuthDeps) 
       // Better Auth decides from the APP_URL scheme.
       useSecureCookies: process.env.NODE_ENV === "production" ? true : undefined,
       // Every device on the staff Wi-Fi shares one IPv6 /64: rate-limit per address instead.
-      ipAddress: { ipv6Subnet: 128 },
+      // Caddy overwrites X-Real-IP with the peer address; X-Forwarded-For is client-controlled.
+      ipAddress: { ipv6Subnet: 128, ipAddressHeaders: ["x-real-ip"] },
+      // Better Auth skips origin checks under NODE_ENV=test; keep them on so tests match production.
+      disableOriginCheck: false,
     },
     emailAndPassword: {
       enabled: true,
@@ -125,6 +131,7 @@ export function getAuth(): Auth {
     db: getDb(),
     secret: parseAuthEnv(process.env).AUTH_SECRET,
     baseURL: getEnv().APP_URL,
+    trustedOrigins: getEnv().TRUSTED_ORIGINS,
   });
   return auth;
 }

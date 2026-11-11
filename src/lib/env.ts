@@ -4,6 +4,17 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   APP_URL: z.url().default("http://localhost:3000"),
+  /** Extra origins staff use besides APP_URL, comma-separated (ADR 0008). */
+  TRUSTED_ORIGINS: z
+    .string()
+    .default("")
+    .transform((value) =>
+      value
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.url())),
 });
 
 const authEnvSchema = z.object({
