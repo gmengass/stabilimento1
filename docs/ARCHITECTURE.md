@@ -13,7 +13,7 @@ screens within seconds. Customers never use the app. They are contact details on
 - **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout
   and opening season. Adding an area is a data change, not a code change.
 - **Line** (table `area_line`): area, number (1 = closest to the shore)
-- **Spot**: area, line, number (what staff call it, unique per area), position (order in the line), kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
+- **Spot**: area, line, number (what staff call it, unique per area; default line × 100 + position), position (order in the line, 1 = leftmost facing the sea), kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
 - **User**: a staff login (Better Auth, ADR 0007). id, username, name, role (admin | staff),
   banned (= disabled), locale (it | en). Plus Better Auth's `session`, `account`, `verification`
 - **Customer**: name, phone, optional email and notes (no login)

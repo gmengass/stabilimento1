@@ -24,6 +24,12 @@
     set per umbrella if some differ.
   - `sunbed`: a standalone sunbed position with no umbrella. Supported, but none at launch.
 - Each spot has a line and a position number, so it can be drawn on the map.
+- **Position** counts from the left when facing the sea: position 1 is the leftmost spot in
+  every line. The map is drawn the same way (sea at the top, line 1 nearest to it).
+- **Umbrella number** (what staff and customers call it): by default `line × 100 + position`,
+  e.g. line 1 = 101, 102…; line 2 = 201… It is a default, not a database rule: `spot.number`
+  stays free (unique per area) so odd numbers on the real beach can be kept. Lines therefore
+  hold at most 99 spots under the default.
 
 ### Bookings
 - **Booking**: one customer (name, phone), `kind` (`day` | `multi_day` | `season`),
