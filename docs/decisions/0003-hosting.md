@@ -18,6 +18,20 @@
 - Runs **Docker Compose**: app + PostgreSQL + Caddy (reverse proxy for HTTPS).
 - Staff use a browser on phones/tablets at a fixed local address (e.g. `https://stabilimento.local`).
 
+### Server OS (amended 2026-11-11)
+- **Now: Windows mini PC with Docker Engine inside WSL2**, not Docker Desktop. Docker Desktop only
+  starts after a user logs in, so a power cut or Windows Update reboot would leave the app down
+  until someone signs in.
+  - WSL2 distro (Ubuntu LTS) with `systemd=true` in `/etc/wsl.conf` and the `docker` service enabled.
+  - A Task Scheduler job runs at startup, "whether user is logged on or not", and keeps WSL running
+    (no idle shutdown). Compose `restart: unless-stopped` brings the stack back.
+  - `networkingMode=mirrored` in `.wslconfig` (Windows 11 22H2+), so staff devices on the LAN reach
+    ports 80/443 directly. Windows Firewall allows only those ports, from the staff network.
+- **Later: native Linux (Ubuntu Server / Debian) on the same or another box** is a supported target.
+  The stack, scripts and RUNBOOK stay OS-neutral (plain Docker Engine + Compose, POSIX shell), so
+  moving is: install Docker, copy `.env`, restore the latest backup. Only the WSL2 boot/networking
+  section of the RUNBOOK is Windows-specific.
+
 ### Network
 - The app is reachable only on a **dedicated staff Wi-Fi network**, separate from any guest Wi-Fi.
 - Nothing is exposed to the public internet. No router port-forwarding.
