@@ -48,5 +48,5 @@ screens within seconds. Customers never use the app. They are contact details on
 - `e2e/`: Playwright specs (`npm run test:e2e`, builds and starts the app)
 
 ## Rendering
-- The root layout reads the `locale` cookie, so it sets `export const instant = false` and every
+- The root layout reads the `locale` cookie, so it sets `export const instant = false` (ADR 0006) and every
   route renders per request. Fine for a staff-only LAN app; revisit if a static page is ever needed.

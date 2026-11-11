@@ -11,7 +11,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [ ] Deploy: Docker Compose stack (app, PostgreSQL, Caddy), update/rollback scripts, RUNBOOK (ADR 0003)
 - [ ] Backups: nightly encrypted pg_dump to USB + OneDrive (rclone), retention, restore test, failure alert
 - [x] Database + first migration (Venue, Area, Spot), seed data
-- [ ] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
+- [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
 - [ ] Auth (sign up, log in, roles)
 
 ## Milestone 1 — Core booking (MVP)
