@@ -12,7 +12,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [ ] Backups: nightly encrypted pg_dump to USB + OneDrive (rclone), retention, restore test, failure alert
 - [x] Database + first migration (Venue, Area, Spot), seed data
 - [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
-- [ ] Auth (sign up, log in, roles)
+- [x] Auth (log in, roles, staff accounts) (ADR 0007)
 
 ## Milestone 1 — Core booking (MVP)
 - [ ] Bookable resources/services (CRUD for providers)
