@@ -27,14 +27,31 @@ services:
     depends_on:
       db: { condition: service_healthy }
 
+  # First admin account: `docker compose run --rm seed-admin` (no-op if it already exists).
+  seed-admin:
+    profiles: [setup]
+    build: { context: ., target: migrate }
+    entrypoint: ["node", "--import", "tsx", "src/db/seed-admin.ts"]
+    command: []
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      db: { condition: service_healthy }
+
   app:
     build: { context: ., target: runner }
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
       APP_URL: ${APP_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+    # Local only: clients must come through Caddy (Deploy item), which sets X-Forwarded-For
+    # for the login rate limit.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       migrate: { condition: service_completed_successfully }
 

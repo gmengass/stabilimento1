@@ -7,8 +7,7 @@
     }
   },
   "home": {
-    "title": "Welcome to the beach club",
-    "noteLabel": "Note"
+    "title": "Welcome to the beach club"
   },
   "meta": {
     "title": "Stabilimento",
@@ -17,5 +16,73 @@
   "notFound": {
     "title": "Page not found",
     "body": "The page you asked for does not exist."
+  },
+  "login": {
+    "title": "Log in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log in",
+    "submitting": "Logging in…",
+    "errors": {
+      "invalid": "Wrong username or password.",
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
+  "appShell": {
+    "home": "Home",
+    "staff": "Staff",
+    "signedInAs": "Signed in as {name}",
+    "logout": "Log out"
+  },
+  "staff": {
+    "title": "Staff accounts",
+    "columns": {
+      "username": "Username",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "staff": "Staff"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "disable": "Disable",
+    "enable": "Enable",
+    "reset": {
+      "label": "New password for {username}",
+      "submit": "Reset password"
+    },
+    "create": {
+      "title": "New account",
+      "username": "Username",
+      "name": "Name",
+      "password": "Password",
+      "role": "Role",
+      "submit": "Create account"
+    },
+    "hints": {
+      "username": "3–30 characters: letters, digits, . and _",
+      "password": "At least 10 characters"
+    },
+    "done": {
+      "created": "Account created.",
+      "updated": "Account updated.",
+      "passwordReset": "Password reset. The user has been logged out."
+    },
+    "errors": {
+      "invalid": "Check the fields and try again.",
+      "forbidden": "Only admins can do this.",
+      "usernameTaken": "This username is already taken.",
+      "self": "You cannot disable your own account.",
+      "lastAdmin": "At least one admin must stay active.",
+      "notFound": "Account not found.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }

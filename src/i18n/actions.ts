@@ -1,27 +1,28 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { z } from "zod";
-import { LOCALE_COOKIE, locales } from "./config";
-
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+import { getDb } from "@/db/client";
+import { readCurrentUser } from "@/lib/auth/session";
+import { locales } from "./config";
+import { writeLocaleCookie } from "./locale-cookie";
 
 const localeSchema = z.enum(locales);
 
 export type SetLocaleResult = { ok: true } | { ok: false };
 
-/** Saves the interface language in the `locale` cookie. Auth will also save it on the user. */
+/** Saves the interface language in the `locale` cookie and, when logged in, on the user. */
 export async function setLocale(input: unknown): Promise<SetLocaleResult> {
   const parsed = localeSchema.safeParse(input);
   if (!parsed.success) return { ok: false };
 
-  const store = await cookies();
-  store.set(LOCALE_COOKIE, parsed.data, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-    maxAge: ONE_YEAR_SECONDS,
-    secure: process.env.NODE_ENV === "production",
-  });
+  await writeLocaleCookie(parsed.data);
+  const user = await readCurrentUser();
+  if (user) {
+    await getDb()
+      .updateTable("user")
+      .set({ locale: parsed.data })
+      .where("id", "=", user.id)
+      .execute();
+  }
   return { ok: true };
 }

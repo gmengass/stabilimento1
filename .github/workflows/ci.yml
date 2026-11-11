@@ -29,6 +29,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
       TEST_DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
+      AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,8 +49,22 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: booking
+          POSTGRES_PASSWORD: booking
+          POSTGRES_DB: booking
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U booking -d booking"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgresql://booking:booking@localhost:5432/unused
+      DATABASE_URL: postgresql://booking:booking@localhost:5432/booking
+      AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: ci-only-admin-password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -58,6 +73,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run db:migrate && npm run db:seed-admin
       - run: npm run test:e2e
       - name: Playwright report on failure
         if: failure()
@@ -71,12 +87,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-password
+      AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
+      ADMIN_USERNAME: ci_admin
+      ADMIN_PASSWORD: ci-only-admin-password
     steps:
       - uses: actions/checkout@v4
       - name: Build images
         run: docker compose build
       - name: Migrate
         run: docker compose run --rm migrate
+      - name: Create the first admin twice (idempotent)
+        run: docker compose run --rm seed-admin && docker compose run --rm seed-admin
       - name: Start app
         run: docker compose up -d --no-deps --wait app
       - name: Health check
@@ -85,7 +106,7 @@ jobs:
           echo "$body"
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: Roll back the migration in the container
-        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0002_venue_area_spot"
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0003_auth"
       - name: Logs on failure
         if: failure()
         run: docker compose logs

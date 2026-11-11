@@ -13,6 +13,22 @@ export type SpotKind = "sunbed" | "umbrella";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Account {
+  access_token: string | null;
+  access_token_expires_at: Timestamp | null;
+  account_id: string;
+  created_at: Generated<Timestamp>;
+  id: string;
+  id_token: string | null;
+  password: string | null;
+  provider_id: string;
+  refresh_token: string | null;
+  refresh_token_expires_at: Timestamp | null;
+  scope: string | null;
+  updated_at: Generated<Timestamp>;
+  user_id: string;
+}
+
 export interface Area {
   created_at: Generated<Timestamp>;
   id: Generated<number>;
@@ -31,6 +47,18 @@ export interface AreaLine {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Session {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: string;
+  impersonated_by: string | null;
+  ip_address: string | null;
+  token: string;
+  updated_at: Generated<Timestamp>;
+  user_agent: string | null;
+  user_id: string;
+}
+
 export interface Spot {
   area_id: number;
   created_at: Generated<Timestamp>;
@@ -44,6 +72,23 @@ export interface Spot {
   updated_at: Generated<Timestamp>;
 }
 
+export interface User {
+  ban_expires: Timestamp | null;
+  ban_reason: string | null;
+  banned: Generated<boolean>;
+  created_at: Generated<Timestamp>;
+  display_username: string | null;
+  email: string;
+  email_verified: Generated<boolean>;
+  id: string;
+  image: string | null;
+  locale: Generated<string>;
+  name: string;
+  role: Generated<string>;
+  updated_at: Generated<Timestamp>;
+  username: string;
+}
+
 export interface Venue {
   created_at: Generated<Timestamp>;
   id: Generated<number>;
@@ -52,9 +97,22 @@ export interface Venue {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Verification {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: string;
+  identifier: string;
+  updated_at: Generated<Timestamp>;
+  value: string;
+}
+
 export interface DB {
+  account: Account;
   area: Area;
   area_line: AreaLine;
+  session: Session;
   spot: Spot;
+  user: User;
   venue: Venue;
+  verification: Verification;
 }
