@@ -34,3 +34,7 @@ next-env.d.ts
 # Deploy state and local dumps (scripts/update.sh)
 .deploy/
 backups/
+# Never commit CA keys, exported certificates or dumps (RUNBOOK)
+*.tgz
+*.crt
+*.dump

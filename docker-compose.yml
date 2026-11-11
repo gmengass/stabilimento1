@@ -2,8 +2,14 @@
 # Images are tagged with APP_VERSION, set by scripts/update.sh (ADR 0008).
 name: stabilimento
 
+# Rotated logs: access logs hold staff IPs (GDPR storage limitation).
+x-logging: &logging
+  driver: local
+  options: { max-size: 10m, max-file: "3" }
+
 services:
   db:
+    logging: *logging
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -44,6 +50,7 @@ services:
       db: { condition: service_healthy }
 
   app:
+    logging: *logging
     build: { context: ., target: runner }
     image: stabilimento-app:${APP_VERSION:-dev}
     restart: unless-stopped
@@ -58,14 +65,16 @@ services:
       migrate: { condition: service_completed_successfully }
 
   caddy:
+    logging: *logging
     image: caddy:2.10-alpine
     restart: unless-stopped
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    # IPv4 only, matching the firewall rules; IPv6 would let one device rotate rate-limit
+    # addresses (ADR 0008).
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       # Holds the internal CA root key: back it up and move it with the database (ADR 0008).

@@ -122,7 +122,7 @@ jobs:
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: App port is not published on the host
         run: "! curl -s --max-time 3 http://localhost:3000/health"
-      - name: Spoofed X-Forwarded-For does not bypass the sign-in rate limit
+      - name: Caddy overwrites client IP headers (spoofed headers still hit the rate limit)
         run: |
           for i in 1 2 3 4 5 6; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --cacert caddy-root.crt \

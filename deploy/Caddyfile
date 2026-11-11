@@ -4,6 +4,14 @@
 	# Caddy's own CA: works offline; each staff device trusts its root once (RUNBOOK).
 	tls internal
 	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
 	reverse_proxy app:3000 {
 		# The only client-IP header the app trusts. Overwrites anything the client sent.
 		header_up X-Real-IP {remote_host}
