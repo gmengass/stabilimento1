@@ -1,1 +1,17 @@
-{}
+{
+  "common": {
+    "languageSwitcher": {
+      "label": "Lingua",
+      "it": "Italiano",
+      "en": "English"
+    }
+  },
+  "home": {
+    "title": "Benvenuto allo stabilimento",
+    "noteLabel": "Nota"
+  },
+  "meta": {
+    "title": "Stabilimento",
+    "description": "Prenotazione di ombrelloni e lettini"
+  }
+}

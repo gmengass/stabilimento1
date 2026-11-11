@@ -1,1 +1,17 @@
-{}
+{
+  "common": {
+    "languageSwitcher": {
+      "label": "Language",
+      "it": "Italiano",
+      "en": "English"
+    }
+  },
+  "home": {
+    "title": "Welcome to the beach club",
+    "noteLabel": "Note"
+  },
+  "meta": {
+    "title": "Stabilimento",
+    "description": "Beach umbrella and sunbed booking"
+  }
+}
