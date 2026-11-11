@@ -5,7 +5,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 
 ## Milestone 0 — Foundations
 - [x] Repo, license, agents, workflow docs
-- [ ] Confirm tech stack (ADR 0002 → Accepted)
+- [x] Confirm tech stack (ADR 0002 → Accepted)
 - [x] Hosting decision (ADR 0003)
 - [ ] Scaffold app, lint/format, test runner, CI green
 - [ ] Deploy: Docker Compose stack (app, PostgreSQL, Caddy), update/rollback scripts, RUNBOOK (ADR 0003)
