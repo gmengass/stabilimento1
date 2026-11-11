@@ -1,7 +1,7 @@
 import { defaultLocale, isLocale, type Locale } from "./config";
 
 export interface LocaleSources {
-  /** The logged-in user's saved preference (Auth item). */
+  /** The logged-in user's saved preference. */
   user?: string | null;
   cookie?: string | null;
 }
