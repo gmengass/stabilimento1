@@ -7,3 +7,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Project skeleton, workflow docs, Claude agents and commands.
 - App scaffold: Next.js 16, PostgreSQL migrations with rollback, `/health` endpoint,
   Docker Compose stack and CI.
+- Beach layout schema: venues, areas, lines and numbered umbrella/sunbed spots, with a demo
+  seed (`npm run db:seed`).

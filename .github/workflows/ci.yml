@@ -41,6 +41,8 @@ jobs:
       - run: npm run typecheck
       - name: Migrate, roll back, migrate again
         run: npm run db:migrate && npm run db:rollback && npm run db:migrate
+      - name: Generated DB types match the schema
+        run: npm run db:types && git diff --exit-code src/db/types.ts
       - run: npm test
       - run: npm run build
 
@@ -62,7 +64,7 @@ jobs:
           echo "$body"
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: Roll back the migration in the container
-        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0001_init"
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0002_venue_area_spot"
       - name: Logs on failure
         if: failure()
         run: docker compose logs

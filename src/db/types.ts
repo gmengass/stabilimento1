@@ -3,4 +3,58 @@
  * Please do not edit it manually.
  */
 
-export interface DB {}
+import type { ColumnType } from "kysely";
+
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+
+export type SpotKind = "sunbed" | "umbrella";
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+export interface Area {
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  name: string;
+  slug: string;
+  sort_order: Generated<number>;
+  updated_at: Generated<Timestamp>;
+  venue_id: number;
+}
+
+export interface AreaLine {
+  area_id: number;
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  number: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Spot {
+  area_id: number;
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  included_sunbeds: Generated<number>;
+  kind: Generated<SpotKind>;
+  line_id: number;
+  max_sunbeds: Generated<number>;
+  number: number;
+  position: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Venue {
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  name: string;
+  slug: string;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface DB {
+  area: Area;
+  area_line: AreaLine;
+  spot: Spot;
+  venue: Venue;
+}

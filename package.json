@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "db:migrate": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts up",
     "db:rollback": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts down",
-    "db:types": "kysely-codegen --dialect postgres --out-file src/db/types.ts"
+    "db:seed": "node --env-file-if-exists=.env --import tsx src/db/seed.ts",
+    "db:types": "kysely-codegen --dialect postgres --date-parser string --out-file src/db/types.ts"
   },
   "dependencies": {
     "kysely": "0.29.8",
