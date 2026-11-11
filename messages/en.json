@@ -13,5 +13,9 @@
   "meta": {
     "title": "Stabilimento",
     "description": "Beach umbrella and sunbed booking"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you asked for does not exist."
   }
 }
