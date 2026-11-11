@@ -18,19 +18,21 @@ function parseInput(input: AdminInput): z.infer<typeof inputSchema> {
   throw new Error(`Invalid or missing ${[...new Set(fields)].join(", ")}: see .env.example`);
 }
 
-/** Creates the first admin unless the username is taken. Never changes an existing password. */
+export type EnsureAdminOutcome = "created" | "exists" | "takenByStaff";
+
+/** Creates the first admin unless the username is taken. Never changes an existing account. */
 export async function ensureAdmin(
   auth: Auth,
   db: Kysely<DB>,
   input: AdminInput,
-): Promise<"created" | "exists"> {
+): Promise<EnsureAdminOutcome> {
   const { username, password } = parseInput(input);
   const existing = await db
     .selectFrom("user")
-    .select("id")
+    .select("role")
     .where("username", "=", username)
     .executeTakeFirst();
-  if (existing) return "exists";
+  if (existing) return existing.role === "admin" ? "exists" : "takenByStaff";
 
   await auth.api.createUser({
     body: {

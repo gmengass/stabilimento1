@@ -65,7 +65,7 @@ describe("ensureAdmin", () => {
     await addUser(auth, { username: "boss", password: FIRST_PASSWORD, role: "staff" });
     await expect(
       ensureAdmin(auth, db, { username: "boss", password: "second-password-2" }),
-    ).resolves.toBe("exists");
+    ).resolves.toBe("takenByStaff");
     const row = await db.selectFrom("user").select("role").executeTakeFirstOrThrow();
     expect(row.role).toBe("staff");
   });
