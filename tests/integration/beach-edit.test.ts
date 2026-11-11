@@ -194,6 +194,18 @@ describe("single umbrellas", () => {
     expect(line?.spots.map((s) => s.position)).toEqual([1, 3]);
   });
 
+  it("refuses a limit below the sunbeds of an upcoming booking, allows it once it has passed", async () => {
+    await book(102);
+    const id = await spotId(102);
+    const lower = { spotId: id, number: 102, includedSunbeds: 1, maxSunbeds: 1 };
+    expect(await updateSpot(db, lower, "2027-07-10")).toEqual({
+      ok: false,
+      error: "sunbedsInUse",
+    });
+    expect(await updateSpot(db, { ...lower, maxSunbeds: 2 }, "2027-07-10")).toEqual({ ok: true });
+    expect(await updateSpot(db, lower, "2027-07-11")).toEqual({ ok: true });
+  });
+
   it("refuses to remove a booked umbrella", async () => {
     await book(102);
     expect(await removeSpot(db, { spotId: await spotId(102) })).toEqual({

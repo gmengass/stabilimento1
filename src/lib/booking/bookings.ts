@@ -80,12 +80,17 @@ async function findClashes(
   return rows.map((row) => ({ spotNumber: row.spotNumber, date: row.date }));
 }
 
-/** True when every spot exists and each gets no more sunbeds than it can hold. */
+/**
+ * True when every spot exists and each gets no more sunbeds than it can hold. With `lock`, the
+ * spot rows stay share-locked until the transaction ends, so an admin can't lower a limit
+ * between this check and the insert.
+ */
 async function sunbedsFit(
   db: Kysely<DB>,
   spots: { spotId: number; sunbeds: number }[],
+  lock = false,
 ): Promise<boolean> {
-  const rows = await db
+  const query = db
     .selectFrom("spot")
     .select(["id", "max_sunbeds"])
     .where(
@@ -93,16 +98,21 @@ async function sunbedsFit(
       "in",
       spots.map((s) => s.spotId),
     )
-    .execute();
+    .orderBy("id");
+  const rows = await (lock ? query.forShare() : query).execute();
   const max = new Map(rows.map((row) => [row.id, row.max_sunbeds]));
   return spots.every((s) => max.has(s.spotId) && s.sunbeds <= (max.get(s.spotId) ?? 0));
 }
 
 type ValidBooking = z.output<typeof createSchema>;
 
+/** The sunbed limits changed between the first check and the insert. */
+class SunbedsChanged extends Error {}
+
 /** Inserts the booking and one spot_day per spot per day, in one transaction. */
 async function insertBooking(db: Kysely<DB>, userId: string, booking: ValidBooking) {
   return db.transaction().execute(async (tx) => {
+    if (!(await sunbedsFit(tx, booking.spots, true))) throw new SunbedsChanged();
     const { id } = await tx
       .insertInto("booking")
       .values({
@@ -159,6 +169,7 @@ export async function createBooking(
     try {
       return { ok: true, bookingId: await insertBooking(db, userId, booking) };
     } catch (error) {
+      if (error instanceof SunbedsChanged) return { ok: false, error: "sunbeds" };
       if (!isConflict(error)) throw error;
       if (attempt >= ATTEMPTS) return { ok: false, error: "taken", clashes: [] };
     }

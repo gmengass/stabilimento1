@@ -122,7 +122,8 @@
       "numberTaken": "Un altro ombrellone ha già questo numero.",
       "lineFull": "Una fila può avere al massimo 99 ombrelloni.",
       "tooManyLines": "La spiaggia può avere al massimo 30 file.",
-      "hasBookings": "Gli ombrelloni con prenotazioni non si possono togliere."
+      "hasBookings": "Gli ombrelloni con prenotazioni non si possono togliere.",
+      "sunbedsInUse": "Alcune prenotazioni attuali o future usano più lettini di così su questo ombrellone."
     },
     "save": "Salva",
     "saved": "Salvato.",

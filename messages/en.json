@@ -122,7 +122,8 @@
       "numberTaken": "Another umbrella already has this number.",
       "lineFull": "A line holds at most 99 umbrellas.",
       "tooManyLines": "The beach holds at most 30 lines.",
-      "hasBookings": "Umbrellas that have bookings can't be removed."
+      "hasBookings": "Umbrellas that have bookings can't be removed.",
+      "sunbedsInUse": "Some current or future bookings use more sunbeds than that on this umbrella."
     },
     "save": "Save",
     "saved": "Saved.",

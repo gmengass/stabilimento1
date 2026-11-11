@@ -1,11 +1,19 @@
 import { sql, type Kysely, type Transaction } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
+import { venueToday } from "@/i18n/format";
 import { defaultSpotNumber } from "./layout";
 import { MAX_LINES, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
 
 export type EditError =
-  "invalid" | "noBeach" | "notFound" | "numberTaken" | "lineFull" | "tooManyLines" | "hasBookings";
+  | "invalid"
+  | "noBeach"
+  | "notFound"
+  | "numberTaken"
+  | "lineFull"
+  | "tooManyLines"
+  | "hasBookings"
+  | "sunbedsInUse";
 
 export type EditResult = { ok: true } | { ok: false; error: EditError };
 
@@ -166,12 +174,39 @@ const updateSpotSchema = z
   })
   .refine((s) => s.includedSunbeds <= s.maxSunbeds);
 
-/** Changes an umbrella's number (unique on the beach) and its sunbeds. Bookings keep theirs. */
-export async function updateSpot(db: Kysely<DB>, input: unknown): Promise<EditResult> {
+/**
+ * Changes an umbrella's number (unique on the beach) and its sunbeds. The limit can't go below
+ * the sunbeds of a current or future booking on it; past bookings keep theirs.
+ */
+export async function updateSpot(
+  db: Kysely<DB>,
+  input: unknown,
+  today: string = venueToday(),
+): Promise<EditResult> {
   const parsed = updateSpotSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
   const { spotId, number, includedSunbeds, maxSunbeds } = parsed.data;
   return edit(db, async (tx, areaId) => {
+    // Locks the spot first: a booking being made for it waits, then sees the new limit.
+    const spot = await tx
+      .selectFrom("spot")
+      .select("id")
+      .where("id", "=", spotId)
+      .where("area_id", "=", areaId)
+      .where("kind", "=", "umbrella")
+      .forUpdate()
+      .executeTakeFirst();
+    if (!spot) return fail("notFound");
+    const overLimit = await tx
+      .selectFrom("booking_spot")
+      .innerJoin("booking", "booking.id", "booking_spot.booking_id")
+      .select("booking_spot.id")
+      .where("booking_spot.spot_id", "=", spotId)
+      .where("booking.status", "=", "active")
+      .where("booking.end_date", ">=", today)
+      .where("booking_spot.sunbeds", ">", maxSunbeds)
+      .executeTakeFirst();
+    if (overLimit) return fail("sunbedsInUse");
     const updated = await tx
       .updateTable("spot")
       .set({ number, included_sunbeds: includedSunbeds, max_sunbeds: maxSunbeds })
@@ -195,6 +230,7 @@ export async function removeSpot(db: Kysely<DB>, input: unknown): Promise<EditRe
       .deleteFrom("spot")
       .where("id", "=", parsed.data.spotId)
       .where("area_id", "=", areaId)
+      .where("kind", "=", "umbrella")
       .returning("id")
       .executeTakeFirst();
     return removed ? done : fail("notFound");
