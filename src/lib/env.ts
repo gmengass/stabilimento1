@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+/** An exact https origin: Better Auth treats `*` as a wildcard and compares origins verbatim. */
+const httpsOrigin = z
+  .string()
+  .refine((entry) => !entry.includes("*") && URL.canParse(entry), "must be a URL without wildcards")
+  .refine((entry) => URL.canParse(entry) && new URL(entry).protocol === "https:", "must use https")
+  .refine(
+    (entry) => URL.canParse(entry) && new URL(entry).origin === entry,
+    "must be a bare lowercase origin like https://192.168.1.10 (no path or trailing slash)",
+  );
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
@@ -14,7 +24,7 @@ const envSchema = z.object({
         .map((entry) => entry.trim())
         .filter(Boolean),
     )
-    .pipe(z.array(z.url())),
+    .pipe(z.array(httpsOrigin)),
 });
 
 const authEnvSchema = z.object({

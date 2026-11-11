@@ -25,6 +25,21 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, TRUSTED_ORIGINS: " " }).TRUSTED_ORIGINS).toEqual([]);
   });
 
+  it.each([
+    "http://192.168.1.10",
+    "https://*",
+    "https://*.local",
+    "https://192.168.1.10/",
+    "https://box.example/path",
+    "https://Box.Example",
+    "javascript:alert(1)",
+  ])(
+    "rejects the TRUSTED_ORIGINS entry %s (https origins only, no wildcards or paths)",
+    (entry) => {
+      expect(() => parseEnv({ ...valid, TRUSTED_ORIGINS: entry })).toThrow(/TRUSTED_ORIGINS/);
+    },
+  );
+
   it("rejects a TRUSTED_ORIGINS entry that is not a URL", () => {
     expect(() => parseEnv({ ...valid, TRUSTED_ORIGINS: "https://ok.example, not-a-url" })).toThrow(
       /TRUSTED_ORIGINS/,
