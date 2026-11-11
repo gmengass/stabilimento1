@@ -9,3 +9,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   Docker Compose stack and CI.
 - Beach layout schema: venues, areas, lines and numbered umbrella/sunbed spots, with a demo
   seed (`npm run db:seed`).
+- Interface in Italian and English, with a language switcher on every screen that keeps
+  typed input; the choice is remembered in a cookie.

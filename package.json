@@ -19,17 +19,20 @@
     "db:migrate": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts up",
     "db:rollback": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts down",
     "db:seed": "node --env-file-if-exists=.env --import tsx src/db/seed.ts",
-    "db:types": "kysely-codegen --dialect postgres --date-parser string --out-file src/db/types.ts"
+    "db:types": "kysely-codegen --dialect postgres --date-parser string --out-file src/db/types.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "kysely": "0.29.8",
     "next": "16.4.6",
+    "next-intl": "4.14.10",
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",

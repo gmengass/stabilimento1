@@ -4,34 +4,38 @@
 > Git history keeps the old versions.
 
 ## Current state
-Scaffold merged (PR #4). Branch `feat/db-schema` adds migration 0002: `venue`, `area`,
-`area_line`, `spot` (enum `spot_kind`, `set_updated_at()` trigger), no cascading deletes.
-`src/db/types.ts` is generated; CI fails if it drifts. Demo seed: `npm run db:seed`
-(Lido Demo, 6 lines × 20 umbrellas, numbers 1–120). 58 tests pass locally.
+DB schema merged (PR #6). Branch `feat/i18n` adds next-intl (IT default, EN) without URL locales:
+locale from `locale` cookie → `it` (`src/i18n/`), switcher in the root layout header, typed message
+keys, `formatBookingDate`/`formatTimestamp`/`formatEur`, lint rules against JSX text and
+user-facing attribute literals, translated 404 + bilingual global error, Playwright e2e in CI.
+Root layout renders per request (ADR 0006). 144 Vitest tests + 2 e2e pass locally.
 
 ## Done this session
-- Plan `docs/plans/db-schema.md`; decided: one umbrella number per area (`spot.number`)
-- Migration 0002 with up/down, constraint tests (unique keys, checks, FK, concurrency)
-- Idempotent seed with production guard; `db:types` now uses `--date-parser string`
-- CI: types drift check; docker job expects `Success down 0002_venue_area_spot`
-- Roadmap: scaffold and db-schema ticked; ARCHITECTURE directory layout filled in
+- Plan `docs/plans/i18n.md`; `setLocale` server action (Zod, httpOnly, Lax, Secure in prod)
+- Parity test; `resolveLocale` ready for user preference; Playwright + CI `e2e` job; reviews passed
+- ADR 0006 (per-request rendering); ARCHITECTURE layout and Rendering section
+- Merged in a parallel session's extras: attribute lint, `formatTimestamp` + TZ/DST tests,
+  request-config test, `not-found.tsx` (real 404), `global-error.tsx`
 
 ## Next up
-1. Merge the `feat/db-schema` PR once CI is green
-2. "Interface languages (IT/EN)" on `feat/i18n` (ADR 0005)
-3. Then "Auth (sign up, log in, roles)"
+1. Open and merge the `feat/i18n` PR once CI (incl. the new e2e job) is green
+2. "Auth (sign up, log in, roles)" on `feat/auth`: add `user.locale`, save it in `setLocale`
+3. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004
 
 ## Open questions
+- `formatEur` takes euros; switch to integer cents before the Prices item?
+- Delete the leftover branch `feat/i18n-session2` (superseded by `feat/i18n`)
 - Roadmap Milestone 1 (providers, working hours, customer search, email) contradicts the brief
   and ADR 0004: rewrite it in a docs PR
-- Alphanumeric umbrella labels ("A12")? Only integers for now
-- Retiring a spot that has bookings: soft-delete or never delete? Decide in the admin CRUD item
+- Retiring a spot with bookings (soft-delete?), OneDrive permission, pin Actions to SHAs: later items
 - VenueSettings (time zone, hold-until): columns on `venue` or a 1:1 table? Hold-rule item
-- Ruleset `rulset1` requires `docker` only: add `checks` too
-- OneDrive backup permission: shelved until the Backups item
-- Mini PC: model, RAM and OS needed for the Deploy item
+- Ruleset `rulset1` requires `docker` only: add `checks` and `e2e` too
+- Home page `i18n-probe` input is test-only: move the e2e to a real form when one exists
+- Mini PC: Windows 11, Ryzen 5 7430U (assumed), 16 GB. Deploy item: Docker Engine in WSL2 started
+  at boot (preferred) vs Docker Desktop + auto-login; amend ADR 0003
 
 ## Known issues
-- Sessions can't pull from Docker Hub; Docker is verified only in CI
+- Sessions can't pull from Docker Hub or download Playwright browsers: run e2e locally with a
+  config override using `/usr/bin/google-chrome`; Docker is verified only in CI
 - Sessions can't push tags (HTTP 403): `/checkpoint` tags stay local
 - Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean
