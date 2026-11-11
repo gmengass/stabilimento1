@@ -50,15 +50,19 @@ jobs:
       POSTGRES_PASSWORD: ci-only-password
     steps:
       - uses: actions/checkout@v4
-      - name: Start stack
-        run: docker compose up -d --build --wait app
+      - name: Build images
+        run: docker compose build
+      - name: Migrate
+        run: docker compose run --rm migrate
+      - name: Start app
+        run: docker compose up -d --no-deps --wait app
       - name: Health check
         run: |
           body=$(curl -fsS http://localhost:3000/health)
           echo "$body"
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: Roll back the migration in the container
-        run: docker compose run --rm migrate down
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0001_init"
       - name: Logs on failure
         if: failure()
         run: docker compose logs
