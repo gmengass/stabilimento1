@@ -38,6 +38,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: Shellcheck deploy scripts
+        run: shellcheck -s sh -x scripts/*.sh scripts/lib/common.sh
       - run: npm run format:check
       - run: npm run typecheck
       - name: Migrate, roll back, migrate again
@@ -90,23 +92,94 @@ jobs:
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: ci_admin
       ADMIN_PASSWORD: ci-only-admin-password
+      APP_URL: https://localhost
+      SITE_ADDRESS: localhost
     steps:
       - uses: actions/checkout@v4
+      - name: Validate compose file and Caddyfile
+        run: |
+          docker compose config -q
+          docker compose run --rm --no-deps --entrypoint caddy caddy validate --config /etc/caddy/Caddyfile
       - name: Build images
         run: docker compose build
       - name: Migrate
         run: docker compose run --rm migrate
       - name: Create the first admin twice (idempotent)
         run: docker compose run --rm seed-admin && docker compose run --rm seed-admin
-      - name: Start app
-        run: docker compose up -d --no-deps --wait app
-      - name: Health check
+      - name: Start app and Caddy
+        run: docker compose up -d --no-deps --wait app caddy
+      - name: Trust Caddy's internal root certificate
         run: |
-          body=$(curl -fsS http://localhost:3000/health)
+          for i in $(seq 1 30); do
+            docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt caddy-root.crt && break
+            sleep 1
+          done
+          test -s caddy-root.crt
+      - name: Health check over HTTPS
+        run: |
+          body=$(curl -fsS --retry 10 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://localhost/health)
           echo "$body"
           test "$body" = '{"status":"ok","db":"ok"}'
+      - name: App port is not published on the host
+        run: "! curl -s --max-time 3 http://localhost:3000/health"
+      - name: Caddy overwrites client IP headers (spoofed headers still hit the rate limit)
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --cacert caddy-root.crt \
+              -H 'content-type: application/json' -H 'origin: https://localhost' \
+              -H "x-forwarded-for: 203.0.113.$i" -H "x-real-ip: 203.0.113.$i" \
+              -d '{"username":"nobody","password":"wrong-password-1"}' \
+              https://localhost/api/auth/sign-in/username)
+            echo "attempt $i: $code"
+          done
+          test "$code" = 429
       - name: Roll back the migration in the container
         run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0003_auth"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
+
+  deploy-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Box-like .env and two local release tags
+        run: |
+          {
+            echo "POSTGRES_PASSWORD=ci0only0password"
+            echo "AUTH_SECRET=ci-only-auth-secret-0123456789abcdef"
+            echo "APP_URL=https://localhost"
+            echo "SITE_ADDRESS=localhost"
+          } > .env
+          git tag v0.0.1 && git tag v0.0.2
+      - name: First install v0.0.1
+        run: scripts/update.sh v0.0.1
+      - name: Data entered on v0.0.1
+        run: |
+          docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' <<'SQL'
+          create table deploy_marker (label text);
+          insert into deploy_marker values ('before-update');
+          SQL
+      - name: Update to v0.0.2 (takes the pre-update dump)
+        run: scripts/update.sh v0.0.2 && test "$(cat .deploy/current)" = v0.0.2
+      - name: Data entered on v0.0.2
+        run: |
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "insert into deploy_marker values ('"'"'after-update'"'"')"'
+      - name: Roll back to v0.0.1 and its dump
+        run: scripts/rollback.sh --yes && test "$(cat .deploy/current)" = v0.0.1
+      - name: Restored data is the pre-update state, app healthy over HTTPS
+        run: |
+          rows=$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select label from deploy_marker order by label"')
+          echo "rows: $rows"
+          test "$rows" = before-update
+          test "$(curl -fsSk https://localhost/health)" = '{"status":"ok","db":"ok"}'
       - name: Logs on failure
         if: failure()
         run: docker compose logs

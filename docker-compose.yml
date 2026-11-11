@@ -1,9 +1,15 @@
-# Local / server stack: PostgreSQL, a one-shot migration job, and the app.
-# Caddy (HTTPS) is added by the Deploy roadmap item (ADR 0003).
+# Local / server stack: PostgreSQL, a one-shot migration job, the app, and Caddy (HTTPS) in front.
+# Images are tagged with APP_VERSION, set by scripts/update.sh (ADR 0008).
 name: stabilimento
+
+# Rotated logs: access logs hold staff IPs (GDPR storage limitation).
+x-logging: &logging
+  driver: local
+  options: { max-size: 10m, max-file: "3" }
 
 services:
   db:
+    logging: *logging
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -22,6 +28,7 @@ services:
 
   migrate:
     build: { context: ., target: migrate }
+    image: stabilimento-migrate:${APP_VERSION:-dev}
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
     depends_on:
@@ -31,6 +38,7 @@ services:
   seed-admin:
     profiles: [setup]
     build: { context: ., target: migrate }
+    image: stabilimento-migrate:${APP_VERSION:-dev}
     entrypoint: ["node", "--import", "tsx", "src/db/seed-admin.ts"]
     command: []
     environment:
@@ -42,18 +50,40 @@ services:
       db: { condition: service_healthy }
 
   app:
+    logging: *logging
     build: { context: ., target: runner }
+    image: stabilimento-app:${APP_VERSION:-dev}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
-      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_URL: ${APP_URL:?set APP_URL in .env}
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
-    # Local only: clients must come through Caddy (Deploy item), which sets X-Forwarded-For
-    # for the login rate limit.
-    ports:
-      - "127.0.0.1:3000:3000"
+    # No host port: clients must come through Caddy, which sets X-Real-IP for the login rate
+    # limit (ADR 0008).
     depends_on:
       migrate: { condition: service_completed_successfully }
 
+  caddy:
+    logging: *logging
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    # IPv4 only, matching the firewall rules; IPv6 would let one device rotate rate-limit
+    # addresses (ADR 0008).
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Holds the internal CA root key: back it up and move it with the database (ADR 0008).
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

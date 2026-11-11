@@ -9,7 +9,41 @@ describe("parseEnv", () => {
       NODE_ENV: "development",
       DATABASE_URL: valid.DATABASE_URL,
       APP_URL: "http://localhost:3000",
+      TRUSTED_ORIGINS: [],
     });
+  });
+
+  it("splits TRUSTED_ORIGINS on commas and trims spaces", () => {
+    const env = parseEnv({
+      ...valid,
+      TRUSTED_ORIGINS: "https://192.168.1.10, https://box.tail1234.ts.net",
+    });
+    expect(env.TRUSTED_ORIGINS).toEqual(["https://192.168.1.10", "https://box.tail1234.ts.net"]);
+  });
+
+  it("treats an empty TRUSTED_ORIGINS as none", () => {
+    expect(parseEnv({ ...valid, TRUSTED_ORIGINS: " " }).TRUSTED_ORIGINS).toEqual([]);
+  });
+
+  it.each([
+    "http://192.168.1.10",
+    "https://*",
+    "https://*.local",
+    "https://192.168.1.10/",
+    "https://box.example/path",
+    "https://Box.Example",
+    "javascript:alert(1)",
+  ])(
+    "rejects the TRUSTED_ORIGINS entry %s (https origins only, no wildcards or paths)",
+    (entry) => {
+      expect(() => parseEnv({ ...valid, TRUSTED_ORIGINS: entry })).toThrow(/TRUSTED_ORIGINS/);
+    },
+  );
+
+  it("rejects a TRUSTED_ORIGINS entry that is not a URL", () => {
+    expect(() => parseEnv({ ...valid, TRUSTED_ORIGINS: "https://ok.example, not-a-url" })).toThrow(
+      /TRUSTED_ORIGINS/,
+    );
   });
 
   it("accepts the postgres:// scheme", () => {

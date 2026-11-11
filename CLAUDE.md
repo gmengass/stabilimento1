@@ -51,7 +51,7 @@ Tech decisions: `docs/decisions/` (ADRs). Never contradict an accepted ADR. Prop
 Node 24 (`.nvmrc`). Copy `.env.example` to `.env` first.
 - Install: `npm ci`
 - Dev server: `npm run dev` (needs Postgres; `docker compose up -d db` or a local one)
-- Full stack: `docker compose up -d --build` → `http://localhost:3000/health`
+- Full stack: `docker compose up -d --build` → `https://localhost/health` (Caddy internal CA: `curl -k`)
 - Test: `npm test` (integration tests need `TEST_DATABASE_URL`; `docker compose -f docker-compose.test.yml up -d`)
 - Lint/format/types: `npm run lint`, `npm run format`, `npm run typecheck`
 - Migrations: `npm run db:migrate`, `npm run db:rollback`, then `npm run db:types` to regenerate `src/db/types.ts`

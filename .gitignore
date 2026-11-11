@@ -30,3 +30,11 @@ Thumbs.db
 # Next.js / TypeScript
 next-env.d.ts
 *.tsbuildinfo
+
+# Deploy state and local dumps (scripts/update.sh)
+.deploy/
+backups/
+# Never commit CA keys, exported certificates or dumps (RUNBOOK)
+*.tgz
+*.crt
+*.dump

@@ -6,6 +6,7 @@ import type { DB } from "@/db/types";
 import type { Auth } from "@/lib/auth/auth";
 import {
   addUser,
+  BASE_URL,
   post,
   sessionCookie,
   sessionCount,
@@ -169,6 +170,36 @@ describe("rate limit", () => {
     }
     const neighbour = await signIn(auth, "anna", PASSWORD, { ip: "2001:db8:1:1::b" });
     expect(neighbour.status).toBe(200);
+  });
+
+  it("ignores client-set X-Forwarded-For: only X-Real-IP counts", async () => {
+    const ip = uniqueIp();
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      const headers = new Headers({ "x-forwarded-for": uniqueIp() });
+      const response = await signIn(auth, "anna", "wrong-password-1", { ip, headers });
+      expect(response.status, `attempt ${attempt}`).toBe(attempt <= 5 ? 401 : 429);
+    }
+  });
+});
+
+describe("trusted origins", () => {
+  const lanOrigin = "https://192.168.1.10";
+
+  async function signOutFrom(target: Auth, origin: string): Promise<Response> {
+    const signedIn = await signIn(target, "anna", PASSWORD);
+    return post(target, "/sign-out", {}, { headers: sessionHeaders(signedIn), origin });
+  }
+
+  it("accepts a cookie request from an origin listed in TRUSTED_ORIGINS", async () => {
+    const response = await signOutFrom(testAuth(db, BASE_URL, [lanOrigin]), lanOrigin);
+    expect(response.status).toBe(200);
+    expect(await sessionCount(db, annaId)).toBe(0);
+  });
+
+  it("rejects a cookie request from an origin that is not listed", async () => {
+    const response = await signOutFrom(auth, lanOrigin);
+    expect(response.status).toBe(403);
+    expect(await sessionCount(db, annaId)).toBe(1);
   });
 });
 

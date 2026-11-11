@@ -33,6 +33,6 @@
 
 ## Consequences
 - Upgrading Better Auth cannot silently expose new endpoints.
-- The rate limit needs the real client IP: the app port is bound to localhost and Caddy must set
-  `X-Forwarded-For` (Deploy item, which also sets `trustedProxies`).
+- The rate limit needs the real client IP: Caddy overwrites `X-Real-IP` and the app reads only that
+  header ([ADR 0008](0008-deploy-details.md)).
 - Staff cannot change their own password yet; an admin resets it.
