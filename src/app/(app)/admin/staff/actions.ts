@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { getDb } from "@/db/client";
 import { getAuth } from "@/lib/auth/auth";
 import { readCurrentUser, type CurrentUser } from "@/lib/auth/session";
 import * as staff from "@/lib/auth/staff";
@@ -25,7 +26,7 @@ export async function createStaffAction(input: unknown): Promise<StaffResult> {
 }
 
 export async function setDisabledAction(input: unknown): Promise<StaffResult> {
-  return asAdmin((h, actor) => staff.setDisabled(getAuth(), h, actor, input));
+  return asAdmin((h, actor) => staff.setDisabled(getAuth(), getDb(), h, actor, input));
 }
 
 export async function resetPasswordAction(input: unknown): Promise<StaffResult> {

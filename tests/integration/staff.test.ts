@@ -154,7 +154,7 @@ describe("setDisabled", () => {
   it("disables a user, ends their sessions and blocks sign-in", async () => {
     expect(await sessionCount(db, staff.actor.id)).toBe(1);
     await expect(
-      setDisabled(auth, admin.headers, admin.actor, {
+      setDisabled(auth, db, admin.headers, admin.actor, {
         userId: staff.actor.id,
         disabled: true,
       }),
@@ -167,9 +167,9 @@ describe("setDisabled", () => {
 
   it("enables a disabled user again", async () => {
     const input = { userId: staff.actor.id, disabled: true };
-    await setDisabled(auth, admin.headers, admin.actor, input);
+    await setDisabled(auth, db, admin.headers, admin.actor, input);
     await expect(
-      setDisabled(auth, admin.headers, admin.actor, { ...input, disabled: false }),
+      setDisabled(auth, db, admin.headers, admin.actor, { ...input, disabled: false }),
     ).resolves.toEqual({ ok: true });
     expect(await isBanned(staff.actor.id)).toBe(false);
     expect((await signIn(auth, "anna", STAFF_PASSWORD)).status).toBe(200);
@@ -177,7 +177,7 @@ describe("setDisabled", () => {
 
   it("refuses to disable yourself", async () => {
     await expect(
-      setDisabled(auth, admin.headers, admin.actor, {
+      setDisabled(auth, db, admin.headers, admin.actor, {
         userId: admin.actor.id,
         disabled: true,
       }),
@@ -193,21 +193,42 @@ describe("setDisabled", () => {
       role: "admin",
     });
     await expect(
-      setDisabled(auth, admin.headers, admin.actor, { userId: vice.actor.id, disabled: true }),
+      setDisabled(auth, db, admin.headers, admin.actor, { userId: vice.actor.id, disabled: true }),
     ).resolves.toEqual({ ok: true });
+  });
+
+  it("keeps one admin active when two admins disable each other at once", async () => {
+    const vice = await loggedIn(auth, {
+      username: "vice",
+      password: ADMIN_PASSWORD,
+      role: "admin",
+    });
+    const results = await Promise.all([
+      setDisabled(auth, db, admin.headers, admin.actor, { userId: vice.actor.id, disabled: true }),
+      setDisabled(auth, db, vice.headers, vice.actor, { userId: admin.actor.id, disabled: true }),
+    ]);
+
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    const active = await db
+      .selectFrom("user")
+      .select("id")
+      .where("role", "=", "admin")
+      .where("banned", "=", false)
+      .execute();
+    expect(active).toHaveLength(1);
   });
 
   it("is forbidden for a staff actor", async () => {
     const other = await addUser(auth, { username: "zeno", password: STAFF_PASSWORD });
     await expect(
-      setDisabled(auth, staff.headers, staff.actor, { userId: other, disabled: true }),
+      setDisabled(auth, db, staff.headers, staff.actor, { userId: other, disabled: true }),
     ).resolves.toEqual({ ok: false, error: "forbidden" });
     expect(await isBanned(other)).toBe(false);
   });
 
   it("reports an unknown user as notFound", async () => {
     await expect(
-      setDisabled(auth, admin.headers, admin.actor, { userId: "missing", disabled: true }),
+      setDisabled(auth, db, admin.headers, admin.actor, { userId: "missing", disabled: true }),
     ).resolves.toEqual({ ok: false, error: "notFound" });
   });
 
@@ -218,7 +239,7 @@ describe("setDisabled", () => {
     [{ userId: "", disabled: true }],
     [null],
   ])("rejects %j as invalid", async (input) => {
-    await expect(setDisabled(auth, admin.headers, admin.actor, input)).resolves.toEqual({
+    await expect(setDisabled(auth, db, admin.headers, admin.actor, input)).resolves.toEqual({
       ok: false,
       error: "invalid",
     });

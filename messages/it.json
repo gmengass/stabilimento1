@@ -80,6 +80,7 @@
       "forbidden": "Solo gli amministratori possono farlo.",
       "usernameTaken": "Questo nome utente è già in uso.",
       "self": "Non puoi disattivare il tuo account.",
+      "lastAdmin": "Almeno un amministratore deve restare attivo.",
       "notFound": "Account non trovato.",
       "generic": "Qualcosa è andato storto. Riprova."
     }

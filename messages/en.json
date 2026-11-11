@@ -80,6 +80,7 @@
       "forbidden": "Only admins can do this.",
       "usernameTaken": "This username is already taken.",
       "self": "You cannot disable your own account.",
+      "lastAdmin": "At least one admin must stay active.",
       "notFound": "Account not found.",
       "generic": "Something went wrong. Try again."
     }

@@ -1,12 +1,13 @@
 import { isAPIError } from "better-auth/api";
-import type { Kysely } from "kysely";
+import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
 import type { Auth } from "./auth";
 import { passwordSchema, placeholderEmail, roles, usernameSchema, type Role } from "./rules";
 import type { CurrentUser } from "./session";
 
-export type StaffError = "invalid" | "forbidden" | "usernameTaken" | "self" | "notFound";
+export type StaffError =
+  "invalid" | "forbidden" | "usernameTaken" | "self" | "lastAdmin" | "notFound";
 
 export type StaffResult = { ok: true } | { ok: false; error: StaffError };
 
@@ -89,12 +90,24 @@ export async function createStaff(
   );
 }
 
-/**
- * Disabling bans the user, which also ends all their sessions. Refusing self-disable is enough
- * to keep an admin: the actor is an active admin, so another one always remains.
- */
+// Serializes disables so two admins disabling each other can't leave no active admin.
+const DISABLE_LOCK_KEY = 7_000_301;
+
+async function hasOtherActiveAdmin(db: Kysely<DB>, userId: string): Promise<boolean> {
+  const other = await db
+    .selectFrom("user")
+    .select("id")
+    .where("role", "=", "admin")
+    .where("banned", "=", false)
+    .where("id", "!=", userId)
+    .executeTakeFirst();
+  return other !== undefined;
+}
+
+/** Disabling bans the user, which also ends all their sessions. */
 export async function setDisabled(
   auth: Auth,
+  db: Kysely<DB>,
   headers: Headers,
   actor: CurrentUser,
   input: unknown,
@@ -105,7 +118,13 @@ export async function setDisabled(
   if (actor.role !== "admin") return fail("forbidden");
   if (!disabled) return run(() => auth.api.unbanUser({ headers, body: { userId } }));
   if (userId === actor.id) return fail("self");
-  return run(() => auth.api.banUser({ headers, body: { userId } }));
+  // The ban commits on its own connection while the lock is held, so the next disable waits,
+  // then sees it: its actor's session is gone, or no other active admin remains.
+  return db.transaction().execute(async (trx) => {
+    await sql`select pg_advisory_xact_lock(${DISABLE_LOCK_KEY})`.execute(trx);
+    if (!(await hasOtherActiveAdmin(trx, userId))) return fail("lastAdmin");
+    return run(() => auth.api.banUser({ headers, body: { userId } }));
+  });
 }
 
 /** Sets a new password and ends the user's sessions, so a lost tablet is logged out. */
@@ -117,8 +136,10 @@ export async function resetPassword(
   const parsed = resetSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
   const { userId, password } = parsed.data;
+  // Revoke first: if setting the password then fails, the lost tablet is still logged out
+  // and the admin simply retries.
   return run(async () => {
-    await auth.api.setUserPassword({ headers, body: { userId, newPassword: password } });
     await auth.api.revokeUserSessions({ headers, body: { userId } });
+    await auth.api.setUserPassword({ headers, body: { userId, newPassword: password } });
   });
 }
