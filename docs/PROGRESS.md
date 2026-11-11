@@ -4,35 +4,34 @@
 > Git history keeps the old versions.
 
 ## Current state
-DB schema merged (PR #6). Branch `feat/i18n` adds next-intl (IT default, EN) without URL locales:
-locale from `locale` cookie → `it` (`src/i18n/`), switcher in the root layout header, typed message
-keys, `formatBookingDate`/`formatTimestamp`/`formatEur`, lint rules against JSX text and
-user-facing attribute literals, translated 404 + bilingual global error, Playwright e2e in CI.
-Root layout renders per request (ADR 0006). 144 Vitest tests + 2 e2e pass locally.
+i18n merged (PR #7). Branch `feat/auth` adds Better Auth login (ADR 0007): username + password,
+admin/staff roles, absolute 12 h sessions, `/login` public, everything else under `src/app/(app)/`.
+Admins manage staff at `/admin/staff`. First admin via `npm run db:seed-admin`. Language saved on
+the user. Auth HTTP API is an allowlist of 3 endpoints. 290 Vitest + 8 e2e pass locally.
 
 ## Done this session
-- Plan `docs/plans/i18n.md`; `setLocale` server action (Zod, httpOnly, Lax, Secure in prod)
-- Parity test; `resolveLocale` ready for user preference; Playwright + CI `e2e` job; reviews passed
-- ADR 0006 (per-request rendering); ARCHITECTURE layout and Rendering section
-- Merged in a parallel session's extras: attribute lint, `formatTimestamp` + TZ/DST tests,
-  request-config test, `not-found.tsx` (real 404), `global-error.tsx`
+- Plan `docs/plans/auth.md`; migration `0003_auth`; tester, reviewer and security passes
+- Fixes from review: concurrent admin-disable lockout (advisory lock), endpoint allowlist,
+  disabled = wrong password, IPv6 per-address rate limit, app port bound to 127.0.0.1
+- CI: e2e job now has Postgres + seeded admin; docker job seeds the admin twice
+- ADR 0007, ARCHITECTURE (auth, authorization), ROADMAP ticked, CHANGELOG
 
 ## Next up
-1. Open and merge the `feat/i18n` PR once CI (incl. the new e2e job) is green
-2. "Auth (sign up, log in, roles)" on `feat/auth`: add `user.locale`, save it in `setLocale`
-3. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004
+1. Open and merge the `feat/auth` PR once CI (checks, e2e, docker) is green
+2. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004
+3. Deploy item: Caddy in front (sets X-Forwarded-For), `trustedProxies`, `APP_URL` https
 
 ## Open questions
+- Session length on shared tablets: 12 h absolute now; end of day (Europe/Rome) instead?
+- Staff can't change their own password (admin resets it): add self-service later?
+- Password policy is length-only (10–128): add a common-password list?
+- Expired `session` rows (IP, user agent) are never deleted: cleanup job + retention (GDPR)
+- Login rate limit 5/min per address: fine on LAN; revisit if staff share one public IP
 - `formatEur` takes euros; switch to integer cents before the Prices item?
-- Delete the leftover branch `feat/i18n-session2` (superseded by `feat/i18n`)
-- Roadmap Milestone 1 (providers, working hours, customer search, email) contradicts the brief
-  and ADR 0004: rewrite it in a docs PR
-- Retiring a spot with bookings (soft-delete?), OneDrive permission, pin Actions to SHAs: later items
-- VenueSettings (time zone, hold-until): columns on `venue` or a 1:1 table? Hold-rule item
+- VenueSettings: columns on `venue` or a 1:1 table? Hold-rule item
 - Ruleset `rulset1` requires `docker` only: add `checks` and `e2e` too
-- Home page `i18n-probe` input is test-only: move the e2e to a real form when one exists
-- Mini PC: Windows 11, Ryzen 5 7430U (assumed), 16 GB. Deploy item: Docker Engine in WSL2 started
-  at boot (preferred) vs Docker Desktop + auto-login; amend ADR 0003
+- Mini PC deploy: Docker Engine in WSL2 at boot vs Docker Desktop; amend ADR 0003
+- AuditLog for staff-account changes once AuditLog exists
 
 ## Known issues
 - Sessions can't pull from Docker Hub or download Playwright browsers: run e2e locally with a
