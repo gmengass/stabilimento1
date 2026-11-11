@@ -39,7 +39,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - name: Shellcheck deploy scripts
-        run: shellcheck -s sh -x scripts/*.sh scripts/lib/common.sh
+        run: shellcheck -s sh -x scripts/*.sh scripts/lib/*.sh
       - run: npm run format:check
       - run: npm run typecheck
       - name: Migrate, roll back, migrate again

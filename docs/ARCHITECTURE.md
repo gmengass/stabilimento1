@@ -53,7 +53,8 @@ screens within seconds. Customers never use the app. They are contact details on
 - `tests/unit/`, `tests/integration/`: Vitest; integration tests only touch a `*_test` database
 - `e2e/`: Playwright specs (`npm run test:e2e`, builds and starts the app)
 - `deploy/Caddyfile`: HTTPS (internal CA) and the `X-Real-IP` header the app trusts (ADR 0008)
-- `scripts/update.sh`, `rollback.sh`, `pre-update-backup.sh`: POSIX sh deploy scripts; operator steps
+- `scripts/update.sh`, `rollback.sh`, `pre-update-backup.sh`, `setup-wsl.sh` (one-time box setup):
+  POSIX sh deploy scripts; operator steps
   in `docs/RUNBOOK.md`
 
 ## Authorization
