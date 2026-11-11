@@ -3,20 +3,35 @@
 > High-level map of the system. Update it when structure changes. Details belong in ADRs.
 
 ## Overview
-_To be written once the stack is accepted (ADR 0002)._
+One web app and one PostgreSQL database on a local server at the club, reachable only from the
+staff Wi-Fi (and optionally Tailscale), with nightly encrypted backups to OneDrive (ADR 0003).
+Single venue with one or more booking areas. 5–10 staff users; changes appear on other staff
+screens within seconds. Customers never use the app. They are contact details on a booking.
 
 ## Core domain (stack-independent)
-- **User**: id, role (customer | provider | admin), contact details
-- **Resource**: what can be booked (person, room, item, class), owned by a provider
-- **AvailabilityRule**: recurring hours, plus exceptions (holidays, one-off blocks)
-- **Booking**: resource, customer, start_utc, end_utc, status
-  (pending | confirmed | cancelled | completed | no_show)
-- **Payment** (optional): booking, amount, provider reference, status
+- **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded)
+- **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout
+  and opening season. Adding an area is a data change, not a code change.
+- **Line**: area, number (1 = closest to the shore)
+- **Spot**: line, position, kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
+- **User**: a staff login. id, name, role (admin | staff)
+- **Customer**: name, phone, optional email and notes (no login)
+- **VenueSettings**: default_hold_until (11:00), time zone (Europe/Rome)
+- **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
+- **Season**: area, name, start_date, end_date
+- **Booking**: customer, kind (day | multi_day | season), start_date (a season pass's first day),
+  end_date (inclusive local dates), season, status, notes, hold_until (optional override)
+- **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella)
+- **SpotDay**: spot, date, booking_spot, state (booked | released | no_show). Unique per (spot, date)
+  while occupied (ADR 0004)
+- **CheckIn**: booking, date, checked-in time, staff user
+- **AuditLog**: user, action, booking, before/after, timestamp
+- **Payment** (later): booking, amount, method (cash/card at desk), staff user
 
 ## Invariants
-- No two active bookings for the same resource may overlap. This is enforced in the database
-  (e.g. a PostgreSQL exclusion constraint), not only in application code.
-- All times are stored in UTC, along with the resource's IANA time zone.
+- A spot can be occupied by at most one booking per day. This is enforced in the database
+  (unique (spot, date) on SpotDay), not only in application code.
+- Booking days are local calendar dates (`Europe/Rome`); timestamps are stored in UTC (ADR 0004).
 - Status changes go through a single service function so they can be audited.
 
 ## Directory layout
