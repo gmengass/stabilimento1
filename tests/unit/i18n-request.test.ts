@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { cookieValue } = vi.hoisted(() => ({
+const { cookieValue, userLocale } = vi.hoisted(() => ({
   cookieValue: { current: undefined as string | undefined },
+  userLocale: { current: undefined as string | undefined },
 }));
 
 vi.mock("next/headers", () => ({
@@ -17,6 +18,14 @@ vi.mock("next-intl/server", () => ({
   getRequestConfig: (factory: unknown) => factory,
 }));
 
+vi.mock("@/lib/auth/session", () => ({
+  getCurrentUser: vi.fn(async () =>
+    userLocale.current === undefined
+      ? null
+      : { id: "u1", username: "anna", name: "Anna", role: "staff", locale: userLocale.current },
+  ),
+}));
+
 import requestConfig from "@/i18n/request";
 
 type Factory = () => Promise<{ locale: string; messages: unknown; timeZone: string }>;
@@ -24,6 +33,7 @@ const loadConfig = requestConfig as unknown as Factory;
 
 beforeEach(() => {
   cookieValue.current = undefined;
+  userLocale.current = undefined;
 });
 
 describe("request config", () => {
@@ -40,6 +50,25 @@ describe("request config", () => {
     expect(config.locale).toBe(expected);
     expect(config.timeZone).toBe("Europe/Rome");
     const catalog = await import(`../../messages/${expected}.json`);
+    expect(config.messages).toEqual(catalog.default);
+  });
+});
+
+describe("request config with a logged-in user", () => {
+  it.each([
+    ["en", "it", "en"],
+    ["it", "en", "it"],
+    ["en", undefined, "en"],
+  ])("user locale %j beats cookie %j", async (user, cookie, expected) => {
+    userLocale.current = user;
+    cookieValue.current = cookie;
+    expect((await loadConfig()).locale).toBe(expected);
+  });
+
+  it("follows the user to a new browser without a cookie", async () => {
+    userLocale.current = "en";
+    const config = await loadConfig();
+    const catalog = await import("../../messages/en.json");
     expect(config.messages).toEqual(catalog.default);
   });
 });
