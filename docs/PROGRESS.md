@@ -12,8 +12,7 @@ Root layout renders per request (ADR 0006). 144 Vitest tests + 2 e2e pass locall
 
 ## Done this session
 - Plan `docs/plans/i18n.md`; `setLocale` server action (Zod, httpOnly, Lax, Secure in prod)
-- Message parity/placeholder test; `resolveLocale` ready for a user preference (Auth)
-- Playwright added (`npm run test:e2e`), CI `e2e` job; reviewer + security passed after fixes
+- Parity test; `resolveLocale` ready for user preference; Playwright + CI `e2e` job; reviews passed
 - ADR 0006 (per-request rendering); ARCHITECTURE layout and Rendering section
 - Merged in a parallel session's extras: attribute lint, `formatTimestamp` + TZ/DST tests,
   request-config test, `not-found.tsx` (real 404), `global-error.tsx`
@@ -28,13 +27,10 @@ Root layout renders per request (ADR 0006). 144 Vitest tests + 2 e2e pass locall
 - Delete the leftover branch `feat/i18n-session2` (superseded by `feat/i18n`)
 - Roadmap Milestone 1 (providers, working hours, customer search, email) contradicts the brief
   and ADR 0004: rewrite it in a docs PR
-- Alphanumeric umbrella labels ("A12")? Only integers for now
-- Retiring a spot that has bookings: soft-delete or never delete? Decide in the admin CRUD item
+- Retiring a spot with bookings (soft-delete?), OneDrive permission, pin Actions to SHAs: later items
 - VenueSettings (time zone, hold-until): columns on `venue` or a 1:1 table? Hold-rule item
 - Ruleset `rulset1` requires `docker` only: add `checks` and `e2e` too
-- Pin GitHub Actions to commit SHAs (security, low)
 - Home page `i18n-probe` input is test-only: move the e2e to a real form when one exists
-- OneDrive backup permission: shelved until the Backups item
 - Mini PC: Windows 11, Ryzen 5 7430U (assumed), 16 GB. Deploy item: Docker Engine in WSL2 started
   at boot (preferred) vs Docker Desktop + auto-login; amend ADR 0003
 
