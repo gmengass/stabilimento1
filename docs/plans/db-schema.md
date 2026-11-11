@@ -27,7 +27,7 @@ matches the schema, and an idempotent seed loads a realistic demo beach.
 - `src/db/migrations/0002_venue_area_spot.ts`: `up`/`down` in the `0001_init.ts` style, plain SQL via
   `sql\`\`.execute(db)`, one statement per call, `db: Kysely<unknown>`
 - `src/db/types.ts`: regenerated (or hand-written in codegen's shape, see step 3)
-- `src/db/seed.ts` (CLI entry) and `src/db/seed-data.ts` (exports `seed(db)` plus the demo layout)
+- `src/db/seed.ts` (CLI entry) and `src/db/seed-data.ts` (exports `seedDemo(db)` plus the demo layout)
 - `package.json`: `db:seed`; add `--date-parser string` to `db:types` to match `src/db/client.ts`
 - `tests/integration/schema.test.ts`, `tests/integration/seed.test.ts`, `tests/integration/db.test.ts`
 - `.github/workflows/ci.yml`: after migrate, `npm run db:types` and `git diff --exit-code src/db/types.ts`
