@@ -1,0 +1,7 @@
+.next/
+coverage/
+package-lock.json
+src/db/types.ts
+*.md
+.claude/
+.github/
