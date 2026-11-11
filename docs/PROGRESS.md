@@ -13,16 +13,16 @@ No domain tables yet.
 - Scaffold per docs/plans/scaffold.md; CLAUDE.md "Commands" filled in
 - Test safety: all test DB access is forced onto a `*_test` database (tests/setup.ts)
 - `date` columns come back as `YYYY-MM-DD` strings (ADR 0004)
-- ADR 0005 (Proposed): Italian + English via next-intl, per-user language, no locale in URLs
+- ADR 0005 (Accepted): Italian + English via next-intl, switchable on every screen
 - Roadmap: added "Interface languages" item before Auth
 
 ## Next up
-1. Merge PR #4 (after you review it); accept or amend ADR 0005
+1. PR #4 merged; ADR 0005 accepted (switcher before and after login)
 2. "Database + first migration (Venue, Area, Spot), seed data" on `feat/db-schema`
 3. Then "Interface languages (IT/EN)" on `feat/i18n`
 
 ## Open questions
-- Ruleset `rulset1` has no required status checks: add `checks` and `docker` so CI blocks merges?
+- Ruleset `rulset1` requires `docker` only: add `checks` too
 - OneDrive backup permission: shelved until the Backups item
 - Mini PC: acquired. Model, RAM and OS needed for the Deploy item
 
