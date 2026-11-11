@@ -30,3 +30,7 @@ Thumbs.db
 # Next.js / TypeScript
 next-env.d.ts
 *.tsbuildinfo
+
+# Deploy state and local dumps (scripts/update.sh)
+.deploy/
+backups/
