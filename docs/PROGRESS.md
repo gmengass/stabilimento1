@@ -13,10 +13,8 @@
 - ADR 0008 and `docs/plans/deploy.md`.
 - CI: HTTPS health check, port 3000 closed, spoofed headers still hit 429, shellcheck, and an
   end-to-end install → update → rollback with a data check.
-- Review fixes:
-  - rollback works after a failed update
-  - owner-only dumps (3 kept)
-  - CA key handling, firewall and network checks in the RUNBOOK
+- Review fixes: rollback after a failed update, owner-only dumps (3 kept), and RUNBOOK checks for
+  the CA key, firewall and network.
 
 ## Next up
 1. Merge PR #10, then tag `v0.1.0` from GitHub (sessions can't push tags). Run the RUNBOOK on the box.
@@ -26,12 +24,8 @@
 
 ## Open questions
 - Verify on the box: does WSL2 mirrored networking keep LAN source IPs (RUNBOOK check)?
-- Hardening for later:
-  - a shared-secret header from Caddy to the app
-  - the db host port in a dev-only compose file
-  - `git verify-tag` on signed tags, and the Caddy image pinned by digest
-  - a per-username lockout
-  - a keep-data (`migrate down`) rollback mode
+- Hardening for later: a shared-secret header from Caddy to the app, the db port in a dev-only
+  file, signed tags, the Caddy image pinned by digest, a per-username lockout, keep-data rollback.
 - Existing dev databases keep the old 1–120 numbers: re-create the DB.
 - Session length on shared tablets: 12 h absolute, or end of day (Europe/Rome)?
 - Password policy is length-only, staff can't change their own password, and expired sessions are
