@@ -16,7 +16,7 @@ export default defineConfig([
         "error",
         {
           selector:
-            "JSXAttribute[name.name=/^(alt|title|placeholder|label|aria-label|aria-description)$/] > Literal",
+            "JSXAttribute[name.name=/^(alt|title|placeholder|label|aria-(label|description|placeholder|roledescription|valuetext))$/] :matches(Literal, TemplateLiteral):not(CallExpression > *)",
           message: "User-facing text belongs in messages/*.json (ADR 0005).",
         },
       ],

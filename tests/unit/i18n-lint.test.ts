@@ -24,6 +24,18 @@ describe("no hard-coded user-facing strings (ADR 0005)", () => {
     },
   );
 
+  it.each([
+    'placeholder={"Ciao"}',
+    "placeholder={`Ciao`}",
+    'alt={ok ? "Si" : "No"}',
+    'aria-roledescription="x"',
+    'aria-placeholder="x"',
+    'aria-valuetext="x"',
+  ])("rejects the attribute form %s", async (attr) => {
+    const code = `export const X = ({ ok }: { ok: boolean }) => <img ${attr} />;\n`;
+    expect(await ruleIds(code)).toContain("no-restricted-syntax");
+  });
+
   it("allows technical attributes and translated text", async () => {
     const code =
       'export const X = ({ t }: { t: (k: string) => string }) => (\n  <p className="a" lang="it" aria-label={t("k")}>\n    {t("k")}\n  </p>\n);\n';
