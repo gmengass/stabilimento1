@@ -15,7 +15,9 @@ export interface CurrentUser {
 
 /** Reads the session from the database. Banned users have no session. */
 export async function readCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getAuth().api.getSession({ headers: await headers() });
+  // Read the request first: at build time this ends prerendering before auth needs env vars.
+  const requestHeaders = await headers();
+  const session = await getAuth().api.getSession({ headers: requestHeaders });
   if (!session) return null;
   const { id, username, name, role, locale } = session.user;
   return {
