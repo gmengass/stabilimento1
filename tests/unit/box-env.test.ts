@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -69,6 +69,16 @@ describe("write_box_env", () => {
     expect(readEnv(join(dir, ".env")).AUTH_SECRET).not.toBe(first.AUTH_SECRET);
   });
 
+  it("writes nothing when openssl fails, so a re-run starts clean", () => {
+    const result = sh(
+      `openssl() { return 1; }; write_box_env .env '${join(ROOT, ".env.example")}' box.local 192.168.1.10`,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/could not generate secrets/);
+    expect(existsSync(join(dir, ".env"))).toBe(false);
+    expect(existsSync(join(dir, ".env.draft"))).toBe(false);
+  });
+
   it("never overwrites an existing .env", () => {
     writeFileSync(join(dir, ".env"), "AUTH_SECRET=keep-me\n");
     const result = create();
@@ -78,16 +88,63 @@ describe("write_box_env", () => {
   });
 });
 
+describe("write_box_env input checks", () => {
+  const create = (name: string, ip: string) =>
+    sh(`write_box_env .env '${join(ROOT, ".env.example")}' '${name}' '${ip}'`);
+
+  it.each([
+    "http://stabilimento.local",
+    "stabilimento.local, other",
+    "a{b}",
+    "-bad.local",
+    "with space.local",
+    "",
+  ])("rejects the name %j", (name) => {
+    const result = create(name, "192.168.1.10");
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/name/);
+  });
+
+  it.each([
+    "192.168.1",
+    "192.168.1.256",
+    "0.0.0.0",
+    "127.0.0.1",
+    "192.168.1.10,10.0.0.1",
+    "fe80::1",
+    "",
+  ])("rejects the IP %j", (ip) => {
+    const result = create("stabilimento.local", ip);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/IP/);
+  });
+
+  it("accepts a single-label Windows PC name and lowercases it", () => {
+    expect(create("CLUB-PC", "10.0.0.5").status).toBe(0);
+    expect(readEnv(join(dir, ".env"))).toMatchObject({
+      APP_URL: "https://club-pc",
+      SITE_ADDRESS: "club-pc, 10.0.0.5",
+    });
+  });
+});
+
 describe("set_env_value", () => {
+  it("writes values literally: no sed escapes, newlines or & expansion", () => {
+    writeFileSync(join(dir, "f"), "A=1\nB=2\n");
+    expect(sh("set_env_value f A 'x\\ny&z'").status).toBe(0);
+    expect(readFileSync(join(dir, "f"), "utf8")).toBe("A=x\\ny&z\nB=2\n");
+  });
+
   it("replaces an existing key and appends a missing one", () => {
     writeFileSync(join(dir, "f"), "A=1\nB=2\n");
     expect(sh("set_env_value f A 'x y' && set_env_value f C 3").status).toBe(0);
     expect(readFileSync(join(dir, "f"), "utf8")).toBe("A=x y\nB=2\nC=3\n");
   });
 
-  it("refuses a value containing |", () => {
+  it("refuses a value containing a newline", () => {
     writeFileSync(join(dir, "f"), "A=1\n");
-    expect(sh("set_env_value f A 'a|b'").status).not.toBe(0);
+    expect(sh("set_env_value f A \"$(printf 'a\\nB=evil')\"").status).not.toBe(0);
+    expect(readFileSync(join(dir, "f"), "utf8")).toBe("A=1\n");
   });
 });
 

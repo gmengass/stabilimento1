@@ -36,14 +36,15 @@ You need Windows 11 22H2 or later for mirrored networking. Use Docker Engine, no
    **Shortcut for steps 3–4 and "First install":** inside Ubuntu, run
    ```sh
    git clone https://github.com/gmengass/stabilimento1 ~/stabilimento1
-   cd ~/stabilimento1 && sh scripts/setup-wsl.sh vX.Y.Z
+   cd ~/stabilimento1 && sh scripts/setup-wsl.sh vX.Y.Z    # v0.1.1 or later
    ```
    - It enables systemd. Then run `wsl --shutdown` in PowerShell and run the script again.
    - It installs Docker Engine 28 or later.
    - It asks for the box's name and IP, writes `.env` with fresh secrets, installs the release and
      creates the first admin.
-   - It exports the root certificate (also to Windows Downloads) and makes an encrypted backup of
-     the CA key in `~/secrets`.
+   - It exports the root certificate (also to Windows Downloads) and prints its fingerprint.
+   - It makes an encrypted backup of the CA key in `~/secrets`. The key is never written to disk
+     unencrypted.
    - Every step is safe to run again. Steps 5–8 below are still done in Windows.
 3. **systemd**: in Ubuntu, create `/etc/wsl.conf`, then run `wsl --shutdown` from PowerShell:
    ```ini
@@ -126,6 +127,9 @@ Do this once per device.
 1. Export the root certificate (public, not the key) outside the checkout:
    `docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt ~/stabilimento-root.crt`.
 2. Send it to each device, for example by AirDrop or a USB stick.
+   - Before trusting it, compare its SHA-256 fingerprint on the device (certificate details) with
+     the one shown by `openssl x509 -noout -fingerprint -sha256 -in ~/stabilimento-root.crt`.
+     A swapped file would let someone intercept the tablet's traffic.
 3. Install it:
    - **iOS / iPadOS**: open the file and install the profile. Then go to Settings → General →
      About → Certificate Trust Settings and turn on full trust.
@@ -169,19 +173,19 @@ script stops with the app down and prints the rollback command.
    - The archive contains the CA **private key**. Keep it out of the checkout and readable by the
      owner only. Store it encrypted next to `.env` (for example `gpg -c`), then delete the
      plaintext copy.
-   - On the old box, right after the first install and again whenever the box is replaced:
+   - On the old box, right after the first install (`setup-wsl.sh` does this) and again whenever
+     the box is replaced. The archive is streamed straight into gpg, so the key never lands on
+     disk unencrypted:
      ```sh
      install -d -m 700 ~/secrets
-     docker run --rm -v stabilimento_caddy_data:/d -v ~/secrets:/o alpine \
-       sh -c 'umask 077 && tar czf /o/caddy_data.tgz -C /d .'
-     gpg -c ~/secrets/caddy_data.tgz && rm ~/secrets/caddy_data.tgz
+     docker run --rm -v stabilimento_caddy_data:/d:ro caddy:2.10-alpine tar czf - -C /d . |
+       gpg --symmetric --output ~/secrets/caddy_data.tgz.gpg
      ```
-   - On the new box:
+   - On the new box, before the first install:
      ```sh
-     gpg -d caddy_data.tgz.gpg > ~/secrets/caddy_data.tgz
      docker volume create stabilimento_caddy_data
-     docker run --rm -v stabilimento_caddy_data:/d -v ~/secrets:/o alpine tar xzf /o/caddy_data.tgz -C /d
-     rm ~/secrets/caddy_data.tgz
+     gpg -d caddy_data.tgz.gpg |
+       docker run --rm -i -v stabilimento_caddy_data:/d caddy:2.10-alpine tar xzf - -C /d
      ```
    - Without it, every device has to trust the new root.
 4. Install the release that made the dump: `scripts/update.sh vX.Y.Z`.

@@ -1,9 +1,11 @@
 #!/bin/sh
+# shellcheck disable=SC2016 # with_docker gets literal commands; values come from exported variables
 # One-time setup of the club box inside WSL2 Ubuntu: RUNBOOK section A steps 3-4 and
 # "First install". Safe to run again: finished steps are skipped.
 # Usage (inside Ubuntu, in the checkout on the Linux disk):
 #   git clone https://github.com/gmengass/stabilimento1 ~/stabilimento1
-#   cd ~/stabilimento1 && sh scripts/setup-wsl.sh v0.1.0
+#   cd ~/stabilimento1 && sh scripts/setup-wsl.sh vX.Y.Z
+# vX.Y.Z must be a release that contains this script (v0.1.1 or later).
 # The Windows steps (WSL install, .wslconfig, firewall, power, Task Scheduler) are separate:
 # see docs/RUNBOOK.md section A.
 set -eu
@@ -17,26 +19,33 @@ reexec_from_copy setup-wsl.sh "$@"
 tag=${1:-}
 valid_tag "$tag" || die "usage: sh scripts/setup-wsl.sh vX.Y.Z (the release to install)"
 MIN_DOCKER_MAJOR=28
+DOCKER_KEY_FINGERPRINT=9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+CADDY_IMAGE=caddy:2.10-alpine
+export DEPLOY_ROOT
 
 step() { printf '\n== %s\n' "$*" >&2; }
 
 ask() {
-	prompt=$1 default=$2
-	printf '%s [%s]: ' "$prompt" "$default" >&2
-	read -r reply || reply=
-	printf '%s\n' "${reply:-$default}"
+	printf '%s [%s]: ' "$1" "$2" >&2
+	IFS= read -r reply || reply=
+	printf '%s\n' "${reply:-$2}"
 }
 
-ask_secret() {
+# Reads a line without echo; the terminal is restored even on Ctrl-C.
+read_hidden() {
 	printf '%s: ' "$1" >&2
+	saved=$(stty -g 2>/dev/null) || saved=
+	trap '[ -n "$saved" ] && stty "$saved"; exit 130' INT TERM
 	stty -echo 2>/dev/null || true
-	read -r reply || reply=
-	stty echo 2>/dev/null || true
+	IFS= read -r reply || reply=
+	[ -n "$saved" ] && stty "$saved"
+	trap 'exit 130' INT TERM
 	printf '\n' >&2
 	printf '%s\n' "$reply"
 }
 
-# Runs a command with docker access, also before a new login picks up the docker group.
+# Runs a literal sh command with docker access, also before a new login picks up the docker
+# group. Pass values through exported variables, never by pasting them into $1.
 with_docker() {
 	if docker info >/dev/null 2>&1; then
 		sh -c "$1"
@@ -45,11 +54,20 @@ with_docker() {
 	fi
 }
 
+# The Windows user's profile folder as a WSL path, or nothing if Windows interop is off.
+windows_profile() {
+	profile=$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r') || return 0
+	[ -n "$profile" ] && wslpath "$profile" 2>/dev/null || true
+}
+
 check_environment() {
 	step "Checking the environment"
 	grep -qi microsoft /proc/version || die "this script is for WSL2 (use RUNBOOK section B on Linux)"
 	[ "$(id -u)" -ne 0 ] || die "run as your normal Ubuntu user, not root (sudo is used where needed)"
 	case $DEPLOY_ROOT in /mnt/*) die "the checkout is on the Windows disk: clone it into ~/ instead" ;; esac
+	git -C "$DEPLOY_ROOT" fetch --quiet --tags origin || log "warning: git fetch failed, using local tags"
+	git -C "$DEPLOY_ROOT" cat-file -e "$tag:scripts/setup-wsl.sh" 2>/dev/null ||
+		die "$tag does not exist or predates this script: use v0.1.1 or a later release"
 	sudo -v
 }
 
@@ -59,19 +77,17 @@ enable_systemd() {
 		log "systemd is running"
 		return
 	fi
+	restart="Now run 'wsl --shutdown' in Windows PowerShell, reopen Ubuntu and run this script again."
+	if grep -Eq '^[[:space:]]*systemd[[:space:]]*=[[:space:]]*true' /etc/wsl.conf 2>/dev/null; then
+		log "systemd is enabled in /etc/wsl.conf but not running yet. $restart"
+		exit 0
+	fi
 	if grep -q '^\[boot\]' /etc/wsl.conf 2>/dev/null; then
 		die "/etc/wsl.conf already has a [boot] section: add 'systemd=true' under it by hand"
 	fi
-	printf '[boot]\nsystemd=true\n' | sudo tee -a /etc/wsl.conf >/dev/null
-	log "systemd enabled in /etc/wsl.conf."
-	log "Now run 'wsl --shutdown' in Windows PowerShell, reopen Ubuntu and run this script again."
+	printf '[boot]\nsystemd=true\n' | sudo sh -c 'umask 022 && cat >>/etc/wsl.conf'
+	log "systemd enabled in /etc/wsl.conf. $restart"
 	exit 0
-}
-
-# The Windows user's profile folder as a WSL path, or nothing if Windows interop is off.
-windows_profile() {
-	profile=$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r') || return 0
-	[ -n "$profile" ] && wslpath "$profile" 2>/dev/null || true
 }
 
 check_mirrored_networking() {
@@ -85,26 +101,39 @@ check_mirrored_networking() {
 	fi
 }
 
+add_docker_apt_repo() {
+	key=$(mktemp)
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$key"
+	fingerprint=$(gpg --show-keys --with-colons "$key" | awk -F: '$1 == "fpr" { print $10; exit }')
+	[ "$fingerprint" = "$DOCKER_KEY_FINGERPRINT" ] ||
+		{ rm -f "$key"; die "Docker's apt key has an unexpected fingerprint: $fingerprint"; }
+	sudo install -m 0755 -d /etc/apt/keyrings
+	sudo install -m 0644 "$key" /etc/apt/keyrings/docker.asc
+	rm -f "$key"
+	codename=$(. /etc/os-release && printf '%s' "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+	printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
+		"$(dpkg --print-architecture)" "$codename" |
+		sudo sh -c 'umask 022 && cat >/etc/apt/sources.list.d/docker.list'
+}
+
 install_docker() {
 	step "Docker Engine"
+	sudo sh -c 'umask 022 && apt-get update -q && apt-get install -y -q ca-certificates curl git openssl gnupg'
+	if command -v docker >/dev/null 2>&1 && ! systemctl cat docker.service >/dev/null 2>&1; then
+		die "a docker command without a docker service: Docker Desktop? Use Docker Engine (RUNBOOK A)"
+	fi
 	if ! command -v docker >/dev/null 2>&1; then
-		sudo apt-get update -q
-		sudo apt-get install -y -q ca-certificates curl git openssl gnupg
-		sudo install -m 0755 -d /etc/apt/keyrings
-		sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-		sudo chmod a+r /etc/apt/keyrings/docker.asc
-		codename=$(. /etc/os-release && printf '%s' "$VERSION_CODENAME")
-		printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
-			"$(dpkg --print-architecture)" "$codename" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-		sudo apt-get update -q
-		sudo apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+		add_docker_apt_repo
+		sudo sh -c 'umask 022 && apt-get update -q && apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin'
 	fi
 	sudo systemctl enable --now docker >/dev/null
-	major=$(sudo docker version --format '{{.Server.Version}}' | cut -d. -f1)
-	[ "$major" -ge "$MIN_DOCKER_MAJOR" ] ||
-		die "Docker Engine $major is too old: $MIN_DOCKER_MAJOR or later is needed (ADR 0008)"
+	version=$(sudo docker version --format '{{.Server.Version}}')
+	[ "${version%%.*}" -ge "$MIN_DOCKER_MAJOR" ] ||
+		die "Docker Engine $version is too old: $MIN_DOCKER_MAJOR or later is needed (ADR 0008)"
+	sudo docker compose version >/dev/null 2>&1 ||
+		die "the Docker Compose plugin is missing: sudo apt-get install docker-compose-plugin"
 	id -nG | tr ' ' '\n' | grep -qx docker || sudo usermod -aG docker "$(id -un)"
-	log "Docker Engine $(sudo docker version --format '{{.Server.Version}}') is running"
+	log "Docker Engine $version is running"
 }
 
 lan_ip() { ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p'; }
@@ -113,11 +142,12 @@ create_env() {
 	step ".env"
 	if [ -f "$DEPLOY_ROOT/.env" ]; then
 		log ".env exists: keeping it"
+		[ -z "$(env_value ADMIN_PASSWORD)" ] ||
+			log "WARNING: .env still contains ADMIN_PASSWORD: remove it after the admin exists"
 		return
 	fi
 	name=$(ask "Name staff type in the browser" "stabilimento.local")
 	ip=$(ask "This PC's fixed LAN IP (reserve it on the router)" "$(lan_ip)")
-	[ -n "$ip" ] || die "no IP given"
 	write_box_env "$DEPLOY_ROOT/.env" "$DEPLOY_ROOT/.env.example" "$name" "$ip"
 	log "created .env (mode 600) with fresh secrets. Store a copy in the password manager."
 }
@@ -128,53 +158,86 @@ first_install() {
 		log "$(read_state current) is already installed: use scripts/update.sh for updates"
 		return
 	fi
-	with_docker "env -u DEPLOY_COPY sh '$DEPLOY_ROOT/scripts/update.sh' '$tag'"
+	export TAG="$tag"
+	with_docker 'env -u DEPLOY_COPY sh "$DEPLOY_ROOT/scripts/update.sh" "$TAG"'
+}
+
+ask_admin_password() {
+	while :; do
+		first=$(read_hidden "Admin password (at least 10 characters, not stored)")
+		second=$(read_hidden "Same password again")
+		if [ "$first" != "$second" ]; then
+			log "the passwords differ: try again"
+		elif [ ${#first} -lt 10 ]; then
+			log "too short: at least 10 characters"
+		else
+			printf '%s\n' "$first"
+			return
+		fi
+	done
 }
 
 create_admin() {
 	step "First admin account"
-	username=$(ask "Admin username (not 'admin')" "")
+	username=$(ask "Admin username (not 'admin'; empty to skip)" "")
 	[ -n "$username" ] || { log "skipped: run this script again to create the admin"; return; }
-	password=$(ask_secret "Admin password (at least 10 characters, not stored)")
-	version=$(read_state current)
-	# Passed in the environment only, never written to .env.
+	password=$(ask_admin_password)
+	# Passed in the environment only, never written to .env or a command line.
 	(
-		export ADMIN_USERNAME="$username" ADMIN_PASSWORD="$password" APP_VERSION="$version"
-		with_docker "cd '$DEPLOY_ROOT' && docker compose run --rm seed-admin"
+		APP_VERSION=$(read_state current)
+		export ADMIN_USERNAME="$username" ADMIN_PASSWORD="$password" APP_VERSION
+		with_docker 'cd "$DEPLOY_ROOT" && docker compose run --rm seed-admin'
 	)
 }
 
 export_root_certificate() {
 	step "Root certificate for staff devices"
-	cert="$HOME/stabilimento-root.crt"
-	copy="cd '$DEPLOY_ROOT' && APP_VERSION='$(read_state current)' docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt '$cert'"
+	APP_VERSION=$(read_state current)
+	export CERT="$HOME/stabilimento-root.crt" APP_VERSION
+	errors=$(mktemp)
 	i=0
-	until with_docker "$copy" 2>/dev/null; do
+	until with_docker 'cd "$DEPLOY_ROOT" && docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt "$CERT"' 2>"$errors"; do
 		i=$((i + 1))
-		[ "$i" -lt 30 ] || die "Caddy has not created its root certificate: check 'docker compose logs caddy'"
+		if [ "$i" -ge 30 ]; then
+			log "$(tail -n 1 "$errors")"
+			rm -f "$errors"
+			die "could not copy Caddy's root certificate (see the error above)"
+		fi
 		sleep 2
 	done
-	chmod 644 "$cert"
+	rm -f "$errors"
+	chmod 644 "$CERT"
 	downloads="$(windows_profile)/Downloads"
-	if [ -d "$downloads" ] && [ "$downloads" != /Downloads ]; then
-		cp "$cert" "$downloads/"
+	if [ "$downloads" != /Downloads ] && [ -d "$downloads" ]; then
+		cp "$CERT" "$downloads/"
 		log "copied to Windows Downloads\\stabilimento-root.crt (public certificate, not the key)"
 	fi
+	log "SHA-256 fingerprint (check it on each tablet before trusting the certificate):"
+	openssl x509 -noout -fingerprint -sha256 -in "$CERT" >&2
 }
 
+# Streams the caddy_data volume straight into gpg: the CA key never touches the disk in clear.
 backup_ca_key() {
 	step "Encrypted backup of the CA key (caddy_data)"
 	archive="$HOME/secrets/caddy_data.tgz.gpg"
-	if [ -f "$archive" ]; then
+	if [ -s "$archive" ]; then
 		log "$archive exists: keeping it"
 		return
 	fi
-	command -v gpg >/dev/null 2>&1 || sudo apt-get install -y -q gnupg
 	install -d -m 700 "$HOME/secrets"
-	with_docker "docker run --rm -v stabilimento_caddy_data:/d:ro -v '$HOME/secrets':/o alpine sh -c 'umask 077 && tar czf /o/caddy_data.tgz -C /d .'"
+	failed="$HOME/secrets/.tar-failed"
+	rm -f "$failed" "$archive.tmp"
+	export CADDY_IMAGE FAILED="$failed"
 	log "Choose a passphrase and store it in the password manager:"
-	gpg --symmetric --output "$archive" "$HOME/secrets/caddy_data.tgz"
-	rm -f "$HOME/secrets/caddy_data.tgz"
+	GPG_TTY=$(tty) && export GPG_TTY
+	{ with_docker 'docker run --rm -v stabilimento_caddy_data:/d:ro "$CADDY_IMAGE" tar czf - -C /d .' ||
+		: >"$failed"; } | gpg --symmetric --output "$archive.tmp" ||
+		{ rm -f "$archive.tmp" "$failed"; die "gpg failed: no backup written"; }
+	if [ -e "$failed" ] || [ ! -s "$archive.tmp" ]; then
+		rm -f "$archive.tmp" "$failed"
+		die "reading the caddy_data volume failed: no backup written"
+	fi
+	mv "$archive.tmp" "$archive"
 	log "saved $archive: copy it off the box next to .env"
 }
 
@@ -188,8 +251,7 @@ create_admin
 export_root_certificate
 backup_ca_key
 
-name=$(env_value APP_URL)
 step "Done"
-log "Health check here: curl -k $name/health"
+log "Health check here: curl -k $(env_value APP_URL)/health"
 log "Next (RUNBOOK): Task Scheduler + firewall in Windows, reboot without logging in, trust"
 log "the certificate on each tablet, then compare remote_ip in 'docker compose logs caddy'."
