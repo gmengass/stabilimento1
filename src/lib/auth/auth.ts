@@ -70,14 +70,22 @@ export function createAuth({ db, secret, baseURL, rateLimit = true }: AuthDeps) 
     baseURL,
     database: { db: db.withPlugin(new CamelCasePlugin()), type: "postgres" },
     disabledPaths: DISABLED_PATHS,
+    advanced: {
+      // Secure + __Secure- cookies in production even if APP_URL was left on http; elsewhere
+      // Better Auth decides from the APP_URL scheme.
+      useSecureCookies: process.env.NODE_ENV === "production" ? true : undefined,
+      // Every device on the staff Wi-Fi shares one IPv6 /64: rate-limit per address instead.
+      ipAddress: { ipv6Subnet: 128 },
+    },
     emailAndPassword: {
       enabled: true,
       disableSignUp: true,
       minPasswordLength: PASSWORD_MIN,
       maxPasswordLength: PASSWORD_MAX,
-      revokeSessionsOnPasswordReset: true,
     },
-    session: { expiresIn: 12 * HOUR_SECONDS, updateAge: HOUR_SECONDS },
+    // Absolute 12 h: shared tablets log out by the next day. Server Components can't extend
+    // the cookie anyway, so a sliding refresh would only move the database row.
+    session: { expiresIn: 12 * HOUR_SECONDS, disableSessionRefresh: true },
     user: {
       additionalFields: {
         locale: {

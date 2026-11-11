@@ -162,6 +162,14 @@ describe("rate limit", () => {
     const other = await signIn(auth, "anna", PASSWORD);
     expect(other.status).toBe(200);
   });
+
+  it("limits each IPv6 address separately, even within one /64", async () => {
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      await signIn(auth, "anna", "wrong-password-1", { ip: "2001:db8:1:1::a" });
+    }
+    const neighbour = await signIn(auth, "anna", PASSWORD, { ip: "2001:db8:1:1::b" });
+    expect(neighbour.status).toBe(200);
+  });
 });
 
 describe("sign-out", () => {
