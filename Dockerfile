@@ -15,8 +15,10 @@ RUN npm run build
 
 # One-shot migration runner: `docker compose run --rm migrate` (up) or `... migrate down`.
 FROM deps AS migrate
-COPY tsconfig.json ./
-COPY src ./src
+# Owned by node: the box's update script checks files out with umask 077 (owner-only), and the
+# runner below is not root, so it must own the sources to read them.
+COPY --chown=node:node tsconfig.json ./
+COPY --chown=node:node src ./src
 USER node
 ENTRYPOINT ["node", "--import", "tsx", "src/db/migrate.ts"]
 CMD ["up"]

@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Updating the server failed at the migration step ("EACCES: permission denied") when a release
+  added new files: the update script checked them out readable by their owner only. Releases
+  are now checked out readable, and the migration image owns its sources either way.
+
 ### Added
 - Project skeleton, workflow docs, Claude agents and commands.
 - App scaffold: Next.js 16, PostgreSQL migrations with rollback, `/health` endpoint,

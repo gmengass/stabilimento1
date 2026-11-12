@@ -27,7 +27,8 @@ if [ "${1:-}" != "--yes" ]; then
 	[ "$answer" = "yes" ] || die "aborted"
 fi
 
-git -c advice.detachedHead=false checkout --quiet "$previous"
+# Files from the release must be readable by the containers: common.sh sets umask 077.
+(umask 022 && git -c advice.detachedHead=false checkout --quiet "$previous")
 compose_at "$previous" up -d --wait db
 compose_at "$previous" stop app
 # shellcheck disable=SC2016 # expanded inside the db container
