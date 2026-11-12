@@ -42,7 +42,8 @@ else
 	log "first install: no previous release, skipping backup"
 fi
 
-git -c advice.detachedHead=false checkout --quiet "$tag"
+# Files from the release must be readable by the containers: common.sh sets umask 077.
+(umask 022 && git -c advice.detachedHead=false checkout --quiet "$tag")
 log "building $tag"
 compose_at "$tag" build app migrate
 [ -n "$current" ] && compose_at "$current" stop app
