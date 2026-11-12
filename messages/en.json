@@ -84,7 +84,6 @@
     }
   },
   "map": {
-    "sea": "Sea",
     "line": "Line {number}",
     "spotFree": "Umbrella {number}, free",
     "previousDay": "← Previous day",
@@ -98,7 +97,8 @@
     "spotBooked": "Umbrella {number}, booked by {name}",
     "legendFree": "Free: {count}",
     "legendBooked": "Booked: {count}",
-    "hint": "Tap free umbrellas to book them, or a booked one to see it."
+    "hint": "Tap free umbrellas to book them, or a booked one to see it.",
+    "seaOf": "Sea · {area}"
   },
   "beachSetup": {
     "title": "Beach settings",
@@ -110,7 +110,7 @@
     "numberingHint": "Umbrellas are numbered line × 100 + position: 101, 102… in line 1, 201… in line 2. Position 1 is the leftmost facing the sea.",
     "submit": "Create the beach",
     "submitting": "Creating…",
-    "summary": "{name}: {lines, plural, one {# line} other {# lines}}, {umbrellas, plural, one {# umbrella} other {# umbrellas}}.",
+    "summary": "{name} · {areas, plural, one {# beach space} other {# beach spaces}}",
     "openMap": "Open the beach map",
     "errors": {
       "invalid": "Check the fields and try again.",
@@ -123,7 +123,9 @@
       "lineFull": "A line holds at most 99 umbrellas.",
       "tooManyLines": "The beach holds at most 30 lines.",
       "hasBookings": "Umbrellas that have bookings can't be removed.",
-      "sunbedsInUse": "Some current or future bookings use more sunbeds than that on this umbrella."
+      "sunbedsInUse": "Some current or future bookings use more sunbeds than that on this umbrella.",
+      "lastArea": "The beach needs at least one space.",
+      "tooManyAreas": "The club can have at most 10 beach spaces."
     },
     "save": "Save",
     "saved": "Saved.",
@@ -145,10 +147,13 @@
     "removeLine": "Remove line",
     "removeLineYes": "Yes, remove line {number}",
     "newLineUmbrellas": "Umbrellas in the new line",
-    "addLine": "Add a line behind"
+    "addLine": "Add a line behind",
+    "areaName": "Name of this beach space",
+    "areaNameDefault": "Main beach",
+    "areaNameHint": "You can add more beach spaces later, each with its own lines and umbrellas."
   },
   "booking": {
-    "newTitle": "New booking",
+    "newTitle": "New booking · {area}",
     "sunbeds": "Sunbeds",
     "remove": "Remove",
     "removeSpot": "Remove umbrella {number}",
@@ -178,5 +183,19 @@
       "ended": "This booking has already ended and can't be cancelled."
     },
     "notesHint": "No health or payment details here."
+  },
+  "areas": {
+    "tabsLabel": "Beach spaces",
+    "current": "Beach space",
+    "name": "Space name",
+    "rename": "Rename",
+    "remove": "Remove this space",
+    "removeYes": "Yes, remove {name}",
+    "no": "No",
+    "addTitle": "Add a beach space",
+    "lines": "Lines",
+    "umbrellasPerLine": "Umbrellas per line",
+    "add": "Add space",
+    "addHint": "Each space has its own lines and umbrellas, numbered from 101 again. A space with booked umbrellas can't be removed."
   }
 }

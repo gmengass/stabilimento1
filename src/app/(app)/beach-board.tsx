@@ -7,13 +7,14 @@ import type { Occupant } from "@/lib/booking/bookings";
 import { BookingDetails, NewBookingForm } from "./booking-panel";
 
 interface Props {
+  areaName: string;
   date: string;
   lines: MapLine[];
   occupancy: Record<number, Occupant>;
 }
 
 /** The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it. */
-export function BeachBoard({ date, lines, occupancy }: Props) {
+export function BeachBoard({ areaName, date, lines, occupancy }: Props) {
   const [selected, setSelected] = useState<MapSpot[]>([]);
   const [openBooking, setOpenBooking] = useState<number | null>(null);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
@@ -46,6 +47,7 @@ export function BeachBoard({ date, lines, occupancy }: Props) {
   ) : freeSelected.length > 0 ? (
     <NewBookingForm
       key={date}
+      areaName={areaName}
       date={date}
       spots={freeSelected}
       onRemove={(id) => setSelected((current) => current.filter((s) => s.id !== id))}
@@ -57,6 +59,7 @@ export function BeachBoard({ date, lines, occupancy }: Props) {
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
       <div className="min-w-0">
         <BeachMap
+          areaName={areaName}
           lines={lines}
           viewOf={viewOf}
           captionOf={(spot) => occupancy[spot.id]?.customerName}

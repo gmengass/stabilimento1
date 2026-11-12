@@ -37,6 +37,17 @@ export function BeachSetupForm() {
         <input name="venueName" required maxLength={100} className={field} />
       </label>
       <label className="flex flex-col gap-1 text-sm">
+        {t("areaName")}
+        <input
+          name="areaName"
+          required
+          maxLength={100}
+          defaultValue={t("areaNameDefault")}
+          className={field}
+        />
+        <span className="text-gray-600">{t("areaNameHint")}</span>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
         {t("lines")}
         <input
           name="lines"

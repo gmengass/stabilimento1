@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, getDb } from "@/db/client";
 import { runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
+import { addArea } from "@/lib/beach/edit";
 import { setupBeach, loadBeach } from "@/lib/beach/layout";
 import {
   cancelBooking,
@@ -35,7 +36,7 @@ beforeEach(async () => {
     .insertInto("user")
     .values({ id: USER, name: "Anna", email: "anna@example.invalid", username: "anna" })
     .execute();
-  await setupBeach(db, { venueName: "Lido", lines: 2, umbrellasPerLine: 5 });
+  await setupBeach(db, { venueName: "Lido", areaName: "Main", lines: 2, umbrellasPerLine: 5 });
   const beach = await loadBeach(db);
   if (!beach) throw new Error("no beach");
   areaId = beach.areaId;
@@ -188,6 +189,40 @@ describe("createBooking", () => {
       booking({ spots: [{ spotId: spot[101], sunbeds: 4 }] }),
     );
     expect(result).toEqual({ ok: false, error: "sunbeds" });
+  });
+
+  it("refuses umbrellas from two beach spaces in one booking", async () => {
+    const added = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
+    if (!added.ok) throw new Error("setup failed");
+    const north = await loadBeach(db, added.areaId);
+    const otherSpot = north?.lines[0].spots[0].id ?? 0;
+    const result = await createBooking(
+      db,
+      USER,
+      booking({
+        spots: [
+          { spotId: spot[101], sunbeds: 2 },
+          { spotId: otherSpot, sunbeds: 2 },
+        ],
+      }),
+    );
+    expect(result).toEqual({ ok: false, error: "invalid" });
+  });
+
+  it("books umbrella 101 in each space independently", async () => {
+    const added = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
+    if (!added.ok) throw new Error("setup failed");
+    const north = await loadBeach(db, added.areaId);
+    expect(north?.lines[0].spots[0].number).toBe(101);
+    await createBooking(db, USER, booking());
+    const other = await createBooking(
+      db,
+      USER,
+      booking({ spots: [{ spotId: north?.lines[0].spots[0].id ?? 0, sunbeds: 2 }] }),
+    );
+    expect(other).toMatchObject({ ok: true });
+    expect(Object.keys(await loadOccupancy(db, areaId, "2027-07-10"))).toHaveLength(1);
+    expect(Object.keys(await loadOccupancy(db, added.areaId, "2027-07-10"))).toHaveLength(1);
   });
 
   it("refuses an unknown spot", async () => {

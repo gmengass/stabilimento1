@@ -81,18 +81,18 @@ async function findClashes(
 }
 
 /**
- * True when every spot exists and each gets no more sunbeds than it can hold. With `lock`, the
- * spot rows stay share-locked until the transaction ends, so an admin can't lower a limit
- * between this check and the insert.
+ * "ok" when every spot exists, all are in the same beach space, and each gets no more sunbeds
+ * than it can hold. With `lock`, the spot rows stay share-locked until the transaction ends, so
+ * an admin can't lower a limit between this check and the insert.
  */
 async function sunbedsFit(
   db: Kysely<DB>,
   spots: { spotId: number; sunbeds: number }[],
   lock = false,
-): Promise<boolean> {
+): Promise<"ok" | "sunbeds" | "mixedAreas"> {
   const query = db
     .selectFrom("spot")
-    .select(["id", "max_sunbeds"])
+    .select(["id", "max_sunbeds", "area_id"])
     .where(
       "id",
       "in",
@@ -101,7 +101,10 @@ async function sunbedsFit(
     .orderBy("id");
   const rows = await (lock ? query.forShare() : query).execute();
   const max = new Map(rows.map((row) => [row.id, row.max_sunbeds]));
-  return spots.every((s) => max.has(s.spotId) && s.sunbeds <= (max.get(s.spotId) ?? 0));
+  // One booking stays in one beach space: umbrella numbers repeat across spaces.
+  if (new Set(rows.map((row) => row.area_id)).size > 1) return "mixedAreas";
+  const fits = spots.every((s) => max.has(s.spotId) && s.sunbeds <= (max.get(s.spotId) ?? 0));
+  return fits ? "ok" : "sunbeds";
 }
 
 type ValidBooking = z.output<typeof createSchema>;
@@ -112,7 +115,7 @@ class SunbedsChanged extends Error {}
 /** Inserts the booking and one spot_day per spot per day, in one transaction. */
 async function insertBooking(db: Kysely<DB>, userId: string, booking: ValidBooking) {
   return db.transaction().execute(async (tx) => {
-    if (!(await sunbedsFit(tx, booking.spots, true))) throw new SunbedsChanged();
+    if ((await sunbedsFit(tx, booking.spots, true)) !== "ok") throw new SunbedsChanged();
     const { id } = await tx
       .insertInto("booking")
       .values({
@@ -160,7 +163,9 @@ export async function createBooking(
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const booking = parsed.data;
-  if (!(await sunbedsFit(db, booking.spots))) return { ok: false, error: "sunbeds" };
+  const fit = await sunbedsFit(db, booking.spots);
+  if (fit === "mixedAreas") return { ok: false, error: "invalid" };
+  if (fit === "sunbeds") return { ok: false, error: "sunbeds" };
 
   const spotIds = booking.spots.map((s) => s.spotId);
   for (let attempt = 1; ; attempt++) {

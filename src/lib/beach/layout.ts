@@ -1,4 +1,4 @@
-import { sql, type Kysely } from "kysely";
+import { sql, type Kysely, type Transaction } from "kysely";
 import { z } from "zod";
 import type { DB, SpotKind } from "@/db/types";
 import { MAX_LINES, MAX_UMBRELLAS_PER_LINE } from "./limits";
@@ -29,17 +29,43 @@ export interface BeachLayout {
   lines: MapLine[];
 }
 
-/** The beach as staff see it: one venue and one area at launch, lines from the shore out. */
-export async function loadBeach(db: Kysely<DB>): Promise<BeachLayout | null> {
+export interface AreaTab {
+  id: number;
+  name: string;
+}
+
+/** The beach spaces (areas) of the club, in display order. */
+export async function listAreas(db: Kysely<DB>): Promise<AreaTab[]> {
+  return db
+    .selectFrom("area")
+    .select(["area.id", "area.name"])
+    .where("venue_id", "=", (q) => q.selectFrom("venue").select("id").orderBy("id").limit(1))
+    .orderBy("sort_order")
+    .orderBy("id")
+    .execute();
+}
+
+/** Reads an area id from a URL parameter; a malformed one becomes 0, which matches no area. */
+export function parseAreaId(value: unknown): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || !/^\d{1,9}$/.test(value)) return 0;
+  return Number(value);
+}
+
+/**
+ * One beach space as staff see it, lines from the shore out. `areaId` picks the space; without
+ * it, or if it doesn't exist, the first space is shown.
+ */
+export async function loadBeach(db: Kysely<DB>, areaId?: number): Promise<BeachLayout | null> {
+  const areas = await listAreas(db);
+  const picked = areas.find((a) => a.id === areaId) ?? areas[0];
+  if (!picked) return null;
   const area = await db
     .selectFrom("area")
     .innerJoin("venue", "venue.id", "area.venue_id")
     .select(["area.id", "area.name", "venue.name as venueName"])
-    .orderBy("venue.id")
-    .orderBy("area.sort_order")
-    .orderBy("area.id")
-    .executeTakeFirst();
-  if (!area) return null;
+    .where("area.id", "=", picked.id)
+    .executeTakeFirstOrThrow();
 
   const rows = await db
     .selectFrom("spot")
@@ -79,23 +105,83 @@ export async function loadBeach(db: Kysely<DB>): Promise<BeachLayout | null> {
   };
 }
 
-const setupSchema = z.object({
-  venueName: z.string().trim().min(1).max(100),
+const name = z.string().trim().min(1).max(100);
+
+export const areaSchema = z.object({
+  areaName: name,
   lines: z.coerce.number().int().min(1).max(MAX_LINES),
   umbrellasPerLine: z.coerce.number().int().min(1).max(MAX_UMBRELLAS_PER_LINE),
 });
+
+const setupSchema = areaSchema.extend({ venueName: name });
+
+/** URL-safe slug from a name, e.g. "Spiaggia Nord" → "spiaggia-nord". */
+function slugify(text: string): string {
+  const slug = text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "area";
+}
+
+/**
+ * Creates a beach space with `lines` lines of `umbrellasPerLine` default umbrellas, after the
+ * venue's other spaces. Call inside a transaction that holds the venue lock.
+ */
+export async function createArea(
+  tx: Transaction<DB>,
+  venueId: number,
+  input: z.output<typeof areaSchema>,
+): Promise<number> {
+  const existing = await tx
+    .selectFrom("area")
+    .select(["slug", "sort_order"])
+    .where("venue_id", "=", venueId)
+    .execute();
+  const base = slugify(input.areaName);
+  const taken = new Set(existing.map((a) => a.slug));
+  let slug = base;
+  for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+  const sortOrder = Math.max(-1, ...existing.map((a) => a.sort_order)) + 1;
+
+  const area = await tx
+    .insertInto("area")
+    .values({ venue_id: venueId, name: input.areaName, slug, sort_order: sortOrder })
+    .returning("id")
+    .executeTakeFirstOrThrow();
+  for (let line = 1; line <= input.lines; line++) {
+    const { id: lineId } = await tx
+      .insertInto("area_line")
+      .values({ area_id: area.id, number: line })
+      .returning("id")
+      .executeTakeFirstOrThrow();
+    await tx
+      .insertInto("spot")
+      .values(
+        Array.from({ length: input.umbrellasPerLine }, (_, i) => ({
+          area_id: area.id,
+          line_id: lineId,
+          position: i + 1,
+          number: defaultSpotNumber(line, i + 1),
+        })),
+      )
+      .execute();
+  }
+  return area.id;
+}
 
 export type SetupError = "invalid" | "exists";
 export type SetupResult = { ok: true } | { ok: false; error: SetupError };
 
 /**
- * First-time setup on a fresh box: one venue, one area, `lines` lines of `umbrellasPerLine`
- * default umbrellas. Refuses if any venue exists, so it can never touch a beach in use.
+ * First-time setup on a fresh box: the venue and its first beach space. Refuses if any venue
+ * exists, so it can never touch a beach in use. More spaces are added in Beach settings.
  */
 export async function setupBeach(db: Kysely<DB>, input: unknown): Promise<SetupResult> {
   const parsed = setupSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { venueName, lines, umbrellasPerLine } = parsed.data;
 
   return db.transaction().execute(async (tx) => {
     // Two admins submitting at once: the second waits here, then sees the first one's venue.
@@ -105,33 +191,10 @@ export async function setupBeach(db: Kysely<DB>, input: unknown): Promise<SetupR
 
     const venue = await tx
       .insertInto("venue")
-      .values({ name: venueName, slug: "lido" })
+      .values({ name: parsed.data.venueName, slug: "lido" })
       .returning("id")
       .executeTakeFirstOrThrow();
-    const area = await tx
-      .insertInto("area")
-      .values({ venue_id: venue.id, name: venueName, slug: "main" })
-      .returning("id")
-      .executeTakeFirstOrThrow();
-
-    for (let line = 1; line <= lines; line++) {
-      const { id: lineId } = await tx
-        .insertInto("area_line")
-        .values({ area_id: area.id, number: line })
-        .returning("id")
-        .executeTakeFirstOrThrow();
-      await tx
-        .insertInto("spot")
-        .values(
-          Array.from({ length: umbrellasPerLine }, (_, i) => ({
-            area_id: area.id,
-            line_id: lineId,
-            position: i + 1,
-            number: defaultSpotNumber(line, i + 1),
-          })),
-        )
-        .execute();
-    }
+    await createArea(tx, venue.id, parsed.data);
     return { ok: true } as const;
   });
 }

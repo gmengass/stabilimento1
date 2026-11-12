@@ -34,6 +34,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   behind, add umbrellas to a line, remove the last line, and tap an umbrella to change its
   number and sunbeds or remove it. Umbrellas that have bookings can't be removed.
 
+- Several beach spaces: admins add, rename and remove spaces in Beach settings, each with its
+  own lines and umbrellas (numbered from 101 again). The map has a tab per space, and the space
+  being viewed is named in large letters and on the sea band; new bookings show it too.
+
 ### Changed
 - Roadmap Milestone 1 now lists the beach club features from the project brief.
 - Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),

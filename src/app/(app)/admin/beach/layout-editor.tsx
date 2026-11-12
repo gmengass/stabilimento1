@@ -59,7 +59,13 @@ function formInput(event: FormEvent<HTMLFormElement>): Record<string, FormDataEn
   return Object.fromEntries(new FormData(event.currentTarget));
 }
 
-function SpotEditor({ spot, onClose }: { spot: MapSpot; onClose: () => void }) {
+interface SpotEditorProps {
+  areaId: number;
+  spot: MapSpot;
+  onClose: () => void;
+}
+
+function SpotEditor({ areaId, spot, onClose }: SpotEditorProps) {
   const t = useTranslations("beachSetup");
   const { pending, feedback, run } = useEdit();
   const [confirming, setConfirming] = useState(false);
@@ -74,7 +80,7 @@ function SpotEditor({ spot, onClose }: { spot: MapSpot; onClose: () => void }) {
         </button>
       </div>
       <form
-        onSubmit={(e) => run(() => updateSpotAction({ ...formInput(e), spotId: spot.id }))}
+        onSubmit={(e) => run(() => updateSpotAction({ ...formInput(e), areaId, spotId: spot.id }))}
         className="flex flex-col gap-3"
       >
         <label className="flex flex-col gap-1 text-sm">
@@ -120,7 +126,7 @@ function SpotEditor({ spot, onClose }: { spot: MapSpot; onClose: () => void }) {
           <button
             type="button"
             disabled={pending}
-            onClick={() => run(() => removeSpotAction({ spotId: spot.id }), onClose)}
+            onClick={() => run(() => removeSpotAction({ areaId, spotId: spot.id }), onClose)}
             className="flex-1 rounded bg-red-700 px-3 py-2 text-white disabled:opacity-60"
           >
             {t("removeSpotYes")}
@@ -196,7 +202,9 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
               submit={t("addUmbrellas")}
               pending={pending}
               onSubmit={(umbrellas) =>
-                run(() => addUmbrellasAction({ lineNumber: line.number, umbrellas }))
+                run(() =>
+                  addUmbrellasAction({ areaId: beach.areaId, lineNumber: line.number, umbrellas }),
+                )
               }
             />
             {line.number === lastLine &&
@@ -207,7 +215,8 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
                     disabled={pending}
                     onClick={() =>
                       run(
-                        () => removeLastLineAction({ lineNumber: line.number }),
+                        () =>
+                          removeLastLineAction({ areaId: beach.areaId, lineNumber: line.number }),
                         () => setConfirmLine(null),
                       )
                     }
@@ -235,7 +244,7 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
         label={t("newLineUmbrellas")}
         submit={t("addLine")}
         pending={pending}
-        onSubmit={(umbrellas) => run(() => addLineAction({ umbrellas }))}
+        onSubmit={(umbrellas) => run(() => addLineAction({ areaId: beach.areaId, umbrellas }))}
       />
       <p className="text-sm text-gray-600">{t("linesHint")}</p>
       <FeedbackLine feedback={feedback} />
@@ -243,7 +252,7 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
   );
 }
 
-function VenueNameForm({ name }: { name: string }) {
+export function VenueNameForm({ name }: { name: string }) {
   const t = useTranslations("beachSetup");
   const { pending, feedback, run } = useEdit();
   return (
@@ -263,7 +272,7 @@ function VenueNameForm({ name }: { name: string }) {
   );
 }
 
-/** Edit the beach at any time: club name, lines, and each umbrella's number and sunbeds. */
+/** Edit one beach space at any time: its lines, and each umbrella's number and sunbeds. */
 export function LayoutEditor({ beach }: { beach: BeachLayout }) {
   const t = useTranslations("beachSetup");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -271,13 +280,13 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <VenueNameForm name={beach.venueName} />
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("mapTitle")}</h2>
         <p className="text-sm text-gray-600">{t("mapHint")}</p>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
           <div className="min-w-0">
             <BeachMap
+              areaName={beach.areaName}
               lines={beach.lines}
               viewOf={(spot) => (spot.id === selectedId ? "selected" : "free")}
               captionOf={(spot) => t("sunbedsCaption", { count: spot.includedSunbeds })}
@@ -286,7 +295,12 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
           </div>
           {selected && (
             <aside className="rounded border p-4 lg:sticky lg:top-4">
-              <SpotEditor key={selected.id} spot={selected} onClose={() => setSelectedId(null)} />
+              <SpotEditor
+                key={selected.id}
+                areaId={beach.areaId}
+                spot={selected}
+                onClose={() => setSelectedId(null)}
+              />
             </aside>
           )}
         </div>
