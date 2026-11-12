@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { BeachMap } from "@/components/beach-map";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
 import { loadBeach } from "@/lib/beach/layout";
+import { loadOccupancy } from "@/lib/booking/bookings";
+import { BeachBoard } from "./beach-board";
 
 export default async function Home(props: PageProps<"/">) {
   const user = await requireUser();
@@ -29,6 +30,11 @@ export default async function Home(props: PageProps<"/">) {
       </main>
     );
   }
+
+  const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
+  const total = beach.lines.reduce((sum, line) => sum + line.spots.length, 0);
+  const booked = Object.keys(occupancy).length;
+  const free = total - booked;
 
   return (
     <main className="flex w-full flex-col gap-4 p-4">
@@ -61,7 +67,12 @@ export default async function Home(props: PageProps<"/">) {
           </button>
         </form>
       </div>
-      <BeachMap lines={beach.lines} />
+      <p className="flex flex-wrap gap-4 text-sm text-gray-700">
+        <span>{t("legendFree", { count: free })}</span>
+        <span>{t("legendBooked", { count: booked })}</span>
+        <span>{t("hint")}</span>
+      </p>
+      <BeachBoard date={date} lines={beach.lines} occupancy={occupancy} />
     </main>
   );
 }

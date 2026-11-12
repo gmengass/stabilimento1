@@ -94,7 +94,11 @@
     "go": "Show",
     "emptyTitle": "The beach is not set up yet",
     "emptyAdmin": "Set up the lines and umbrellas",
-    "emptyStaff": "Ask an admin to set up the lines and umbrellas."
+    "emptyStaff": "Ask an admin to set up the lines and umbrellas.",
+    "spotBooked": "Umbrella {number}, booked by {name}",
+    "legendFree": "Free: {count}",
+    "legendBooked": "Booked: {count}",
+    "hint": "Tap free umbrellas to book them, or a booked one to see it."
   },
   "beachSetup": {
     "title": "Beach setup",
@@ -115,5 +119,37 @@
       "forbidden": "Only admins can do this.",
       "generic": "Something went wrong. Try again."
     }
+  },
+  "booking": {
+    "newTitle": "New booking",
+    "sunbeds": "Sunbeds",
+    "remove": "Remove",
+    "removeSpot": "Remove umbrella {number}",
+    "customerName": "Customer name",
+    "customerPhone": "Phone",
+    "from": "From",
+    "to": "To (included)",
+    "notes": "Notes",
+    "book": "{count, plural, one {Book # umbrella} other {Book # umbrellas}}",
+    "saving": "Saving…",
+    "close": "Close",
+    "range": "{from} – {to}",
+    "spotLine": "Umbrella {number} · {sunbeds, plural, one {# sunbed} other {# sunbeds}}",
+    "cancel": "Cancel booking",
+    "cancelConfirm": "Cancel the whole booking, for every umbrella and every day?",
+    "cancelYes": "Yes, cancel it",
+    "cancelNo": "No, keep it",
+    "errors": {
+      "invalid": "Check the fields: name, a phone number, and an end date on or after the start (at most 60 days).",
+      "sunbeds": "Too many sunbeds for one of the umbrellas.",
+      "taken": "Already booked:",
+      "clash": "Umbrella {number} on {date}",
+      "forbidden": "Your session has ended. Log in again.",
+      "notFound": "This booking no longer exists or was already cancelled.",
+      "generic": "Something went wrong. Try again.",
+      "takenNow": "Someone just booked one of these umbrellas. Check the map and try again.",
+      "ended": "This booking has already ended and can't be cancelled."
+    },
+    "notesHint": "No health or payment details here."
   }
 }
