@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AreaBanner, AreaTabs } from "@/components/area-tabs";
 import { getDb } from "@/db/client";
@@ -15,7 +16,8 @@ export default async function Home(props: PageProps<"/">) {
   const locale = await getLocale();
   const { date: requested, area } = await props.searchParams;
   const date = isBookingDate(requested) ? requested : venueToday();
-  const beach = await loadBeach(getDb(), parseAreaId(area));
+  const requestedArea = parseAreaId(area);
+  const beach = await loadBeach(getDb(), requestedArea);
 
   if (!beach) {
     return (
@@ -39,6 +41,8 @@ export default async function Home(props: PageProps<"/">) {
     if (day) query.set("date", day);
     return `/?${query}`;
   };
+  // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
+  if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
   const total = beach.lines.reduce((sum, line) => sum + line.spots.length, 0);
   const booked = Object.keys(occupancy).length;
   const free = total - booked;

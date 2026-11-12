@@ -24,6 +24,9 @@ type Tx = Transaction<DB>;
 const fail = (error: EditError): EditResult => ({ ok: false, error });
 const done: EditResult = { ok: true };
 
+/** A database id: positive and within Postgres `integer`. */
+const id = z.coerce.number().int().positive().max(2_147_483_647);
+
 const PG_UNIQUE_VIOLATION = "23505";
 const PG_FOREIGN_KEY_VIOLATION = "23503";
 
@@ -95,7 +98,7 @@ export async function addArea(db: Kysely<DB>, input: unknown): Promise<AddAreaRe
 }
 
 const renameAreaSchema = z.object({
-  areaId: z.coerce.number().int().positive(),
+  areaId: id,
   areaName: z.string().trim().min(1).max(100),
 });
 
@@ -112,7 +115,7 @@ export async function renameArea(db: Kysely<DB>, input: unknown): Promise<EditRe
   });
 }
 
-const removeAreaSchema = z.object({ areaId: z.coerce.number().int().positive() });
+const removeAreaSchema = z.object({ areaId: id });
 
 /** Removes a beach space with its lines and umbrellas. Refused if it is the last space, or if
  * any of its umbrellas was ever booked. */
@@ -136,7 +139,6 @@ export async function removeArea(db: Kysely<DB>, input: unknown): Promise<EditRe
 }
 
 const count = z.coerce.number().int().min(1).max(MAX_UMBRELLAS_PER_LINE);
-const id = z.coerce.number().int().positive();
 
 const renameSchema = z.object({ venueName: z.string().trim().min(1).max(100) });
 

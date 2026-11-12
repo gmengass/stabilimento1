@@ -45,9 +45,10 @@ export async function listAreas(db: Kysely<DB>): Promise<AreaTab[]> {
     .execute();
 }
 
-/** Reads an area id from a URL parameter; anything else means "the first area". */
+/** Reads an area id from a URL parameter; a malformed one becomes 0, which matches no area. */
 export function parseAreaId(value: unknown): number | undefined {
-  if (typeof value !== "string" || !/^\d{1,9}$/.test(value)) return undefined;
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || !/^\d{1,9}$/.test(value)) return 0;
   return Number(value);
 }
 

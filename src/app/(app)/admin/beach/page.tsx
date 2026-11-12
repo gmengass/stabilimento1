@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AreaBanner, AreaTabs } from "@/components/area-tabs";
 import { getDb } from "@/db/client";
@@ -12,7 +13,11 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
   await requireAdmin();
   const t = await getTranslations("beachSetup");
   const { area } = await props.searchParams;
-  const beach = await loadBeach(getDb(), parseAreaId(area));
+  const requestedArea = parseAreaId(area);
+  const beach = await loadBeach(getDb(), requestedArea);
+  if (beach && area !== undefined && beach.areaId !== requestedArea) {
+    redirect(`/admin/beach?area=${beach.areaId}`);
+  }
   if (beach) {
     const areas = await listAreas(getDb());
     return (
@@ -39,7 +44,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
             <LayoutEditor beach={beach} />
           </div>
         </section>
-        <AddAreaForm />
+        <AddAreaForm key={beach.areaId} />
       </main>
     );
   }

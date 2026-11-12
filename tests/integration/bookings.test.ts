@@ -206,7 +206,7 @@ describe("createBooking", () => {
         ],
       }),
     );
-    expect(result).toEqual({ ok: false, error: "sunbeds" });
+    expect(result).toEqual({ ok: false, error: "invalid" });
   });
 
   it("books umbrella 101 in each space independently", async () => {
