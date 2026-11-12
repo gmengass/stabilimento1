@@ -84,7 +84,6 @@
     }
   },
   "map": {
-    "sea": "Mare",
     "line": "Fila {number}",
     "spotFree": "Ombrellone {number}, libero",
     "previousDay": "← Giorno prima",
@@ -98,7 +97,8 @@
     "spotBooked": "Ombrellone {number}, prenotato da {name}",
     "legendFree": "Liberi: {count}",
     "legendBooked": "Prenotati: {count}",
-    "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo."
+    "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo.",
+    "seaOf": "Mare · {area}"
   },
   "beachSetup": {
     "title": "Impostazioni spiaggia",
@@ -110,7 +110,7 @@
     "numberingHint": "Gli ombrelloni sono numerati fila × 100 + posizione: 101, 102… nella fila 1, 201… nella fila 2. La posizione 1 è la prima a sinistra guardando il mare.",
     "submit": "Crea la spiaggia",
     "submitting": "Creazione…",
-    "summary": "{name}: {lines, plural, one {# fila} other {# file}}, {umbrellas, plural, one {# ombrellone} other {# ombrelloni}}.",
+    "summary": "{name} · {areas, plural, one {# spazio spiaggia} other {# spazi spiaggia}}",
     "openMap": "Apri la mappa della spiaggia",
     "errors": {
       "invalid": "Controlla i campi e riprova.",
@@ -123,7 +123,9 @@
       "lineFull": "Una fila può avere al massimo 99 ombrelloni.",
       "tooManyLines": "La spiaggia può avere al massimo 30 file.",
       "hasBookings": "Gli ombrelloni con prenotazioni non si possono togliere.",
-      "sunbedsInUse": "Alcune prenotazioni attuali o future usano più lettini di così su questo ombrellone."
+      "sunbedsInUse": "Alcune prenotazioni attuali o future usano più lettini di così su questo ombrellone.",
+      "lastArea": "La spiaggia deve avere almeno uno spazio.",
+      "tooManyAreas": "Lo stabilimento può avere al massimo 10 spazi spiaggia."
     },
     "save": "Salva",
     "saved": "Salvato.",
@@ -145,10 +147,13 @@
     "removeLine": "Togli fila",
     "removeLineYes": "Sì, togli la fila {number}",
     "newLineUmbrellas": "Ombrelloni nella nuova fila",
-    "addLine": "Aggiungi una fila dietro"
+    "addLine": "Aggiungi una fila dietro",
+    "areaName": "Nome di questo spazio spiaggia",
+    "areaNameDefault": "Spiaggia principale",
+    "areaNameHint": "Potrai aggiungere altri spazi spiaggia in seguito, ognuno con le sue file e i suoi ombrelloni."
   },
   "booking": {
-    "newTitle": "Nuova prenotazione",
+    "newTitle": "Nuova prenotazione · {area}",
     "sunbeds": "Lettini",
     "remove": "Togli",
     "removeSpot": "Togli l'ombrellone {number}",
@@ -178,5 +183,19 @@
       "ended": "Questa prenotazione è già terminata e non si può annullare."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento."
+  },
+  "areas": {
+    "tabsLabel": "Spazi spiaggia",
+    "current": "Spazio spiaggia",
+    "name": "Nome dello spazio",
+    "rename": "Rinomina",
+    "remove": "Togli questo spazio",
+    "removeYes": "Sì, togli {name}",
+    "no": "No",
+    "addTitle": "Aggiungi uno spazio spiaggia",
+    "lines": "File",
+    "umbrellasPerLine": "Ombrelloni per fila",
+    "add": "Aggiungi spazio",
+    "addHint": "Ogni spazio ha le sue file e i suoi ombrelloni, numerati di nuovo da 101. Uno spazio con ombrelloni prenotati non si può togliere."
   }
 }

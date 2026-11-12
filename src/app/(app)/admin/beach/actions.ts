@@ -45,3 +45,15 @@ export async function updateSpotAction(input: unknown): Promise<EditResult | For
 export async function removeSpotAction(input: unknown): Promise<EditResult | Forbidden> {
   return asAdmin(() => edit.removeSpot(getDb(), input));
 }
+
+export async function addAreaAction(input: unknown): Promise<edit.AddAreaResult | Forbidden> {
+  return asAdmin(() => edit.addArea(getDb(), input));
+}
+
+export async function renameAreaAction(input: unknown): Promise<EditResult | Forbidden> {
+  return asAdmin(() => edit.renameArea(getDb(), input));
+}
+
+export async function removeAreaAction(input: unknown): Promise<EditResult | Forbidden> {
+  return asAdmin(() => edit.removeArea(getDb(), input));
+}

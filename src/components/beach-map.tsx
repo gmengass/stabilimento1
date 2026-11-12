@@ -13,6 +13,8 @@ const viewClass: Record<SpotView, string> = {
 };
 
 interface Props {
+  /** Shown on the sea band, so the space is named right above the umbrellas. */
+  areaName: string;
   lines: MapLine[];
   viewOf: (spot: MapSpot) => SpotView;
   /** Short text under the number, e.g. the customer's name. */
@@ -25,14 +27,14 @@ interface Props {
  * it, position 1 on the left. Each spot sits in the grid column of its position, so gaps on the
  * real beach stay visible.
  */
-export function BeachMap({ lines, viewOf, captionOf, onSpotClick }: Props) {
+export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Props) {
   const t = useTranslations("map");
   const columns = Math.max(1, ...lines.flatMap((line) => line.spots.map((s) => s.position)));
   return (
     <div className="overflow-x-auto">
       <div className="inline-flex min-w-full flex-col gap-2">
         <div className="rounded bg-sky-200 py-2 text-center text-sm font-medium text-sky-900">
-          {t("sea")}
+          {t("seaOf", { area: areaName })}
         </div>
         {lines.map((line) => (
           <section key={line.number} aria-label={t("line", { number: line.number })}>

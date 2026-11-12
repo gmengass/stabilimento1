@@ -81,9 +81,9 @@ async function findClashes(
 }
 
 /**
- * True when every spot exists and each gets no more sunbeds than it can hold. With `lock`, the
- * spot rows stay share-locked until the transaction ends, so an admin can't lower a limit
- * between this check and the insert.
+ * True when every spot exists, all are in the same beach space, and each gets no more sunbeds
+ * than it can hold. With `lock`, the spot rows stay share-locked until the transaction ends, so
+ * an admin can't lower a limit between this check and the insert.
  */
 async function sunbedsFit(
   db: Kysely<DB>,
@@ -92,7 +92,7 @@ async function sunbedsFit(
 ): Promise<boolean> {
   const query = db
     .selectFrom("spot")
-    .select(["id", "max_sunbeds"])
+    .select(["id", "max_sunbeds", "area_id"])
     .where(
       "id",
       "in",
@@ -101,7 +101,9 @@ async function sunbedsFit(
     .orderBy("id");
   const rows = await (lock ? query.forShare() : query).execute();
   const max = new Map(rows.map((row) => [row.id, row.max_sunbeds]));
-  return spots.every((s) => max.has(s.spotId) && s.sunbeds <= (max.get(s.spotId) ?? 0));
+  // One booking stays in one beach space: umbrella numbers repeat across spaces.
+  const oneArea = new Set(rows.map((row) => row.area_id)).size === 1;
+  return oneArea && spots.every((s) => max.has(s.spotId) && s.sunbeds <= (max.get(s.spotId) ?? 0));
 }
 
 type ValidBooking = z.output<typeof createSchema>;

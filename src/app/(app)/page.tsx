@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { AreaBanner, AreaTabs } from "@/components/area-tabs";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
-import { loadBeach } from "@/lib/beach/layout";
+import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { loadOccupancy } from "@/lib/booking/bookings";
 import { BeachBoard } from "./beach-board";
 
@@ -12,9 +13,9 @@ export default async function Home(props: PageProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations("map");
   const locale = await getLocale();
-  const { date: requested } = await props.searchParams;
+  const { date: requested, area } = await props.searchParams;
   const date = isBookingDate(requested) ? requested : venueToday();
-  const beach = await loadBeach(getDb());
+  const beach = await loadBeach(getDb(), parseAreaId(area));
 
   if (!beach) {
     return (
@@ -32,26 +33,39 @@ export default async function Home(props: PageProps<"/">) {
   }
 
   const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
+  const areas = await listAreas(getDb());
+  const at = (day?: string) => {
+    const query = new URLSearchParams({ area: String(beach.areaId) });
+    if (day) query.set("date", day);
+    return `/?${query}`;
+  };
   const total = beach.lines.reduce((sum, line) => sum + line.spots.length, 0);
   const booked = Object.keys(occupancy).length;
   const free = total - booked;
 
   return (
     <main className="flex w-full flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <AreaTabs
+        areas={areas}
+        currentId={beach.areaId}
+        hrefOf={Object.fromEntries(areas.map((a) => [a.id, `/?area=${a.id}&date=${date}`]))}
+      />
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <AreaBanner name={beach.areaName} />
         <h1 className="mr-auto text-xl font-semibold">
           {formatBookingDate(date, isLocale(locale) ? locale : "it")}
         </h1>
-        <Link href={`/?date=${addDays(date, -1)}`} className="rounded border px-3 py-2">
+        <Link href={at(addDays(date, -1))} className="rounded border px-3 py-2">
           {t("previousDay")}
         </Link>
-        <Link href="/" className="rounded border px-3 py-2">
+        <Link href={at()} className="rounded border px-3 py-2">
           {t("today")}
         </Link>
-        <Link href={`/?date=${addDays(date, 1)}`} className="rounded border px-3 py-2">
+        <Link href={at(addDays(date, 1))} className="rounded border px-3 py-2">
           {t("nextDay")}
         </Link>
         <form className="flex gap-2">
+          <input type="hidden" name="area" value={beach.areaId} />
           <label className="sr-only" htmlFor="map-date">
             {t("pickDate")}
           </label>
@@ -72,7 +86,13 @@ export default async function Home(props: PageProps<"/">) {
         <span>{t("legendBooked", { count: booked })}</span>
         <span>{t("hint")}</span>
       </p>
-      <BeachBoard date={date} lines={beach.lines} occupancy={occupancy} />
+      <BeachBoard
+        key={beach.areaId}
+        areaName={beach.areaName}
+        date={date}
+        lines={beach.lines}
+        occupancy={occupancy}
+      />
     </main>
   );
 }

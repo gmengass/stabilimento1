@@ -27,7 +27,12 @@ afterAll(async () => {
   await getDb().destroy();
 });
 
-const input = { venueName: "Lido Azzurro", lines: "3", umbrellasPerLine: "4" };
+const input = {
+  venueName: "Lido Azzurro",
+  areaName: "Spiaggia",
+  lines: "3",
+  umbrellasPerLine: "4",
+};
 
 describe("loadBeach", () => {
   it("returns null on a fresh box", async () => {
@@ -55,6 +60,7 @@ describe("setupBeach", () => {
     expect(await setupBeach(db, input)).toEqual({ ok: true });
     const beach = await loadBeach(db);
     expect(beach?.venueName).toBe("Lido Azzurro");
+    expect(beach?.areaName).toBe("Spiaggia");
     expect(beach?.lines.map((l) => l.spots.map((s) => s.number))).toEqual([
       [101, 102, 103, 104],
       [201, 202, 203, 204],
@@ -71,6 +77,7 @@ describe("setupBeach", () => {
 
   it.each([
     { venueName: "  " },
+    { areaName: "" },
     { lines: 0 },
     { lines: 31 },
     { umbrellasPerLine: 0 },

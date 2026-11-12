@@ -2,8 +2,8 @@ import { sql, type Kysely, type Transaction } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
 import { venueToday } from "@/i18n/format";
-import { defaultSpotNumber } from "./layout";
-import { MAX_LINES, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
+import { areaSchema, createArea, defaultSpotNumber } from "./layout";
+import { MAX_AREAS, MAX_LINES, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
 
 export type EditError =
   | "invalid"
@@ -13,7 +13,9 @@ export type EditError =
   | "lineFull"
   | "tooManyLines"
   | "hasBookings"
-  | "sunbedsInUse";
+  | "sunbedsInUse"
+  | "lastArea"
+  | "tooManyAreas";
 
 export type EditResult = { ok: true } | { ok: false; error: EditError };
 
@@ -30,31 +32,107 @@ function pgCode(error: unknown): string {
 }
 
 /**
- * Runs one layout change in a transaction with the beach locked, so two admins editing at once
- * apply their changes one after the other. Number clashes and booked umbrellas become results.
+ * Runs one layout change in a transaction with the venue row locked, so two admins editing at
+ * once apply their changes one after the other. Number clashes and booked umbrellas become results.
  */
-async function edit(
+async function inVenue(
   db: Kysely<DB>,
-  change: (tx: Tx, areaId: number) => Promise<EditResult>,
+  change: (tx: Tx, venueId: number) => Promise<EditResult>,
 ): Promise<EditResult> {
   try {
     return await db.transaction().execute(async (tx) => {
-      const area = await tx
-        .selectFrom("area")
+      const venue = await tx
+        .selectFrom("venue")
         .select("id")
-        .orderBy("venue_id")
-        .orderBy("sort_order")
         .orderBy("id")
         .forUpdate()
         .executeTakeFirst();
-      if (!area) return fail("noBeach");
-      return change(tx, area.id);
+      if (!venue) return fail("noBeach");
+      return change(tx, venue.id);
     });
   } catch (error) {
     if (pgCode(error) === PG_UNIQUE_VIOLATION) return fail("numberTaken");
     if (pgCode(error) === PG_FOREIGN_KEY_VIOLATION) return fail("hasBookings");
     throw error;
   }
+}
+
+/** A change to one beach space (area) of the venue. */
+async function edit(
+  db: Kysely<DB>,
+  areaId: number,
+  change: (tx: Tx, areaId: number) => Promise<EditResult>,
+): Promise<EditResult> {
+  return inVenue(db, async (tx, venueId) => {
+    const area = await tx
+      .selectFrom("area")
+      .select("id")
+      .where("id", "=", areaId)
+      .where("venue_id", "=", venueId)
+      .executeTakeFirst();
+    return area ? change(tx, area.id) : fail("notFound");
+  });
+}
+
+export type AddAreaResult = { ok: true; areaId: number } | { ok: false; error: EditError };
+
+/** Adds a beach space with its own lines and umbrellas; numbers may repeat across spaces. */
+export async function addArea(db: Kysely<DB>, input: unknown): Promise<AddAreaResult> {
+  const parsed = areaSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  let areaId = 0;
+  const result = await inVenue(db, async (tx, venueId) => {
+    const { n } = await tx
+      .selectFrom("area")
+      .select((eb) => eb.fn.countAll<number>().as("n"))
+      .where("venue_id", "=", venueId)
+      .executeTakeFirstOrThrow();
+    if (Number(n) >= MAX_AREAS) return fail("tooManyAreas");
+    areaId = await createArea(tx, venueId, parsed.data);
+    return done;
+  });
+  return result.ok ? { ok: true, areaId } : result;
+}
+
+const renameAreaSchema = z.object({
+  areaId: z.coerce.number().int().positive(),
+  areaName: z.string().trim().min(1).max(100),
+});
+
+export async function renameArea(db: Kysely<DB>, input: unknown): Promise<EditResult> {
+  const parsed = renameAreaSchema.safeParse(input);
+  if (!parsed.success) return fail("invalid");
+  return edit(db, parsed.data.areaId, async (tx, areaId) => {
+    await tx
+      .updateTable("area")
+      .set({ name: parsed.data.areaName })
+      .where("id", "=", areaId)
+      .execute();
+    return done;
+  });
+}
+
+const removeAreaSchema = z.object({ areaId: z.coerce.number().int().positive() });
+
+/** Removes a beach space with its lines and umbrellas. Refused if it is the last space, or if
+ * any of its umbrellas was ever booked. */
+export async function removeArea(db: Kysely<DB>, input: unknown): Promise<EditResult> {
+  const parsed = removeAreaSchema.safeParse(input);
+  if (!parsed.success) return fail("invalid");
+  return inVenue(db, async (tx, venueId) => {
+    const areas = await tx
+      .selectFrom("area")
+      .select("id")
+      .where("venue_id", "=", venueId)
+      .execute();
+    if (!areas.some((a) => a.id === parsed.data.areaId)) return fail("notFound");
+    if (areas.length === 1) return fail("lastArea");
+    const { areaId } = parsed.data;
+    await tx.deleteFrom("spot").where("area_id", "=", areaId).execute();
+    await tx.deleteFrom("area_line").where("area_id", "=", areaId).execute();
+    await tx.deleteFrom("area").where("id", "=", areaId).execute();
+    return done;
+  });
 }
 
 const count = z.coerce.number().int().min(1).max(MAX_UMBRELLAS_PER_LINE);
@@ -65,11 +143,11 @@ const renameSchema = z.object({ venueName: z.string().trim().min(1).max(100) });
 export async function renameVenue(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = renameSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  return edit(db, async (tx, areaId) => {
+  return inVenue(db, async (tx, venueId) => {
     await tx
       .updateTable("venue")
       .set({ name: parsed.data.venueName })
-      .where("id", "=", (q) => q.selectFrom("area").select("venue_id").where("id", "=", areaId))
+      .where("id", "=", venueId)
       .execute();
     return done;
   });
@@ -102,13 +180,13 @@ async function appendUmbrellas(
   return done;
 }
 
-const addLineSchema = z.object({ umbrellas: count });
+const addLineSchema = z.object({ areaId: id, umbrellas: count });
 
 /** Adds a line behind the last one (furthest from the sea). */
 export async function addLine(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = addLineSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  return edit(db, async (tx, areaId) => {
+  return edit(db, parsed.data.areaId, async (tx, areaId) => {
     const { last } = await tx
       .selectFrom("area_line")
       .select((eb) => eb.fn.coalesce(eb.fn.max("number"), sql<number>`0`).as("last"))
@@ -124,13 +202,13 @@ export async function addLine(db: Kysely<DB>, input: unknown): Promise<EditResul
   });
 }
 
-const addUmbrellasSchema = z.object({ lineNumber: id, umbrellas: count });
+const addUmbrellasSchema = z.object({ areaId: id, lineNumber: id, umbrellas: count });
 
 /** Adds umbrellas at the right-hand end of a line (facing the sea). */
 export async function addUmbrellas(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = addUmbrellasSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  return edit(db, async (tx, areaId) => {
+  return edit(db, parsed.data.areaId, async (tx, areaId) => {
     const line = await tx
       .selectFrom("area_line")
       .select(["id", "number"])
@@ -142,7 +220,7 @@ export async function addUmbrellas(db: Kysely<DB>, input: unknown): Promise<Edit
   });
 }
 
-const removeLineSchema = z.object({ lineNumber: id });
+const removeLineSchema = z.object({ areaId: id, lineNumber: id });
 
 /**
  * Removes the line furthest from the sea with all its umbrellas. Refused if any of them was
@@ -151,7 +229,7 @@ const removeLineSchema = z.object({ lineNumber: id });
 export async function removeLastLine(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = removeLineSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  return edit(db, async (tx, areaId) => {
+  return edit(db, parsed.data.areaId, async (tx, areaId) => {
     const line = await tx
       .selectFrom("area_line")
       .select(["id", "number"])
@@ -167,6 +245,7 @@ export async function removeLastLine(db: Kysely<DB>, input: unknown): Promise<Ed
 
 const updateSpotSchema = z
   .object({
+    areaId: id,
     spotId: id,
     number: z.coerce.number().int().min(1).max(99_999),
     includedSunbeds: z.coerce.number().int().min(0).max(MAX_SUNBEDS),
@@ -185,8 +264,8 @@ export async function updateSpot(
 ): Promise<EditResult> {
   const parsed = updateSpotSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  const { spotId, number, includedSunbeds, maxSunbeds } = parsed.data;
-  return edit(db, async (tx, areaId) => {
+  const { areaId: area, spotId, number, includedSunbeds, maxSunbeds } = parsed.data;
+  return edit(db, area, async (tx, areaId) => {
     // Locks the spot first: a booking being made for it waits, then sees the new limit.
     const spot = await tx
       .selectFrom("spot")
@@ -219,13 +298,13 @@ export async function updateSpot(
   });
 }
 
-const removeSpotSchema = z.object({ spotId: id });
+const removeSpotSchema = z.object({ areaId: id, spotId: id });
 
 /** Removes one umbrella; the gap stays on the map. Refused if it was ever booked. */
 export async function removeSpot(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = removeSpotSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  return edit(db, async (tx, areaId) => {
+  return edit(db, parsed.data.areaId, async (tx, areaId) => {
     const removed = await tx
       .deleteFrom("spot")
       .where("id", "=", parsed.data.spotId)

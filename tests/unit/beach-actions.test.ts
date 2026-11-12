@@ -13,6 +13,9 @@ const { actor, layout, edit } = vi.hoisted(() => {
       removeLastLine: ok(),
       updateSpot: ok(),
       removeSpot: ok(),
+      addArea: ok(),
+      renameArea: ok(),
+      removeArea: ok(),
     },
   };
 });
@@ -41,6 +44,9 @@ const cases = [
   ["removeLastLineAction", actions.removeLastLineAction, edit.removeLastLine],
   ["updateSpotAction", actions.updateSpotAction, edit.updateSpot],
   ["removeSpotAction", actions.removeSpotAction, edit.removeSpot],
+  ["addAreaAction", actions.addAreaAction, edit.addArea],
+  ["renameAreaAction", actions.renameAreaAction, edit.renameArea],
+  ["removeAreaAction", actions.removeAreaAction, edit.removeArea],
 ] as const;
 
 beforeEach(() => vi.clearAllMocks());

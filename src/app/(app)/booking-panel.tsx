@@ -52,13 +52,14 @@ function toFailure(result: CreateFailure): Failure {
 }
 
 interface NewProps {
+  areaName: string;
   date: string;
   spots: MapSpot[];
   onRemove: (spotId: number) => void;
   onDone: () => void;
 }
 
-export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
+export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewProps) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -94,7 +95,7 @@ export function NewBookingForm({ date, spots, onRemove, onDone }: NewProps) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">{t("newTitle")}</h2>
+      <h2 className="text-lg font-semibold">{t("newTitle", { area: areaName })}</h2>
       <ul className="flex flex-col gap-2">
         {spots.map((spot) => (
           <li key={spot.id} className="flex items-center gap-2 text-sm">
