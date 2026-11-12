@@ -10,7 +10,9 @@
   SpotDay rows with a partial unique index (ADR 0004). Reviewer and security agents run, fixes in.
 - PR #15 `feat/layout-edit` (on top of #14): the beach layout is editable any time in Beach
   settings, not a one-time setup.
-- 451 tests pass.
+- PR #16 `feat/beach-areas` (on top of #15): several beach spaces, tabs on the map and in
+  settings, the current space named large and on the sea band.
+- 472 tests pass.
 
 ## Done this session
 - Roadmap Milestone 1 rewritten to match the brief (it was the generic template).
@@ -19,7 +21,7 @@
   cancel keeps days already used, can't cancel an ended booking.
 
 ## Next up
-1. Merge #13, #14, then #15. Tag `v0.2.0` on GitHub and run `scripts/update.sh v0.2.0` on the box.
+1. Merge #13, #14, #15, then #16. Tag `v0.2.0` on GitHub and run `scripts/update.sh v0.2.0` on the box.
    Then an admin opens "Impostazioni spiaggia" to create the beach (editable afterwards).
 2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
 3. Seasons and season passes with released days.
@@ -33,6 +35,8 @@
 - Venue name accepts control characters; setup numbers accept `true`/`1e1` (bounds still hold).
 - A partly used booking that is cancelled still shows on its past days (by design, for history).
 - Verify on the box: does WSL2 mirrored networking keep LAN source IPs (RUNBOOK check)?
+- The map opens on the first space: remember each tablet's last space (cookie)?
+- Dev-only 'uncached data' overlay on every page (also /admin/staff, predates this work).
 - Session length on shared tablets: 12 h absolute, or end of day (Europe/Rome)?
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
