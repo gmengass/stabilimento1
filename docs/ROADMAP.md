@@ -17,7 +17,8 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 
 ## Milestone 1 — Core booking (MVP, PROJECT_BRIEF.md and ADR 0004)
 Each item ships something staff can use on the box.
-- [ ] Beach setup (admin: lines × umbrellas) and beach map per date, sea at the top
+- [ ] Beach settings (admin: lines, umbrellas, numbers, sunbeds; editable any time) and beach map
+      per date, sea at the top
 - [ ] Bookings: create and cancel day / multi-day bookings from the map; SpotDay rows make
       double booking impossible (unique constraint + transaction)
 - [ ] Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm
@@ -26,7 +27,6 @@ Each item ships something staff can use on the box.
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
 - [ ] Live map: changes show on every device within seconds
-- [ ] Edit the layout: add or remove lines and umbrellas, odd numbers, sunbeds per umbrella
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report

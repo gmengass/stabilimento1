@@ -30,6 +30,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   booking or cancel it. The database refuses double bookings, even from two tablets at once,
   and staff see which umbrella and day clashed.
 
+- Beach settings (`/admin/beach`) can be changed at any time: rename the club, add a line
+  behind, add umbrellas to a line, remove the last line, and tap an umbrella to change its
+  number and sunbeds or remove it. Umbrellas that have bookings can't be removed.
+
 ### Changed
 - Roadmap Milestone 1 now lists the beach club features from the project brief.
 - Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),
