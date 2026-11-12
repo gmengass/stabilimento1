@@ -1,4 +1,5 @@
 import type { Kysely, Transaction } from "kysely";
+import { defaultSpotNumber } from "@/lib/beach/layout";
 import type { DB } from "./types";
 
 // Fictional demo beach. Lines are numbered from the shore. Umbrella number = line × 100 + position,
@@ -69,7 +70,7 @@ async function ensureUmbrellas(
     area_id: areaId,
     line_id: lineId,
     position: i + 1,
-    number: lineNumber * 100 + i + 1,
+    number: defaultSpotNumber(lineNumber, i + 1),
   }));
   await tx
     .insertInto("spot")

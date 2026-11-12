@@ -6,9 +6,6 @@
       "en": "English"
     }
   },
-  "home": {
-    "title": "Welcome to the beach club"
-  },
   "meta": {
     "title": "Stabilimento",
     "description": "Beach umbrella and sunbed booking"
@@ -30,7 +27,8 @@
     }
   },
   "appShell": {
-    "home": "Home",
+    "map": "Beach map",
+    "beach": "Beach setup",
     "staff": "Staff",
     "signedInAs": "Signed in as {name}",
     "logout": "Log out"
@@ -82,6 +80,39 @@
       "self": "You cannot disable your own account.",
       "lastAdmin": "At least one admin must stay active.",
       "notFound": "Account not found.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
+  "map": {
+    "sea": "Sea",
+    "line": "Line {number}",
+    "spotFree": "Umbrella {number}, free",
+    "previousDay": "← Previous day",
+    "today": "Today",
+    "nextDay": "Next day →",
+    "pickDate": "Date",
+    "go": "Show",
+    "emptyTitle": "The beach is not set up yet",
+    "emptyAdmin": "Set up the lines and umbrellas",
+    "emptyStaff": "Ask an admin to set up the lines and umbrellas."
+  },
+  "beachSetup": {
+    "title": "Beach setup",
+    "intro": "Enter how many lines of umbrellas the beach has and how many umbrellas stand in each line. You can change single umbrellas later.",
+    "venueName": "Beach club name",
+    "lines": "Number of lines",
+    "linesHint": "Line 1 is the one closest to the sea.",
+    "umbrellasPerLine": "Umbrellas per line",
+    "numberingHint": "Umbrellas are numbered line × 100 + position: 101, 102… in line 1, 201… in line 2. Position 1 is the leftmost facing the sea.",
+    "submit": "Create the beach",
+    "submitting": "Creating…",
+    "summary": "{name}: {lines, plural, one {# line} other {# lines}}, {umbrellas, plural, one {# umbrella} other {# umbrellas}}.",
+    "editLater": "Editing lines and single umbrellas comes in a later update.",
+    "openMap": "Open the beach map",
+    "errors": {
+      "invalid": "Check the fields and try again.",
+      "exists": "The beach is already set up.",
+      "forbidden": "Only admins can do this.",
       "generic": "Something went wrong. Try again."
     }
   }
