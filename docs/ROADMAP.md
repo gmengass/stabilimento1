@@ -24,7 +24,7 @@ Each item ships something staff can use on the box.
 - [x] Bookings: create and cancel day / multi-day bookings from the map; SpotDay rows make
       double booking impossible (unique constraint + transaction)
 - [ ] Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm
-- [ ] Seasons (admin) and season passes, with released days
+- [x] Seasons (admin) and season passes, with released days
 - [ ] Move a booking to another spot or dates
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone

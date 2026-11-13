@@ -10,8 +10,7 @@ screens within seconds. Customers never use the app. They are contact details on
 
 ## Core domain (stack-independent)
 - **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded)
-- **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout
-  and opening season. Adding an area is a data change, not a code change.
+- **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout. Adding an area is a data change, not a code change.
 - **Line** (table `area_line`): area, number (1 = closest to the shore)
 - **Spot**: area, line, number (what staff call it, unique per area; default line × 100 + position), position (order in the line, 1 = leftmost facing the sea), kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
 - **User**: a staff login (Better Auth, ADR 0007). id, username, name, role (admin | staff),
@@ -19,7 +18,8 @@ screens within seconds. Customers never use the app. They are contact details on
 - **Customer**: name, optional phone, email and notes (no login)
 - **VenueSettings**: default_hold_until (11:00), time zone (Europe/Rome)
 - **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
-- **Season**: area, name, start_date, end_date
+- **Season**: venue, name, start_date, end_date. One season covers every beach space; seasons
+  never overlap
 - **Booking**: customer, kind (day | multi_day | season), start_date (a season pass's first day),
   end_date (inclusive local dates), season, status, notes, hold_until (optional override)
 - **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella)

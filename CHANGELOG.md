@@ -43,6 +43,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   own lines and umbrellas (numbered from 101 again). The map has a tab per space, and the space
   being viewed is named in large letters and on the sea band; new bookings show it too.
 
+- Seasons and season passes: admins set up seasons at `/admin/seasons` (name, first and last
+  day; seasons can't overlap). On the map, tick "Season pass" when booking to sell the selected
+  umbrellas until the end of the season, from the holder's first day. Passes show in violet.
+- Released days: open a season pass and release the days the holder won't use. Those umbrellas
+  are free to book on those days (dashed violet border, with the holder's name); tap one to give
+  the day back to the holder while it is still free. The pass shows how many days were released.
+
 ### Changed
 - The phone number is optional when booking: leave it empty for customers who give only a name.
 - Roadmap Milestone 1 now lists the beach club features from the project brief.
