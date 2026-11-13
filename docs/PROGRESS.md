@@ -4,43 +4,40 @@
 > Git history keeps the old versions.
 
 ## Current state
-- v0.1.1 is deployed. It had only login and staff accounts: the booking features were never built.
-- PR #13 `feat/beach-map`: admin beach setup (`/admin/beach`) and the beach map per date. CI green.
-- PR #14 `feat/bookings` (on top of #13): create and cancel day / multi-day bookings from the map,
-  SpotDay rows with a partial unique index (ADR 0004). Reviewer and security agents run, fixes in.
-- PR #15 `feat/layout-edit` (on top of #14): the beach layout is editable any time in Beach
-  settings, not a one-time setup.
-- PR #16 `feat/beach-areas` (on top of #15): several beach spaces, tabs on the map and in
-  settings, the current space named large and on the sea band.
-- 472 tests pass.
+- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #17.
+- Merged: #13 beach map, #14 bookings, #15 editable beach settings, #16 several beach spaces,
+  #17 update fix (EACCES at the migrate step). Roadmap Milestone 1 items 1 and 2 are ticked.
+- PR #12 `fix/setup-wsl-sg` is open: `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL). `main` is
+  merged into it, so it only changes `scripts/setup-wsl.sh`. Merge it when CI is green.
 
 ## Done this session
-- Roadmap Milestone 1 rewritten to match the brief (it was the generic template).
-- Map: sea at the top, line 1 nearest, names on booked umbrellas, tap to book or open a booking.
-- Bookings: clashes listed by umbrella and day, concurrency tests (8 at once; crossed spot sets),
-  cancel keeps days already used, can't cancel an ended booking.
+- Docs only: this file and the roadmap ticks aligned with what is merged and deployed.
+- Checked on the box earlier (from the #12 wrap-up): WSL2 mirrored networking keeps LAN source
+  IPs, so each device gets its own login rate limit.
 
 ## Next up
-1. Merge #13, #14, #15, then #16. Tag `v0.2.0` on GitHub and run `scripts/update.sh v0.2.0` on the box.
-   Then an admin opens "Impostazioni spiaggia" to create the beach (editable afterwards).
-2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
-3. Seasons and season passes with released days.
-4. Backups (USB + OneDrive) before the first real season.
+1. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
+2. Seasons and season passes with released days.
+3. Backups (USB + OneDrive) before the first real season. Share the lock with `update.sh`.
+4. Trusted certificate: Android Chrome blocks the internal-CA certificate with no "Proceed".
+   Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008). Ask the owner
+   first: the domain name, and who hosts its DNS.
 
 ## Open questions
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
 - AuditLog table (ADR 0004 mentions it) is not built yet: create and cancel write no audit entry.
-- No rate limit on booking actions; spots aren't checked against the area (one area at launch).
+- No rate limit on booking actions; spots aren't checked against the area.
 - Umbrellas with past bookings can never be removed (FK restrict): add "retire" before next season.
 - Venue name accepts control characters; setup numbers accept `true`/`1e1` (bounds still hold).
-- A partly used booking that is cancelled still shows on its past days (by design, for history).
-- Verify on the box: does WSL2 mirrored networking keep LAN source IPs (RUNBOOK check)?
 - The map opens on the first space: remember each tablet's last space (cookie)?
 - Dev-only 'uncached data' overlay on every page (also /admin/staff, predates this work).
 - Session length on shared tablets: 12 h absolute, or end of day (Europe/Rome)?
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
+- RUNBOOK firewall example says `192.168.1.0/24`; the box is on `192.168.0.0/24`.
+- CHANGELOG has everything under "Unreleased": split it into v0.1.0 … v0.2.1 sections.
 
 ## Known issues
-- Sessions can't pull Docker images or push tags (HTTP 403). Docker and e2e are verified in CI.
+- Sessions can't pull Docker images or push tags (HTTP 403). Docker and e2e are verified in CI,
+  and releases are tagged on GitHub.
 - Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean.
