@@ -6,10 +6,28 @@ import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
 import type { MapSpot } from "@/lib/beach/layout";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
-import { cancelBookingAction, createBookingAction } from "./booking-actions";
+import type { OpenSeason } from "@/lib/booking/seasons";
+import {
+  cancelBookingAction,
+  createBookingAction,
+  createSeasonPassAction,
+  releaseDaysAction,
+  restoreDaysAction,
+} from "./booking-actions";
 
 type ErrorKey =
-  "invalid" | "sunbeds" | "taken" | "takenNow" | "forbidden" | "notFound" | "ended" | "generic";
+  | "invalid"
+  | "invalidPass"
+  | "invalidDays"
+  | "sunbeds"
+  | "taken"
+  | "takenNow"
+  | "forbidden"
+  | "notFound"
+  | "ended"
+  | "notSeason"
+  | "past"
+  | "generic";
 interface Failure {
   key: ErrorKey;
   clashes?: Clash[];
@@ -44,8 +62,11 @@ function ErrorLine({ failure }: { failure: Failure | null }) {
 
 type CreateFailure = Exclude<Awaited<ReturnType<typeof createBookingAction>>, { ok: true }>;
 
+type DaysFailure = Exclude<Awaited<ReturnType<typeof releaseDaysAction>>, { ok: true }>;
+
 /** A lost race whose winner is already gone has no clash to name: ask to try again. */
-function toFailure(result: CreateFailure): Failure {
+function toFailure(result: CreateFailure | DaysFailure, invalid: ErrorKey = "invalid"): Failure {
+  if (result.error === "invalid") return { key: invalid };
   if (result.error !== "taken") return { key: result.error };
   if (result.clashes.length === 0) return { key: "takenNow" };
   return { key: "taken", clashes: result.clashes };
@@ -55,16 +76,34 @@ interface NewProps {
   areaName: string;
   date: string;
   spots: MapSpot[];
+  /** Seasons a pass can be sold for; with none, only day bookings are offered. */
+  seasons: OpenSeason[];
   onRemove: (spotId: number) => void;
   onDone: () => void;
 }
 
-export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewProps) {
+/** A pass sold mid-season starts on the day shown; one sold early starts on opening day. */
+function firstDayIn(season: OpenSeason, date: string): string {
+  if (date < season.startDate) return season.startDate;
+  return date > season.endDate ? season.endDate : date;
+}
+
+export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDone }: NewProps) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [startDate, setStartDate] = useState(date);
   const [endDate, setEndDate] = useState(date);
+  const [seasonId, setSeasonId] = useState<number | null>(null);
+  const season = seasons.find((s) => s.id === seasonId);
+  const formatDate = useDate();
+
+  function chooseSeason(next: OpenSeason | undefined) {
+    setSeasonId(next?.id ?? null);
+    setFailure(null);
+    if (next) setStartDate(firstDayIn(next, date));
+    else changeStart(date);
+  }
 
   function changeStart(value: string) {
     setStartDate(value);
@@ -74,19 +113,20 @@ export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewP
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const input = {
+    const customer = {
       customerName: form.get("customerName"),
       customerPhone: form.get("customerPhone"),
       startDate: form.get("startDate"),
-      endDate: form.get("endDate"),
       notes: form.get("notes"),
       spots: spots.map((s) => ({ spotId: s.id, sunbeds: Number(form.get(`sunbeds-${s.id}`)) })),
     };
     startTransition(async () => {
       try {
-        const result = await createBookingAction(input);
+        const result = season
+          ? await createSeasonPassAction({ ...customer, seasonId: season.id })
+          : await createBookingAction({ ...customer, endDate: form.get("endDate") });
         if (result.ok) onDone();
-        else setFailure(toFailure(result));
+        else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
       } catch {
         setFailure({ key: "generic" });
       }
@@ -133,31 +173,79 @@ export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewP
         {t("customerPhone")}
         <input name="customerPhone" type="tel" inputMode="tel" maxLength={30} className={field} />
       </label>
-      <div className="flex gap-2">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          {t("from")}
+      {seasons.length > 0 && (
+        <label className="flex items-center gap-2 text-sm">
           <input
-            name="startDate"
-            type="date"
-            required
-            value={startDate}
-            onChange={(e) => changeStart(e.target.value)}
-            className={field}
+            type="checkbox"
+            checked={season !== undefined}
+            onChange={(e) => chooseSeason(e.target.checked ? seasons[0] : undefined)}
+            className="size-5"
           />
+          {t("seasonPass")}
         </label>
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          {t("to")}
-          <input
-            name="endDate"
-            type="date"
-            required
-            min={startDate}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+      )}
+      {season && seasons.length > 1 && (
+        <label className="flex flex-col gap-1 text-sm">
+          {t("season")}
+          <select
+            value={season.id}
+            onChange={(e) => chooseSeason(seasons.find((s) => s.id === Number(e.target.value)))}
             className={field}
-          />
+          >
+            {seasons.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </label>
-      </div>
+      )}
+      {season ? (
+        <div className="flex flex-col gap-1">
+          <label className="flex flex-col gap-1 text-sm">
+            {t("firstDay")}
+            <input
+              name="startDate"
+              type="date"
+              required
+              min={season.startDate}
+              max={season.endDate}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className={field}
+            />
+          </label>
+          <p className="text-sm text-gray-700">
+            {t("untilSeasonEnd", { date: formatDate(season.endDate) })}
+          </p>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <label className="flex flex-1 flex-col gap-1 text-sm">
+            {t("from")}
+            <input
+              name="startDate"
+              type="date"
+              required
+              value={startDate}
+              onChange={(e) => changeStart(e.target.value)}
+              className={field}
+            />
+          </label>
+          <label className="flex flex-1 flex-col gap-1 text-sm">
+            {t("to")}
+            <input
+              name="endDate"
+              type="date"
+              required
+              min={startDate}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className={field}
+            />
+          </label>
+        </div>
+      )}
       <label className="flex flex-col gap-1 text-sm">
         {t("notes")}
         <textarea name="notes" maxLength={500} rows={2} className={field} />
@@ -168,8 +256,115 @@ export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewP
         disabled={pending}
         className="rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60"
       >
-        {pending ? t("saving") : t("book", { count: spots.length })}
+        {pending ? t("saving") : t(season ? "sellPass" : "book", { count: spots.length })}
       </button>
+      <ErrorLine failure={failure} />
+    </form>
+  );
+}
+
+/** A free umbrella whose season-pass holder gave this day back: staff can give it back. */
+export function ReleasedDay({ pass, date }: { pass: Occupant; date: string }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+
+  function restore() {
+    startTransition(async () => {
+      try {
+        const day = { bookingId: pass.bookingId, startDate: date, endDate: date };
+        const result = await restoreDaysAction(day);
+        if (!result.ok) setFailure(toFailure(result, "invalidDays"));
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded border border-violet-300 bg-violet-50 p-3 text-sm">
+      <p>{t("releasedBy", { name: pass.customerName })}</p>
+      <button
+        type="button"
+        onClick={restore}
+        disabled={pending}
+        className="rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
+      >
+        {pending ? t("saving") : t("restore", { name: pass.customerName })}
+      </button>
+      <ErrorLine failure={failure} />
+    </div>
+  );
+}
+
+/** Release days of a season pass, starting from the day shown on the map. */
+function ReleaseForm({ occupant, date }: { occupant: Occupant; date: string }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+  const [released, setReleased] = useState<number | null>(null);
+  const [startDate, setStartDate] = useState(date);
+  const [endDate, setEndDate] = useState(date);
+
+  function changeStart(value: string) {
+    setStartDate(value);
+    if (value > endDate) setEndDate(value);
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFailure(null);
+    setReleased(null);
+    startTransition(async () => {
+      try {
+        const days = { bookingId: occupant.bookingId, startDate, endDate };
+        const result = await releaseDaysAction(days);
+        if (result.ok) setReleased(result.days);
+        else setFailure(toFailure(result, "invalidDays"));
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
+      <h3 className="font-semibold">{t("releaseTitle")}</h3>
+      <p className="text-sm text-gray-700">{t("releaseHint")}</p>
+      <div className="flex gap-2">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          {t("from")}
+          <input
+            type="date"
+            required
+            min={occupant.startDate}
+            max={occupant.endDate}
+            value={startDate}
+            onChange={(e) => changeStart(e.target.value)}
+            className={field}
+          />
+        </label>
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          {t("to")}
+          <input
+            type="date"
+            required
+            min={startDate}
+            max={occupant.endDate}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className={field}
+          />
+        </label>
+      </div>
+      <button type="submit" disabled={pending} className="rounded border px-3 py-2">
+        {pending ? t("saving") : t("release")}
+      </button>
+      {released !== null && (
+        <p role="status" className="text-sm text-green-700">
+          {t("releasedDone", { count: released })}
+        </p>
+      )}
       <ErrorLine failure={failure} />
     </form>
   );
@@ -177,16 +372,19 @@ export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewP
 
 interface DetailsProps {
   occupant: Occupant;
+  /** The day shown on the map. */
+  date: string;
   onClose: () => void;
 }
 
-export function BookingDetails({ occupant, onClose }: DetailsProps) {
+export function BookingDetails({ occupant, date, onClose }: DetailsProps) {
   const t = useTranslations("booking");
   const formatDate = useDate();
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [failure, setFailure] = useState<Failure | null>(null);
   const sameDay = occupant.startDate === occupant.endDate;
+  const isPass = occupant.kind === "season";
 
   function cancel() {
     startTransition(async () => {
@@ -213,6 +411,12 @@ export function BookingDetails({ occupant, onClose }: DetailsProps) {
           {occupant.customerPhone}
         </a>
       )}
+      {isPass && (
+        <p className="flex flex-wrap gap-x-3 text-sm text-violet-900">
+          <span className="font-semibold">{t("passTitle")}</span>
+          <span>{t("releasedCount", { count: occupant.releasedDays })}</span>
+        </p>
+      )}
       <p className="text-sm">
         {sameDay
           ? formatDate(occupant.startDate)
@@ -224,9 +428,10 @@ export function BookingDetails({ occupant, onClose }: DetailsProps) {
         ))}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
+      {isPass && <ReleaseForm occupant={occupant} date={date} />}
       {confirming ? (
         <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 p-3">
-          <p className="text-sm">{t("cancelConfirm")}</p>
+          <p className="text-sm">{t(isPass ? "cancelPassConfirm" : "cancelConfirm")}</p>
           <div className="flex gap-2">
             <button
               type="button"

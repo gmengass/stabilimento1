@@ -31,7 +31,8 @@
     "beach": "Beach settings",
     "staff": "Staff",
     "signedInAs": "Signed in as {name}",
-    "logout": "Log out"
+    "logout": "Log out",
+    "seasons": "Seasons"
   },
   "staff": {
     "title": "Staff accounts",
@@ -98,7 +99,11 @@
     "legendFree": "Free: {count}",
     "legendBooked": "Booked: {count}",
     "hint": "Tap free umbrellas to book them, or a booked one to see it.",
-    "seaOf": "Sea · {area}"
+    "seaOf": "Sea · {area}",
+    "spotSeason": "Umbrella {number}, season pass of {name}",
+    "spotReleased": "Umbrella {number}, free: released by {name}",
+    "legendSeason": "Season passes: {count}",
+    "legendReleased": "Released by pass holders: {count}"
   },
   "beachSetup": {
     "title": "Beach settings",
@@ -180,9 +185,27 @@
       "notFound": "This booking no longer exists or was already cancelled.",
       "generic": "Something went wrong. Try again.",
       "takenNow": "Someone just booked one of these umbrellas. Check the map and try again.",
-      "ended": "This booking has already ended and can't be cancelled."
+      "ended": "This booking has already ended and can't be cancelled.",
+      "invalidPass": "Check the fields: name, a valid phone number if you enter one, and a first day inside the season.",
+      "invalidDays": "Check the dates: the last day must be on or after the first.",
+      "notSeason": "Only season passes can release days.",
+      "past": "Past days can't be changed."
     },
-    "notesHint": "No health or payment details here."
+    "notesHint": "No health or payment details here.",
+    "seasonPass": "Season pass",
+    "season": "Season",
+    "firstDay": "First day",
+    "untilSeasonEnd": "Until {date} (end of the season)",
+    "sellPass": "{count, plural, one {Sell a season pass for # umbrella} other {Sell a season pass for # umbrellas}}",
+    "passTitle": "Season pass",
+    "releasedCount": "{count, plural, =0 {No released days} one {# released day} other {# released days}}",
+    "releaseTitle": "Release days",
+    "releaseHint": "The umbrellas become free on these days and can be booked by others.",
+    "release": "Release",
+    "releasedDone": "{count, plural, =0 {No days to release in that range.} one {# day released.} other {# days released.}}",
+    "releasedBy": "Released by {name} (season pass)",
+    "restore": "Give it back to {name}",
+    "cancelPassConfirm": "Cancel the season pass from today on, for every umbrella?"
   },
   "areas": {
     "tabsLabel": "Beach spaces",
@@ -197,5 +220,33 @@
     "umbrellasPerLine": "Umbrellas per line",
     "add": "Add space",
     "addHint": "Each space has its own lines and umbrellas, numbered from 101 again. A space with booked umbrellas can't be removed."
+  },
+  "seasons": {
+    "title": "Seasons",
+    "intro": "A season is the period season passes are sold for. Seasons cannot overlap.",
+    "empty": "No seasons yet.",
+    "name": "Name",
+    "startDate": "First day",
+    "endDate": "Last day",
+    "passes": "{count, plural, =0 {No passes} one {# pass} other {# passes}}",
+    "datesFixed": "Passes were sold: the dates can't change any more.",
+    "save": "Save",
+    "saved": "Saved.",
+    "remove": "Remove",
+    "removeYes": "Yes, remove {name}",
+    "no": "No",
+    "addTitle": "New season",
+    "add": "Add season",
+    "added": "Season added.",
+    "errors": {
+      "invalid": "Check the fields: a name, and a last day on or after the first (at most 366 days).",
+      "forbidden": "Only admins can do this.",
+      "noBeach": "Set up the beach first.",
+      "notFound": "Not found: reload the page.",
+      "nameTaken": "Another season already has this name.",
+      "overlap": "These dates overlap another season.",
+      "hasPasses": "Season passes were sold for this season: its dates can't change and it can't be removed.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }

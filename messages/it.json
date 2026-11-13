@@ -31,7 +31,8 @@
     "beach": "Impostazioni spiaggia",
     "staff": "Personale",
     "signedInAs": "Accesso come {name}",
-    "logout": "Esci"
+    "logout": "Esci",
+    "seasons": "Stagioni"
   },
   "staff": {
     "title": "Account del personale",
@@ -98,7 +99,11 @@
     "legendFree": "Liberi: {count}",
     "legendBooked": "Prenotati: {count}",
     "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo.",
-    "seaOf": "Mare · {area}"
+    "seaOf": "Mare · {area}",
+    "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",
+    "spotReleased": "Ombrellone {number}, libero: liberato da {name}",
+    "legendSeason": "Abbonamenti stagionali: {count}",
+    "legendReleased": "Liberati dagli abbonati: {count}"
   },
   "beachSetup": {
     "title": "Impostazioni spiaggia",
@@ -180,9 +185,27 @@
       "notFound": "Questa prenotazione non esiste più o è già stata annullata.",
       "generic": "Qualcosa è andato storto. Riprova.",
       "takenNow": "Qualcuno ha appena prenotato uno di questi ombrelloni. Controlla la mappa e riprova.",
-      "ended": "Questa prenotazione è già terminata e non si può annullare."
+      "ended": "Questa prenotazione è già terminata e non si può annullare.",
+      "invalidPass": "Controlla i campi: nome, un numero di telefono valido se lo inserisci e un primo giorno compreso nella stagione.",
+      "invalidDays": "Controlla le date: l'ultimo giorno non può precedere il primo.",
+      "notSeason": "Solo gli abbonamenti stagionali possono liberare dei giorni.",
+      "past": "I giorni passati non si possono modificare."
     },
-    "notesHint": "Non scrivere qui dati sanitari o di pagamento."
+    "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
+    "seasonPass": "Abbonamento stagionale",
+    "season": "Stagione",
+    "firstDay": "Primo giorno",
+    "untilSeasonEnd": "Fino al {date} (fine stagione)",
+    "sellPass": "{count, plural, one {Vendi un abbonamento per # ombrellone} other {Vendi un abbonamento per # ombrelloni}}",
+    "passTitle": "Abbonamento stagionale",
+    "releasedCount": "{count, plural, =0 {Nessun giorno liberato} one {# giorno liberato} other {# giorni liberati}}",
+    "releaseTitle": "Libera dei giorni",
+    "releaseHint": "In questi giorni gli ombrelloni tornano liberi e possono essere prenotati da altri.",
+    "release": "Libera",
+    "releasedDone": "{count, plural, =0 {Nessun giorno da liberare in questo periodo.} one {# giorno liberato.} other {# giorni liberati.}}",
+    "releasedBy": "Liberato da {name} (abbonamento stagionale)",
+    "restore": "Restituisci a {name}",
+    "cancelPassConfirm": "Annullare l'abbonamento stagionale da oggi in poi, per tutti gli ombrelloni?"
   },
   "areas": {
     "tabsLabel": "Spazi spiaggia",
@@ -197,5 +220,33 @@
     "umbrellasPerLine": "Ombrelloni per fila",
     "add": "Aggiungi spazio",
     "addHint": "Ogni spazio ha le sue file e i suoi ombrelloni, numerati di nuovo da 101. Uno spazio con ombrelloni prenotati non si può togliere."
+  },
+  "seasons": {
+    "title": "Stagioni",
+    "intro": "Una stagione è il periodo per cui si vendono gli abbonamenti stagionali. Le stagioni non possono sovrapporsi.",
+    "empty": "Ancora nessuna stagione.",
+    "name": "Nome",
+    "startDate": "Primo giorno",
+    "endDate": "Ultimo giorno",
+    "passes": "{count, plural, =0 {Nessun abbonamento} one {# abbonamento} other {# abbonamenti}}",
+    "datesFixed": "Sono stati venduti abbonamenti: le date non si possono più cambiare.",
+    "save": "Salva",
+    "saved": "Salvato.",
+    "remove": "Rimuovi",
+    "removeYes": "Sì, rimuovi {name}",
+    "no": "No",
+    "addTitle": "Nuova stagione",
+    "add": "Aggiungi stagione",
+    "added": "Stagione aggiunta.",
+    "errors": {
+      "invalid": "Controlla i campi: un nome e un ultimo giorno non precedente al primo (al massimo 366 giorni).",
+      "forbidden": "Solo gli amministratori possono farlo.",
+      "noBeach": "Configura prima la spiaggia.",
+      "notFound": "Non trovato: ricarica la pagina.",
+      "nameTaken": "Un'altra stagione ha già questo nome.",
+      "overlap": "Queste date si sovrappongono a un'altra stagione.",
+      "hasPasses": "Per questa stagione sono stati venduti abbonamenti: le date non si possono cambiare e non si può rimuovere.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    }
   }
 }
