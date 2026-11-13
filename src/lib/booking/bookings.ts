@@ -9,14 +9,22 @@ export const MAX_SPOTS_PER_BOOKING = 20;
 
 const bookingDate = z.string().refine(isBookingDate);
 
+const phoneNumber = z
+  .string()
+  .trim()
+  .regex(/^\+?[\d\s./-]{5,30}$/)
+  .refine((phone) => /\d{5}/.test(phone.replace(/\D/g, "")));
+
+/** Optional: a missing or blank phone is stored as NULL. A given one must look like a number. */
+const optionalPhone = z
+  .union([z.string().trim().length(0), phoneNumber])
+  .nullish()
+  .transform((phone) => phone || null);
+
 const createSchema = z
   .object({
     customerName: z.string().trim().min(1).max(100),
-    customerPhone: z
-      .string()
-      .trim()
-      .regex(/^\+?[\d\s./-]{5,30}$/)
-      .refine((phone) => /\d{5}/.test(phone.replace(/\D/g, ""))),
+    customerPhone: optionalPhone,
     startDate: bookingDate,
     endDate: bookingDate,
     notes: z.string().trim().max(500).default(""),
@@ -225,7 +233,7 @@ export async function cancelBooking(
 export interface Occupant {
   bookingId: number;
   customerName: string;
-  customerPhone: string;
+  customerPhone: string | null;
   startDate: string;
   endDate: string;
   notes: string;

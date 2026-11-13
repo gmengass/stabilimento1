@@ -158,7 +158,7 @@
     "remove": "Togli",
     "removeSpot": "Togli l'ombrellone {number}",
     "customerName": "Nome cliente",
-    "customerPhone": "Telefono",
+    "customerPhone": "Telefono (facoltativo)",
     "from": "Dal",
     "to": "Al (incluso)",
     "notes": "Note",
@@ -172,7 +172,7 @@
     "cancelYes": "Sì, annulla",
     "cancelNo": "No, tienila",
     "errors": {
-      "invalid": "Controlla i campi: nome, un numero di telefono e una data di fine uguale o successiva all'inizio (massimo 60 giorni).",
+      "invalid": "Controlla i campi: nome, un numero di telefono valido se lo inserisci e una data di fine uguale o successiva all'inizio (massimo 60 giorni).",
       "sunbeds": "Troppi lettini per uno degli ombrelloni.",
       "taken": "Già prenotato:",
       "clash": "Ombrellone {number} il {date}",

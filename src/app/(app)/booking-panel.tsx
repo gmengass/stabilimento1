@@ -131,14 +131,7 @@ export function NewBookingForm({ areaName, date, spots, onRemove, onDone }: NewP
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("customerPhone")}
-        <input
-          name="customerPhone"
-          type="tel"
-          inputMode="tel"
-          required
-          maxLength={30}
-          className={field}
-        />
+        <input name="customerPhone" type="tel" inputMode="tel" maxLength={30} className={field} />
       </label>
       <div className="flex gap-2">
         <label className="flex flex-1 flex-col gap-1 text-sm">
@@ -215,9 +208,11 @@ export function BookingDetails({ occupant, onClose }: DetailsProps) {
           {t("close")}
         </button>
       </div>
-      <a href={`tel:${occupant.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
-        {occupant.customerPhone}
-      </a>
+      {occupant.customerPhone && (
+        <a href={`tel:${occupant.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
+          {occupant.customerPhone}
+        </a>
+      )}
       <p className="text-sm">
         {sameDay
           ? formatDate(occupant.startDate)
