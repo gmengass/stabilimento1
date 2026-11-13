@@ -46,11 +46,14 @@ read_hidden() {
 
 # Runs a literal sh command with docker access, also before a new login picks up the docker
 # group. Pass values through exported variables, never by pasting them into $1.
+# Ubuntu 24.04 WSL images ship without `sg`, so fall back to sudo with the docker group.
 with_docker() {
 	if docker info >/dev/null 2>&1; then
 		sh -c "$1"
-	else
+	elif command -v sg >/dev/null 2>&1; then
 		sg docker -c "$1"
+	else
+		sudo --preserve-env -u "$(id -un)" -g docker sh -c "$1"
 	fi
 }
 
