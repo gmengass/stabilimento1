@@ -1,17 +1,15 @@
 # Progress
 
-> Rewritten (not appended) at the end of every session with `/wrap-up`. Keep under 40 lines.
-> Git history keeps the old versions.
+> Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #17.
-- Merged: #13 beach map, #14 bookings, #15 editable beach settings, #16 several beach spaces,
+- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #19.
+- In v0.2.1: #13 beach map, #14 bookings, #15 editable beach settings, #16 several beach spaces,
   #17 update fix (EACCES at the migrate step). Roadmap Milestone 1 items 1 and 2 are ticked.
-- PR #12 `fix/setup-wsl-sg` is open: `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL). `main` is
-  merged into it, so it only changes `scripts/setup-wsl.sh`. Merge it when CI is green.
+- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL), #19 tracker.
 
 ## Done this session
-- Docs only: this file and the roadmap ticks aligned with what is merged and deployed.
+- Added the `tracker` agent (PR #19), wired into `/start` and `/wrap-up`. Merged #12, #18 (docs).
 - Checked on the box earlier (from the #12 wrap-up): WSL2 mirrored networking keeps LAN source
   IPs, so each device gets its own login rate limit.
 
@@ -19,9 +17,8 @@
 1. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
 2. Seasons and season passes with released days.
 3. Backups (USB + OneDrive) before the first real season. Share the lock with `update.sh`.
-4. Trusted certificate: Android Chrome blocks the internal-CA certificate with no "Proceed".
-   Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008). Ask the owner
-   first: the domain name, and who hosts its DNS.
+4. Trusted certificate: Android Chrome blocks the internal-CA cert with no "Proceed". Let's Encrypt
+   via DNS-01 on the club's domain (new ADR amending ADR 0008). Ask the owner: domain, DNS host.
 
 ## Open questions
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
@@ -35,9 +32,8 @@
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 - RUNBOOK firewall example says `192.168.1.0/24`; the box is on `192.168.0.0/24`.
-- CHANGELOG has everything under "Unreleased": split it into v0.1.0 … v0.2.1 sections.
+- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.2.1; add the #12 fix.
 
 ## Known issues
-- Sessions can't pull Docker images or push tags (HTTP 403). Docker and e2e are verified in CI,
-  and releases are tagged on GitHub.
+- Sessions can't pull Docker images or push tags (HTTP 403): Docker/e2e run in CI, tags on GitHub.
 - Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean.

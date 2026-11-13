@@ -14,6 +14,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
+- [ ] Trusted certificate: Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
 ## Milestone 1 — Core booking (MVP, PROJECT_BRIEF.md and ADR 0004)
 Each item ships something staff can use on the box.
