@@ -49,3 +49,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   position 1 being the leftmost umbrella facing the sea. The demo beach has 18 per line (108).
 - The full Docker stack is served at `https://localhost` (port 3000 is no longer published).
   Login rate limiting can no longer be bypassed with a forged `X-Forwarded-For` header.
+- After login the language choice is behind the user's name: tap "Signed in as …" in the top
+  bar to change it. The login screen still shows it directly.

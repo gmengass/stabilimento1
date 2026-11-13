@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import enMessages from "../messages/en.json";
 import itMessages from "../messages/it.json";
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
@@ -51,4 +52,52 @@ test("the seeded admin logs in, logs out, and back does not reopen the app", asy
   await page.reload();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("button", { name: itMessages.appShell.logout })).toHaveCount(0);
+});
+
+test.describe("user menu", () => {
+  const userButton = (page: Page, messages: typeof itMessages) =>
+    page.getByRole("button", { name: messages.appShell.signedInAs.replace("{name}", "").trim() });
+  const languageOf = (page: Page, messages: typeof itMessages) =>
+    page.getByLabel(messages.common.languageSwitcher.label);
+
+  // The admin account is shared with the other tests: leave it in Italian even on failure.
+  test.afterEach(async ({ page }) => {
+    if ((await page.locator("html").getAttribute("lang")) !== "en") return;
+    if (await languageOf(page, enMessages).isHidden()) await userButton(page, enMessages).click();
+    await languageOf(page, enMessages).selectOption("it");
+    await expect(page.locator("html")).toHaveAttribute("lang", "it");
+  });
+
+  test("the language is behind the logged-in user's name", async ({ page }) => {
+    await logIn(page, ADMIN_USERNAME, ADMIN_PASSWORD);
+    await expect(page).toHaveURL(/\/$/);
+    const language = languageOf(page, itMessages);
+    await expect(language).toBeHidden();
+
+    const user = userButton(page, itMessages);
+    await expect(user).toHaveAttribute("aria-expanded", "false");
+    await user.click();
+    await expect(language).toBeVisible();
+
+    await language.selectOption("en");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.getByRole("link", { name: enMessages.appShell.map })).toBeVisible();
+  });
+
+  test("closes on Escape, returning focus to the name, and on a tap outside", async ({ page }) => {
+    await logIn(page, ADMIN_USERNAME, ADMIN_PASSWORD);
+    const user = userButton(page, itMessages);
+    const language = languageOf(page, itMessages);
+
+    await user.click();
+    await language.focus();
+    await page.keyboard.press("Escape");
+    await expect(language).toBeHidden();
+    await expect(user).toBeFocused();
+
+    await user.click();
+    await expect(language).toBeVisible();
+    await page.locator("body").click({ position: { x: 5, y: 300 } });
+    await expect(language).toBeHidden();
+  });
 });
