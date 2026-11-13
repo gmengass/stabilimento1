@@ -13,7 +13,37 @@ permissions:
   contents: read
 
 jobs:
+  # Docs-only pull requests skip the heavy jobs. A skipped job still satisfies a required check.
+  # Pushes to main always run everything, and so does a pull request if this job fails.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Does this change touch anything besides docs and agent files?
+        id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          code=true
+          if [ "$EVENT" = pull_request ]; then
+            # HEAD is the merge commit; its first parent is the base branch.
+            files=$(git diff --name-only HEAD^1 HEAD)
+            echo "$files"
+            docs='^(docs/|\.claude/|\.github/ISSUE_TEMPLATE/|\.github/pull_request_template\.md$|LICENSE$|.*\.md$)'
+            other=$(echo "$files" | grep -vE "$docs" || true)
+            if [ -n "$files" ] && [ -z "$other" ]; then
+              code=false
+            fi
+          fi
+          echo "code=$code" | tee -a "$GITHUB_OUTPUT"
+
   checks:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -50,6 +80,8 @@ jobs:
       - run: npm run build
 
   e2e:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -86,6 +118,8 @@ jobs:
           retention-days: 7
 
   docker:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-password
@@ -146,6 +180,8 @@ jobs:
         run: docker compose down -v
 
   deploy-scripts:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
