@@ -5,5 +5,7 @@ description: End a work session. Update PROGRESS.md and commit so the next chat 
    existing headings: Current state, Done this session, Next up, Open questions, Known issues.
 2. If a significant technical decision was made, add an ADR in `docs/decisions/` (next number).
 3. Add user-visible changes to `CHANGELOG.md` under "Unreleased".
-4. Commit with `docs: update progress` and push the branch.
-5. Reply with the 3-line "Next up" section only.
+4. Run the `tracker` agent in `fix` mode so PROGRESS.md and ROADMAP.md match each other and what
+   is merged, tagged and open. Tell it about anything it can't see, such as a deploy on the box.
+5. Commit with `docs: update progress` and push the branch.
+6. Reply with the 3-line "Next up" section only.

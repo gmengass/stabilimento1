@@ -14,6 +14,8 @@ Tech decisions: `docs/decisions/` (ADRs). Never contradict an accepted ADR. Prop
 2. **Work on one roadmap item per session**, on its own branch `feat/<short-name>`.
 3. **End**: run `/wrap-up` so that `docs/PROGRESS.md` is rewritten (not appended) with: what was done,
    what's next, and any open questions, then commit.
+   The `tracker` agent checks PROGRESS.md and ROADMAP.md against what is merged and tagged: at
+   `/start`, at `/wrap-up`, and after any merge or release.
 4. If a chat gets long (many back-and-forths, or a topic change), wrap up and start a fresh chat.
    PROGRESS.md carries the context, not the chat history.
 
