@@ -11,7 +11,8 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Deploy: Docker Compose stack (app, PostgreSQL, Caddy), update/rollback scripts, RUNBOOK (ADR 0003)
 - [ ] Backups: nightly encrypted pg_dump to USB + OneDrive (rclone), retention, restore test, failure alert
 - [x] Database + first migration (Venue, Area, Spot), seed data
-- [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005)
+- [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005;
+      after login the switcher is in the user menu, ADR 0009)
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
 - [ ] Trusted certificate: Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
