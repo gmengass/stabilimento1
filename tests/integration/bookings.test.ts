@@ -384,6 +384,9 @@ describe("0005_optional_phone migration", () => {
       const up = await runMigrations(db, "up");
       if (up.error) throw up.error;
     }
+    const { rows } = await sql<{ customer_phone: string | null }>`
+      select customer_phone from booking order by id`.execute(db);
+    expect(rows.map((r) => r.customer_phone)).toEqual([null, "333 1234567"]);
     await insert(null);
   });
 });
