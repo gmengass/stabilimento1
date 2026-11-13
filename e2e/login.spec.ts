@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import enMessages from "../messages/en.json";
 import itMessages from "../messages/it.json";
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
@@ -51,4 +52,28 @@ test("the seeded admin logs in, logs out, and back does not reopen the app", asy
   await page.reload();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("button", { name: itMessages.appShell.logout })).toHaveCount(0);
+});
+
+test("the language is behind the logged-in user's name", async ({ page }) => {
+  await logIn(page, ADMIN_USERNAME, ADMIN_PASSWORD);
+  await expect(page).toHaveURL(/\/$/);
+  const language = page.getByLabel(itMessages.common.languageSwitcher.label);
+  await expect(language).toBeHidden();
+
+  const user = page.getByRole("button", { name: /^Accesso come / });
+  await expect(user).toHaveAttribute("aria-expanded", "false");
+  await user.click();
+  await expect(language).toBeVisible();
+
+  await language.selectOption("en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("link", { name: enMessages.appShell.map })).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByLabel(enMessages.common.languageSwitcher.label)).toBeHidden();
+
+  // Leave the shared admin account in Italian for the other tests.
+  await page.getByRole("button", { name: /^Signed in as / }).click();
+  await page.getByLabel(enMessages.common.languageSwitcher.label).selectOption("it");
+  await expect(page.locator("html")).toHaveAttribute("lang", "it");
 });
