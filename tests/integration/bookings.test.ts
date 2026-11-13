@@ -1,7 +1,7 @@
 import { sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, getDb } from "@/db/client";
-import { runMigrations } from "@/db/migrator";
+import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { addArea } from "@/lib/beach/edit";
 import { setupBeach, loadBeach } from "@/lib/beach/layout";
@@ -234,6 +234,23 @@ describe("createBooking", () => {
     expect(result).toEqual({ ok: false, error: "sunbeds" });
   });
 
+  it.each([{}, { customerPhone: "" }, { customerPhone: "   " }, { customerPhone: null }])(
+    "books without a phone number (%o)",
+    async (phone) => {
+      const input = { ...booking({ customerPhone: undefined }), ...phone };
+      const result = await createBooking(db, USER, input);
+      expect(result).toMatchObject({ ok: true });
+      const occupancy = await loadOccupancy(db, areaId, "2027-07-10");
+      expect(occupancy[spot[101]]).toMatchObject({ customerName: "Rossi", customerPhone: null });
+    },
+  );
+
+  it("keeps a given phone number", async () => {
+    await createBooking(db, USER, booking());
+    const occupancy = await loadOccupancy(db, areaId, "2027-07-10");
+    expect(occupancy[spot[101]].customerPhone).toBe("+39 333 1234567");
+  });
+
   it.each([
     { customerName: " " },
     { customerPhone: "abc" },
@@ -339,5 +356,37 @@ describe("the database itself", () => {
       sql`insert into spot_day (spot_id, booking_spot_id, date)
           values (${spot[105]}, ${bs.id}, '2027-07-20')`.execute(db),
     ).rejects.toMatchObject({ code: "23503" });
+  });
+});
+
+describe("0005_optional_phone migration", () => {
+  const insert = (phone: string | null) =>
+    sql`insert into booking (kind, customer_name, customer_phone, start_date, end_date, created_by)
+        values ('day', 'Rossi', ${phone}, '2027-07-10', '2027-07-10', ${USER})`.execute(db);
+
+  it("stores no phone as null and still refuses a phone without digits", async () => {
+    await insert(null);
+    await expect(insert("")).rejects.toMatchObject({ code: "23514" });
+    await expect(insert("abc")).rejects.toMatchObject({ code: "23514" });
+  });
+
+  it("rolls back with phoneless bookings present, then migrates up again", async () => {
+    await insert(null);
+    await insert("333 1234567");
+    try {
+      const down = await createMigrator(db).migrateTo("0004_bookings");
+      if (down.error) throw down.error;
+      const { rows } = await sql<{ customer_phone: string }>`
+        select customer_phone from booking order by id`.execute(db);
+      expect(rows.map((r) => r.customer_phone)).toEqual(["0", "333 1234567"]);
+      await expect(insert(null)).rejects.toMatchObject({ code: "23502" });
+    } finally {
+      const up = await runMigrations(db, "up");
+      if (up.error) throw up.error;
+    }
+    const { rows } = await sql<{ customer_phone: string | null }>`
+      select customer_phone from booking order by id`.execute(db);
+    expect(rows.map((r) => r.customer_phone)).toEqual([null, "333 1234567"]);
+    await insert(null);
   });
 });

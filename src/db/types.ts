@@ -59,7 +59,7 @@ export interface Booking {
   created_at: Generated<Timestamp>;
   created_by: string;
   customer_name: string;
-  customer_phone: string;
+  customer_phone: string | null;
   end_date: string;
   hold_until: string | null;
   id: Generated<number>;

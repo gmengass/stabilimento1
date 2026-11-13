@@ -44,6 +44,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   being viewed is named in large letters and on the sea band; new bookings show it too.
 
 ### Changed
+- The phone number is optional when booking: leave it empty for customers who give only a name.
 - Roadmap Milestone 1 now lists the beach club features from the project brief.
 - Demo umbrellas are numbered line × 100 + position (101–118 in line 1; 201… in line 2),
   position 1 being the leftmost umbrella facing the sea. The demo beach has 18 per line (108).

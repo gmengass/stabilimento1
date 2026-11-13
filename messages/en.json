@@ -158,7 +158,7 @@
     "remove": "Remove",
     "removeSpot": "Remove umbrella {number}",
     "customerName": "Customer name",
-    "customerPhone": "Phone",
+    "customerPhone": "Phone (optional)",
     "from": "From",
     "to": "To (included)",
     "notes": "Notes",
@@ -172,7 +172,7 @@
     "cancelYes": "Yes, cancel it",
     "cancelNo": "No, keep it",
     "errors": {
-      "invalid": "Check the fields: name, a phone number, and an end date on or after the start (at most 60 days).",
+      "invalid": "Check the fields: name, a valid phone number if you enter one, and an end date on or after the start (at most 60 days).",
       "sunbeds": "Too many sunbeds for one of the umbrellas.",
       "taken": "Already booked:",
       "clash": "Umbrella {number} on {date}",

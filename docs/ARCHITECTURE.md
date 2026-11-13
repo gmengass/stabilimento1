@@ -16,7 +16,7 @@ screens within seconds. Customers never use the app. They are contact details on
 - **Spot**: area, line, number (what staff call it, unique per area; default line × 100 + position), position (order in the line, 1 = leftmost facing the sea), kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
 - **User**: a staff login (Better Auth, ADR 0007). id, username, name, role (admin | staff),
   banned (= disabled), locale (it | en). Plus Better Auth's `session`, `account`, `verification`
-- **Customer**: name, phone, optional email and notes (no login)
+- **Customer**: name, optional phone, email and notes (no login)
 - **VenueSettings**: default_hold_until (11:00), time zone (Europe/Rome)
 - **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
 - **Season**: area, name, start_date, end_date
