@@ -15,19 +15,24 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
 
-## Milestone 1 — Core booking (MVP)
-- [ ] Bookable resources/services (CRUD for providers)
-- [ ] Availability rules (working hours, breaks, exceptions)
-- [ ] Availability search (customer side)
-- [ ] Create booking with double-booking protection (DB constraint + transaction)
-- [ ] View / cancel / reschedule booking
-- [ ] Email confirmations and reminders
+## Milestone 1 — Core booking (MVP, PROJECT_BRIEF.md and ADR 0004)
+Each item ships something staff can use on the box.
+- [ ] Beach settings (admin: spaces, lines, umbrellas, numbers, sunbeds; editable any time) and
+      beach map per date and space, sea at the top
+- [ ] Bookings: create and cancel day / multi-day bookings from the map; SpotDay rows make
+      double booking impossible (unique constraint + transaction)
+- [ ] Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm
+- [ ] Seasons (admin) and season passes, with released days
+- [ ] Move a booking to another spot or dates
+- [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
+- [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
+- [ ] Live map: changes show on every device within seconds
 
 ## Milestone 2 — Business features
-- [ ] Payments / deposits
-- [ ] Provider dashboard and calendar view
-- [ ] Calendar sync (iCal / Google)
-- [ ] Admin panel
+- [ ] Prices, payments recorded at the desk, daily cash-up report
+- [ ] Regular-customer history (who had which spot last season)
+- [ ] Reports for the admin
+- [ ] Remote access via Tailscale (ADR 0003)
 
 ## Milestone 3 — Release v1.0
 - [ ] Security review (security agent) and fixes

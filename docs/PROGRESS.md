@@ -4,43 +4,43 @@
 > Git history keeps the old versions.
 
 ## Current state
-- `v0.1.1` is released and installed on the club PC (Windows + WSL2, IP 192.168.0.50) with
-  `scripts/setup-wsl.sh`. All 3 containers are healthy, and Caddy serves the name and the IP.
-- PR #12 is open: `setup-wsl.sh` didn't work without `sg`, which Ubuntu 24.04 WSL lacks. This
-  wrap-up is on that branch.
+- v0.1.1 is deployed. It had only login and staff accounts: the booking features were never built.
+- PR #13 `feat/beach-map`: admin beach setup (`/admin/beach`) and the beach map per date. CI green.
+- PR #14 `feat/bookings` (on top of #13): create and cancel day / multi-day bookings from the map,
+  SpotDay rows with a partial unique index (ADR 0004). Reviewer and security agents run, fixes in.
+- PR #15 `feat/layout-edit` (on top of #14): the beach layout is editable any time in Beach
+  settings, not a one-time setup.
+- PR #16 `feat/beach-areas` (on top of #15): several beach spaces, tabs on the map and in
+  settings, the current space named large and on the sea band.
+- 472 tests pass.
 
 ## Done this session
-- Deploy item (PR #10, ADR 0008) and the one-command WSL2 setup script (PR #11). Released v0.1.0
-  and v0.1.1.
-- **Checked on the box:** WSL2 mirrored networking keeps LAN source IPs. Caddy logged the phone's
-  own `192.168.0.100`, so each device gets its own login rate limit.
-- **Found on the box:** Android Chrome blocks the internal-CA certificate, with no "Proceed"
-  button. Installing the root on every device is too fiddly for staff.
+- Roadmap Milestone 1 rewritten to match the brief (it was the generic template).
+- Map: sea at the top, line 1 nearest, names on booked umbrellas, tap to book or open a booking.
+- Bookings: clashes listed by umbrella and day, concurrency tests (8 at once; crossed spot sets),
+  cancel keeps days already used, can't cancel an ended booking.
 
 ## Next up
-1. **Trusted certificate with the club's own domain** (a new ADR amending ADR 0008):
-   - Use Let's Encrypt via the DNS-01 challenge, with a Caddy build that includes the DNS
-     provider's plugin. The name, e.g. `prenotazioni.<club domain>`, points at 192.168.0.50.
-   - No inbound ports are needed, and no device setup.
-   - Add `ACME_EMAIL` and the DNS API token to `.env`.
-   - Update `setup-wsl.sh`/RUNBOOK (router DNS-rebind protection; renewal needs internet ~60 d).
-   - **Ask the owner first: the domain name, and who hosts its DNS** (Cloudflare or other).
-2. Backups item: nightly encrypted pg_dump to OneDrive (rclone), retention, a restore test, an
-   alert. Share the lock with `update.sh`, and include `caddy_data`.
-3. Docs PR: rewrite Roadmap Milestone 1 to match the brief and ADR 0004.
+1. Merge #13, #14, #15, then #16. Tag `v0.2.0` on GitHub and run `scripts/update.sh v0.2.0` on the box.
+   Then an admin opens "Impostazioni spiaggia" to create the beach (editable afterwards).
+2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
+3. Seasons and season passes with released days.
+4. Backups (USB + OneDrive) before the first real season.
 
 ## Open questions
-- Box firewall rules must use `192.168.0.0/24` (the RUNBOOK example says 192.168.1.0/24).
-- In mirrored mode, WSL can't reach the PC's own LAN IP (`hostAddressLoopback`). Document it, or
-  make the health check use another route?
-- Hardening for later: Caddy→app shared secret, db port dev-only, signed tags, pinned Caddy
-  digest, per-username lockout, keep-data rollback.
+- GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
+- AuditLog table (ADR 0004 mentions it) is not built yet: create and cancel write no audit entry.
+- No rate limit on booking actions; spots aren't checked against the area (one area at launch).
+- Umbrellas with past bookings can never be removed (FK restrict): add "retire" before next season.
+- Venue name accepts control characters; setup numbers accept `true`/`1e1` (bounds still hold).
+- A partly used booking that is cancelled still shows on its past days (by design, for history).
+- Verify on the box: does WSL2 mirrored networking keep LAN source IPs (RUNBOOK check)?
+- The map opens on the first space: remember each tablet's last space (cookie)?
+- Dev-only 'uncached data' overlay on every page (also /admin/staff, predates this work).
 - Session length on shared tablets: 12 h absolute, or end of day (Europe/Rome)?
-- Password policy is length-only, no self-service password change, expired sessions never
-  deleted (GDPR). `formatEur` in euros: cents before Prices? VenueSettings: columns or 1:1?
+- `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 
 ## Known issues
-- Sessions can't pull Docker images, download Playwright browsers or push tags (HTTP 403).
-  Docker and e2e are verified in CI, and releases are tagged on GitHub.
-- `next dev` re-creates AGENTS.md (committed). Old dev DBs keep 1–120 numbers: re-create them.
+- Sessions can't pull Docker images or push tags (HTTP 403). Docker and e2e are verified in CI.
+- Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean.

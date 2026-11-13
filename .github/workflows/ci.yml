@@ -101,7 +101,10 @@ jobs:
           docker compose config -q
           docker compose run --rm --no-deps --entrypoint caddy caddy validate --config /etc/caddy/Caddyfile
       - name: Build images
-        run: docker compose build
+        run: |
+          # Like a box checkout made under umask 077: sources readable by their owner only.
+          chmod -R go-rwx src tsconfig.json
+          docker compose build
       - name: Migrate
         run: docker compose run --rm migrate
       - name: Create the first admin twice (idempotent)
@@ -134,7 +137,7 @@ jobs:
           done
           test "$code" = 429
       - name: Roll back the migration in the container
-        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0003_auth"
+        run: docker compose run --rm migrate down | tee /dev/stderr | grep -q "Success down 0004_bookings"
       - name: Logs on failure
         if: failure()
         run: docker compose logs

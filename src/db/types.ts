@@ -5,9 +5,15 @@
 
 import type { ColumnType } from "kysely";
 
+export type BookingKind = "day" | "multi_day" | "season";
+
+export type BookingStatus = "active" | "cancelled";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
+
+export type SpotDayState = "booked" | "no_show" | "released";
 
 export type SpotKind = "sunbed" | "umbrella";
 
@@ -47,6 +53,32 @@ export interface AreaLine {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Booking {
+  cancelled_at: Timestamp | null;
+  cancelled_by: string | null;
+  created_at: Generated<Timestamp>;
+  created_by: string;
+  customer_name: string;
+  customer_phone: string;
+  end_date: string;
+  hold_until: string | null;
+  id: Generated<number>;
+  kind: BookingKind;
+  notes: Generated<string>;
+  start_date: string;
+  status: Generated<BookingStatus>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface BookingSpot {
+  booking_id: number;
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  spot_id: number;
+  sunbeds: number;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface Session {
   created_at: Generated<Timestamp>;
   expires_at: Timestamp;
@@ -69,6 +101,16 @@ export interface Spot {
   max_sunbeds: Generated<number>;
   number: number;
   position: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface SpotDay {
+  booking_spot_id: number;
+  created_at: Generated<Timestamp>;
+  date: string;
+  id: Generated<number>;
+  spot_id: number;
+  state: Generated<SpotDayState>;
   updated_at: Generated<Timestamp>;
 }
 
@@ -110,8 +152,11 @@ export interface DB {
   account: Account;
   area: Area;
   area_line: AreaLine;
+  booking: Booking;
+  booking_spot: BookingSpot;
   session: Session;
   spot: Spot;
+  spot_day: SpotDay;
   user: User;
   venue: Venue;
   verification: Verification;

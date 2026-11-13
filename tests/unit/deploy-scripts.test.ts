@@ -263,6 +263,40 @@ describe("hygiene", () => {
   });
 });
 
+describe("release files stay readable by the containers (umask 077 in common.sh)", () => {
+  const readableByAll = (file: string) => statSync(join(repo, file)).mode & 0o044;
+
+  it("update.sh checks out a release's new and changed files as group/other-readable", () => {
+    spawnSync("mkdir", ["-p", join(repo, "src")]);
+    writeFileSync(join(repo, "src", "changed.ts"), "v1\n");
+    release("v0.0.3");
+    writeFileSync(join(repo, "src", "changed.ts"), "v2\n");
+    writeFileSync(join(repo, "src", "new.ts"), "new\n");
+    release("v0.0.4");
+    git("checkout", "-q", "v0.0.1");
+    expect(run("update.sh", ["v0.0.3"]).status).toBe(0);
+    const result = run("update.sh", ["v0.0.4"]);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readableByAll("src/new.ts")).toBe(0o044);
+    expect(readableByAll("src/changed.ts")).toBe(0o044);
+  });
+
+  it("rollback.sh checks out the previous release's files as group/other-readable", () => {
+    spawnSync("mkdir", ["-p", join(repo, "src")]);
+    writeFileSync(join(repo, "src", "changed.ts"), "v1\n");
+    release("v0.0.3");
+    writeFileSync(join(repo, "src", "changed.ts"), "v2\n");
+    release("v0.0.4");
+    git("checkout", "-q", "v0.0.1");
+    run("update.sh", ["v0.0.3"]);
+    run("update.sh", ["v0.0.4"]);
+    const result = run("rollback.sh", ["--yes"]);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(join(repo, "src", "changed.ts"), "utf8")).toBe("v1\n");
+    expect(readableByAll("src/changed.ts")).toBe(0o044);
+  });
+});
+
 describe("rollback.sh", () => {
   it("starts the database before touching it", () => {
     run("update.sh", ["v0.0.1"]);

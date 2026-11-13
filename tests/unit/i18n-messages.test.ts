@@ -36,7 +36,7 @@ describe("message files", () => {
   it("it.json is non-empty and has the required keys", () => {
     const required = [
       "common.languageSwitcher.label",
-      "home.title",
+      "map.seaOf",
       "meta.title",
       "meta.description",
     ];
