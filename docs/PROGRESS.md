@@ -3,15 +3,15 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #19.
+- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #21.
 - In v0.2.1: #13 beach map, #14 bookings, #15 editable beach settings, #16 several beach spaces,
   #17 update fix (EACCES at the migrate step). Roadmap Milestone 1 items 1 and 2 are ticked.
-- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL), #19 tracker.
+- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL), #19 tracker,
+  #21 CI skips the heavy jobs on docs-only pull requests (pushes to `main` still run everything).
 
 ## Done this session
-- Added the `tracker` agent (PR #19), wired into `/start` and `/wrap-up`. Merged #12, #18 (docs).
-- Checked on the box earlier (from the #12 wrap-up): WSL2 mirrored networking keeps LAN source
-  IPs, so each device gets its own login rate limit.
+- Added the `tracker` agent (PR #19), wired into `/start` and `/wrap-up`. Merged #12, #18, #20, #21.
+- Checked on the box (#12 wrap-up): WSL2 mirrored networking keeps LAN source IPs.
 
 ## Next up
 1. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
