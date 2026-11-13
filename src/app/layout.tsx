@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import "./globals.css";
 
 /** `<html lang>` depends on the locale cookie, so the root shell renders per request (ADR 0005). */
@@ -17,12 +16,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={locale} className="h-full antialiased">
       <body className="flex min-h-full flex-col">
-        <NextIntlClientProvider>
-          <header className="flex justify-end p-4">
-            <LanguageSwitcher />
-          </header>
-          {children}
-        </NextIntlClientProvider>
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   );

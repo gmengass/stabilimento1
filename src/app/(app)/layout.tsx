@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { UserMenu } from "@/components/user-menu";
 import { logout } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/session";
 
@@ -17,7 +19,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <Link href="/admin/staff">{t("staff")}</Link>
           </>
         )}
-        <span className="ml-auto">{t("signedInAs", { name: user.name })}</span>
+        <UserMenu label={t("signedInAs", { name: user.name })}>
+          <LanguageSwitcher />
+        </UserMenu>
         <form action={logout}>
           <button type="submit" className="rounded border px-2 py-1">
             {t("logout")}
