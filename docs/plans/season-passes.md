@@ -55,4 +55,5 @@ passes into day or multi-day bookings (keeping their days) and drops both.
 - AuditLog entries for release/restore (the table doesn't exist yet; open question in PROGRESS).
 - Releasing a single umbrella of a multi-umbrella pass (owner: fine as is).
 - Extending a pass past its last day (book the extra days separately).
-- Prices for passes (Milestone 2).
+- Prices and payment for passes (Milestone 2). The owner's rule: a pass is paid at the end, when
+  the holder knows their last day, so payment will hang off "set the last day".

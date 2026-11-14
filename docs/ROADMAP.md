@@ -31,7 +31,8 @@ Each item ships something staff can use on the box.
 - [ ] Live map: changes show on every device within seconds
 
 ## Milestone 2 — Business features
-- [ ] Prices, payments recorded at the desk, daily cash-up report
+- [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the
+  end, once the holder knows their last day (owner, 2026-11-14)
 - [ ] Regular-customer history (who had which spot last season)
 - [ ] Reports for the admin
 - [ ] Remote access via Tailscale (ADR 0003)
