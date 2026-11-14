@@ -20,7 +20,6 @@
    via DNS-01 on the club's domain (new ADR amending ADR 0008). Ask the owner: domain, DNS host.
 
 ## Open questions
-- Season passes: should a season's dates stay fixed once a pass is sold (even if cancelled)?
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
 - AuditLog table (ADR 0004) is not built: create, cancel, release and restore write no entry.
 - No rate limit on booking actions; spots aren't checked against the area.

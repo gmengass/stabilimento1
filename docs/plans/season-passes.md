@@ -19,8 +19,8 @@ released day back while the umbrella is still free.
   later day is freed. A pass can only be shortened, and not to before yesterday.
 - Release and restore apply to **every umbrella of the pass** for a date range. Past days can't
   be released or restored; today can.
-- (Not confirmed) Once any pass exists, even a cancelled one, the season's dates are fixed and it
-  can't be removed. Its name can still change.
+- Once any pass exists, even a cancelled one, the season's dates are fixed and it can't be
+  removed. Its name can still change.
 - (Not confirmed) Any staff member can sell, release, restore and end a pass; only admins manage
   seasons.
 
