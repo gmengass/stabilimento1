@@ -50,8 +50,10 @@ function FeedbackLine({ feedback }: { feedback: Feedback }) {
 
 const field = "rounded border px-2 py-2";
 
+type SeasonDefaults = Pick<SeasonRow, "name" | "startDate" | "endDate">;
+
 interface FieldsProps {
-  season?: SeasonRow;
+  season?: SeasonDefaults;
   /** Passes were sold: the dates are shown but can't change. */
   datesFixed?: boolean;
 }
@@ -92,7 +94,8 @@ function SeasonFields({ season, datesFixed = false }: FieldsProps) {
   );
 }
 
-export function NewSeasonForm() {
+/** Pre-filled with the club's usual dates for the next year without a season. */
+export function NewSeasonForm({ defaults }: { defaults: SeasonDefaults }) {
   const t = useTranslations("seasons");
   const { pending, feedback, submit } = useSeasonAction();
 
@@ -110,7 +113,7 @@ export function NewSeasonForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded border p-4">
       <h2 className="text-lg font-semibold">{t("addTitle")}</h2>
-      <SeasonFields />
+      <SeasonFields season={defaults} />
       <button
         type="submit"
         disabled={pending}

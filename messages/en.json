@@ -230,7 +230,7 @@
   },
   "seasons": {
     "title": "Seasons",
-    "intro": "A season is the period season passes are sold for. There is one season per calendar year.",
+    "intro": "A season is the period season passes are sold for. There is one season per calendar year; the form suggests the usual 1 May – 30 September.",
     "empty": "No seasons yet.",
     "name": "Name",
     "startDate": "First day",
@@ -254,6 +254,7 @@
       "hasPasses": "Season passes were sold for this season: its dates can't change and it can't be removed.",
       "generic": "Something went wrong. Try again.",
       "yearTaken": "This year already has a season."
-    }
+    },
+    "defaultName": "Season {year}"
   }
 }

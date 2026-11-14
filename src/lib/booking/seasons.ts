@@ -16,6 +16,31 @@ export type SeasonError =
   "invalid" | "noBeach" | "notFound" | "nameTaken" | "yearTaken" | "hasPasses";
 export type SeasonResult = { ok: true } | { ok: false; error: SeasonError };
 
+/** The club's usual season: 1 May to 30 September (month-day). Only pre-fills the form. */
+const USUAL_OPENING = "05-01";
+const USUAL_CLOSING = "09-30";
+
+export interface SeasonDraft {
+  year: number;
+  startDate: string;
+  endDate: string;
+}
+
+/**
+ * The usual dates for the next season to add: the first year without a season, starting from
+ * this year, or from next year once this year's usual season is over.
+ */
+export function nextSeasonDraft(
+  seasons: Pick<SeasonRow, "startDate">[],
+  today: string,
+): SeasonDraft {
+  const taken = new Set(seasons.map((s) => Number(s.startDate.slice(0, 4))));
+  const thisYear = Number(today.slice(0, 4));
+  let year = today > `${thisYear}-${USUAL_CLOSING}` ? thisYear + 1 : thisYear;
+  while (taken.has(year)) year++;
+  return { year, startDate: `${year}-${USUAL_OPENING}`, endDate: `${year}-${USUAL_CLOSING}` };
+}
+
 const fail = (error: SeasonError): SeasonResult => ({ ok: false, error });
 
 const PG_UNIQUE_VIOLATION = "23505";

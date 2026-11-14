@@ -230,7 +230,7 @@
   },
   "seasons": {
     "title": "Stagioni",
-    "intro": "Una stagione è il periodo per cui si vendono gli abbonamenti stagionali. C'è una sola stagione per anno solare.",
+    "intro": "Una stagione è il periodo per cui si vendono gli abbonamenti stagionali. C'è una sola stagione per anno solare; il modulo propone il solito periodo 1 maggio – 30 settembre.",
     "empty": "Ancora nessuna stagione.",
     "name": "Nome",
     "startDate": "Primo giorno",
@@ -254,6 +254,7 @@
       "hasPasses": "Per questa stagione sono stati venduti abbonamenti: le date non si possono cambiare e non si può rimuovere.",
       "generic": "Qualcosa è andato storto. Riprova.",
       "yearTaken": "Quest'anno ha già una stagione."
-    }
+    },
+    "defaultName": "Stagione {year}"
   }
 }
