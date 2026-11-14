@@ -31,7 +31,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 
 /**
  * Without seasons a pass can't keep kind 'season' (migrating up again requires its season), so
- * passes become ordinary day or multi-day bookings. They keep their days, released ones included.
+ * passes become ordinary day or multi-day bookings. They keep their days, released ones included,
+ * but lose their season, may run past the 60-day booking limit, and their released days can no
+ * longer be given back. Season names and dates are lost.
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
   await sql`alter table booking drop constraint booking_season_pass_has_season`.execute(db);
