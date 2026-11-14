@@ -21,8 +21,7 @@
 
 ## Open questions
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
-- AuditLog table (ADR 0004) is not built: create, cancel, release, restore and "set the last day"
-  write no entry. Needed before pass payments (Milestone 2); the pass actions don't take userId yet.
+- No AuditLog yet (ADR 0004): bookings and pass changes write no entry. Needed before payments.
 - Any staff member can set a pass's last day (it frees later days for good): admin-only?
 - Day and multi-day bookings can still be created for past days (pre-existing; passes can't).
 - No rate limit on booking actions; spots aren't checked against the area.
