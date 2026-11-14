@@ -19,7 +19,8 @@ screens within seconds. Customers never use the app. They are contact details on
 - **VenueSettings**: default_hold_until (11:00), time zone (Europe/Rome)
 - **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
 - **Season**: venue, name, start_date, end_date. One season per calendar year, covering every
-  beach space, so a day belongs to at most one season
+  beach space, so a day belongs to at most one season. The next season can only be added once
+  the current one has ended
 - **Booking**: customer, kind (day | multi_day | season), start_date (a season pass's first day),
   end_date (inclusive local dates), season, status, notes, hold_until (optional override)
 - **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella)

@@ -11,6 +11,9 @@ released day back while the umbrella is still free.
   starts and ends in the same year; a unique index on (venue, year) enforces one per year.
   The club's usual season is 1 May – 30 September: the "New season" form pre-fills it for the
   next year without a season (any dates are still allowed).
+- At most **one open season** (owner: staff must never see next year's season early). The next
+  season can only be added once the current one has ended (the day after its last day); the
+  admin page hides the form until then, and staff only ever see the open season.
 - A pass needs a **first day**; its **last day is optional**. Left empty, the pass runs to the
   season's last day. When the holder knows their last day, staff set it from the pass and every
   later day is freed. A pass can only be shortened, and not to before yesterday.
