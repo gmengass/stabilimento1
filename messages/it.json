@@ -253,7 +253,8 @@
       "hasPasses": "Per questa stagione sono stati venduti abbonamenti: le date non si possono cambiare e non si può rimuovere.",
       "generic": "Qualcosa è andato storto. Riprova.",
       "yearTaken": "Quest'anno ha già una stagione.",
-      "seasonOpen": "Un'altra stagione è ancora aperta: aggiungi la prossima quando sarà finita."
+      "seasonOpen": "Un'altra stagione è ancora aperta: aggiungi la prossima quando sarà finita.",
+      "seasonEnded": "Questa stagione è già finita."
     },
     "defaultName": "Stagione {year}",
     "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date})."

@@ -142,14 +142,20 @@ describe("seasons", () => {
     const taken = { ok: false, error: "yearTaken" };
     for (const [startDate, endDate] of [
       ["2027-09-16", "2027-10-01"],
-      ["2027-01-01", "2027-05-31"],
-      ["2027-07-01", "2027-07-02"],
+      ["2027-01-01", "2027-12-31"],
+      ["2027-12-01", "2027-12-02"],
     ]) {
       const other = { name: "Other", startDate, endDate };
-      expect(await createSeason(db, other, "2028-01-01")).toEqual(taken);
+      expect(await createSeason(db, other, AFTER)).toEqual(taken);
     }
     const next = { name: "Estate 2028", startDate: "2028-01-01", endDate: "2028-12-31" };
     expect(await createSeason(db, next, AFTER)).toEqual({ ok: true });
+  });
+
+  it("refuses a season that has already ended, its last day still allowed", async () => {
+    const past = { name: "Estate 2028", startDate: "2028-05-01", endDate: "2028-09-30" };
+    expect(await createSeason(db, past, "2028-10-01")).toEqual({ ok: false, error: "seasonEnded" });
+    expect(await createSeason(db, past, "2028-09-30")).toEqual({ ok: true });
   });
 
   it("refuses a duplicate name", async () => {

@@ -14,7 +14,14 @@ export interface SeasonRow {
 }
 
 export type SeasonError =
-  "invalid" | "noBeach" | "notFound" | "nameTaken" | "yearTaken" | "seasonOpen" | "hasPasses";
+  | "invalid"
+  | "noBeach"
+  | "notFound"
+  | "nameTaken"
+  | "yearTaken"
+  | "seasonOpen"
+  | "seasonEnded"
+  | "hasPasses";
 export type SeasonResult = { ok: true } | { ok: false; error: SeasonError };
 
 /** The club's usual season: 1 May to 30 September (month-day). Only pre-fills the form. */
@@ -158,6 +165,7 @@ export async function createSeason(
   const season = parsed.data;
   return inVenue(db, async (tx, venueId) => {
     if (await anotherIsOpen(tx, venueId, today)) return fail("seasonOpen");
+    if (season.endDate < today) return fail("seasonEnded");
     await tx
       .insertInto("season")
       .values({

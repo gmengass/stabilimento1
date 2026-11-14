@@ -253,7 +253,8 @@
       "hasPasses": "Season passes were sold for this season: its dates can't change and it can't be removed.",
       "generic": "Something went wrong. Try again.",
       "yearTaken": "This year already has a season.",
-      "seasonOpen": "Another season is still open: add the next one once it has ended."
+      "seasonOpen": "Another season is still open: add the next one once it has ended.",
+      "seasonEnded": "This season has already ended."
     },
     "defaultName": "Season {year}",
     "nextAfter": "You can add the next season once {name} has ended (last day {date})."
