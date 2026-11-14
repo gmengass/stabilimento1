@@ -6,6 +6,7 @@ import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
 import type { MapSpot } from "@/lib/beach/layout";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
+import { addDays } from "@/i18n/format";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import {
   cancelBookingAction,
@@ -78,19 +79,31 @@ interface NewProps {
   areaName: string;
   date: string;
   spots: MapSpot[];
+  today: string;
   /** The season a pass can be sold for; with none, only day bookings are offered. */
   openSeason: OpenSeason | null;
   onRemove: (spotId: number) => void;
   onDone: () => void;
 }
 
-/** A pass sold mid-season starts on the day shown; one sold early starts on opening day. */
-function firstDayIn(season: OpenSeason, date: string): string {
-  if (date < season.startDate) return season.startDate;
-  return date > season.endDate ? season.endDate : date;
+/** The later of two local dates. */
+function later(a: string, b: string): string {
+  return a > b ? a : b;
 }
 
-export function NewBookingForm({ areaName, date, spots, openSeason, onRemove, onDone }: NewProps) {
+/** The day shown, kept between the first and last allowed days. */
+function clamp(date: string, first: string, last: string): string {
+  if (date < first) return first;
+  return date > last ? last : date;
+}
+
+/** A pass can start no earlier than yesterday (the server's rule) nor before the season. */
+function firstPassDay(season: OpenSeason, today: string): string {
+  return later(season.startDate, addDays(today, -1));
+}
+
+export function NewBookingForm(props: NewProps) {
+  const { areaName, date, today, spots, openSeason, onRemove, onDone } = props;
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -103,8 +116,9 @@ export function NewBookingForm({ areaName, date, spots, openSeason, onRemove, on
   function togglePass(checked: boolean) {
     setAsPass(checked);
     setFailure(null);
-    if (checked && openSeason) setStartDate(firstDayIn(openSeason, date));
-    else changeStart(date);
+    if (checked && openSeason) {
+      setStartDate(clamp(date, firstPassDay(openSeason, today), openSeason.endDate));
+    } else changeStart(date);
   }
 
   function changeStart(value: string) {
@@ -196,7 +210,7 @@ export function NewBookingForm({ areaName, date, spots, openSeason, onRemove, on
               name="startDate"
               type="date"
               required
-              min={season.startDate}
+              min={firstPassDay(season, today)}
               max={season.endDate}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
@@ -261,8 +275,13 @@ export function NewBookingForm({ areaName, date, spots, openSeason, onRemove, on
   );
 }
 
-/** A free umbrella whose season-pass holder gave this day back: staff can give it back. */
-export function ReleasedDay({ pass, date }: { pass: Occupant; date: string }) {
+interface DayProps {
+  date: string;
+  today: string;
+}
+
+/** A free umbrella whose holder gave this day back. Past days can't be given back. */
+export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -282,27 +301,30 @@ export function ReleasedDay({ pass, date }: { pass: Occupant; date: string }) {
   return (
     <div className="flex flex-col gap-2 rounded border border-violet-300 bg-violet-50 p-3 text-sm">
       <p>{t("releasedBy", { name: pass.customerName })}</p>
-      <button
-        type="button"
-        onClick={restore}
-        disabled={pending}
-        className="rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
-      >
-        {pending ? t("saving") : t("restore", { name: pass.customerName })}
-      </button>
+      {date >= today && (
+        <button
+          type="button"
+          onClick={restore}
+          disabled={pending}
+          className="rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
+        >
+          {pending ? t("saving") : t("restore", { name: pass.customerName })}
+        </button>
+      )}
       <ErrorLine failure={failure} />
     </div>
   );
 }
 
-/** Release days of a season pass, starting from the day shown on the map. */
-function ReleaseForm({ occupant, date }: { occupant: Occupant; date: string }) {
+/** Release days of a season pass from today on, starting from the day shown on the map. */
+function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant }) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [released, setReleased] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(date);
-  const [endDate, setEndDate] = useState(date);
+  const first = later(occupant.startDate, today);
+  const [startDate, setStartDate] = useState(clamp(date, first, occupant.endDate));
+  const [endDate, setEndDate] = useState(clamp(date, first, occupant.endDate));
 
   function changeStart(value: string) {
     setStartDate(value);
@@ -335,7 +357,7 @@ function ReleaseForm({ occupant, date }: { occupant: Occupant; date: string }) {
           <input
             type="date"
             required
-            min={occupant.startDate}
+            min={first}
             max={occupant.endDate}
             value={startDate}
             onChange={(e) => changeStart(e.target.value)}
@@ -369,7 +391,8 @@ function ReleaseForm({ occupant, date }: { occupant: Occupant; date: string }) {
 }
 
 /** Set the holder's last day once they know it; the pass then ends that day. */
-function LastDayForm({ occupant, date }: { occupant: Occupant; date: string }) {
+function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant }) {
+  const first = later(occupant.startDate, addDays(today, -1));
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -401,9 +424,9 @@ function LastDayForm({ occupant, date }: { occupant: Occupant; date: string }) {
           name="lastDay"
           type="date"
           required
-          min={occupant.startDate}
+          min={first}
           max={occupant.endDate}
-          defaultValue={date}
+          defaultValue={clamp(date, first, occupant.endDate)}
           className={field}
         />
       </label>
@@ -420,14 +443,12 @@ function LastDayForm({ occupant, date }: { occupant: Occupant; date: string }) {
   );
 }
 
-interface DetailsProps {
+interface DetailsProps extends DayProps {
   occupant: Occupant;
-  /** The day shown on the map. */
-  date: string;
   onClose: () => void;
 }
 
-export function BookingDetails({ occupant, date, onClose }: DetailsProps) {
+export function BookingDetails({ occupant, date, today, onClose }: DetailsProps) {
   const t = useTranslations("booking");
   const formatDate = useDate();
   const [pending, startTransition] = useTransition();
@@ -478,8 +499,12 @@ export function BookingDetails({ occupant, date, onClose }: DetailsProps) {
         ))}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
-      {isPass && <ReleaseForm occupant={occupant} date={date} />}
-      {isPass && <LastDayForm occupant={occupant} date={date} />}
+      {isPass && occupant.endDate >= today && (
+        <ReleaseForm occupant={occupant} date={date} today={today} />
+      )}
+      {isPass && occupant.endDate >= addDays(today, -1) && (
+        <LastDayForm occupant={occupant} date={date} today={today} />
+      )}
       {confirming ? (
         <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 p-3">
           <p className="text-sm">{t(isPass ? "cancelPassConfirm" : "cancelConfirm")}</p>

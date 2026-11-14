@@ -16,7 +16,8 @@ export default async function Home(props: PageProps<"/">) {
   const t = await getTranslations("map");
   const locale = await getLocale();
   const { date: requested, area } = await props.searchParams;
-  const date = isBookingDate(requested) ? requested : venueToday();
+  const today = venueToday();
+  const date = isBookingDate(requested) ? requested : today;
   const requestedArea = parseAreaId(area);
   const beach = await loadBeach(getDb(), requestedArea);
 
@@ -37,7 +38,7 @@ export default async function Home(props: PageProps<"/">) {
 
   const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
   const released = await loadReleased(getDb(), beach.areaId, date);
-  const openSeason = await loadOpenSeason(getDb(), venueToday());
+  const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
   const at = (day?: string) => {
     const query = new URLSearchParams({ area: String(beach.areaId) });
@@ -99,6 +100,7 @@ export default async function Home(props: PageProps<"/">) {
         <span>{t("hint")}</span>
       </p>
       <BeachBoard
+        today={today}
         key={beach.areaId}
         areaName={beach.areaName}
         date={date}

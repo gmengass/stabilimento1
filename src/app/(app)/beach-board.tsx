@@ -8,6 +8,8 @@ import type { OpenSeason } from "@/lib/booking/seasons";
 import { BookingDetails, NewBookingForm, ReleasedDay } from "./booking-panel";
 
 interface Props {
+  /** The venue's today: past days can't be released, restored or sold as a pass. */
+  today: string;
   areaName: string;
   date: string;
   lines: MapLine[];
@@ -19,7 +21,15 @@ interface Props {
 }
 
 /** The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it. */
-export function BeachBoard({ areaName, date, lines, occupancy, released, openSeason }: Props) {
+export function BeachBoard({
+  today,
+  areaName,
+  date,
+  lines,
+  occupancy,
+  released,
+  openSeason,
+}: Props) {
   const [selected, setSelected] = useState<MapSpot[]>([]);
   const [openBooking, setOpenBooking] = useState<number | null>(null);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
@@ -63,17 +73,19 @@ export function BeachBoard({ areaName, date, lines, occupancy, released, openSea
       key={open.bookingId}
       occupant={open}
       date={date}
+      today={today}
       onClose={() => setOpenBooking(null)}
     />
   ) : freeSelected.length > 0 ? (
     <div className="flex flex-col gap-4">
       {releasedSelected.map((pass) => (
-        <ReleasedDay key={pass.bookingId} pass={pass} date={date} />
+        <ReleasedDay key={pass.bookingId} pass={pass} date={date} today={today} />
       ))}
       <NewBookingForm
         key={date}
         areaName={areaName}
         date={date}
+        today={today}
         spots={freeSelected}
         openSeason={openSeason}
         onRemove={(id) => setSelected((current) => current.filter((s) => s.id !== id))}
