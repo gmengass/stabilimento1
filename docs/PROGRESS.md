@@ -9,8 +9,8 @@
 - Open PR `feat/season-passes` (migration `0006_seasons`) ticks Roadmap Milestone 1 item 4.
 
 ## Done this session
-- Seasons, season passes, release and give back (`docs/plans/season-passes.md`). Checked by hand
-  in a browser; no e2e test added.
+- Seasons (one per year), season passes with an optional last day, release and give back
+  (`docs/plans/season-passes.md`). E2E test `e2e/season-pass.spec.ts`.
 
 ## Next up
 1. Review and merge `feat/season-passes`, then tag a release and update the box.
@@ -20,8 +20,7 @@
    via DNS-01 on the club's domain (new ADR amending ADR 0008). Ask the owner: domain, DNS host.
 
 ## Open questions
-- Season passes: is one season for all beach spaces right, or does each space need its own? Can a
-  holder release one umbrella of several? Should a pass be shortened (end before the season)?
+- Season passes: should a season's dates stay fixed once a pass is sold (even if cancelled)?
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
 - AuditLog table (ADR 0004) is not built: create, cancel, release and restore write no entry.
 - No rate limit on booking actions; spots aren't checked against the area.
