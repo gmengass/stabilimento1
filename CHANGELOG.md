@@ -43,7 +43,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   own lines and umbrellas (numbered from 101 again). The map has a tab per space, and the space
   being viewed is named in large letters and on the sea band; new bookings show it too.
 
-- Seasons and season passes: admins set up one season per year at `/admin/seasons`. On the
+- Seasons and season passes: admins set up one season per year at `/admin/seasons` (the form
+  suggests the next 1 May – 30 September). On the
   map, tick "Season pass" when booking: give the holder's first day, and their last day only if
   they know it (otherwise the pass runs to the end of the season). Passes show in violet.
 - Last day: open a pass and set the holder's last day once they know it; the umbrellas are free

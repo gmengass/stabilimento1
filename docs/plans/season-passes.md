@@ -9,6 +9,8 @@ released day back while the umbrella is still free.
 ## Decisions (confirmed by the owner, 2026-11-13, unless marked)
 - One season per **calendar year**, belonging to the venue and covering every beach space. It
   starts and ends in the same year; a unique index on (venue, year) enforces one per year.
+  The club's usual season is 1 May – 30 September: the "New season" form pre-fills it for the
+  next year without a season (any dates are still allowed).
 - A pass needs a **first day**; its **last day is optional**. Left empty, the pass runs to the
   season's last day. When the holder knows their last day, staff set it from the pass and every
   later day is freed. A pass can only be shortened, and not to before yesterday.
