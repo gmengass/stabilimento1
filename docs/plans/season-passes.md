@@ -23,6 +23,9 @@ released day back while the umbrella is still free.
   removed. Its name can still change.
 - (Not confirmed) Any staff member can sell, release, restore and end a pass; only admins manage
   seasons.
+- Nothing is sold or changed in the past: a pass for an ended season is refused, a pass starts no
+  earlier than yesterday, release and restore from today, a last day no earlier than yesterday,
+  and an admin can't add a season that has already ended. The panel forms use the same limits.
 
 ## Acceptance criteria (`tests/integration/seasons.test.ts`)
 1. Season create/update/remove with validation, one season per year (two created at once for
