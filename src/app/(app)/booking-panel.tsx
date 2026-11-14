@@ -78,38 +78,32 @@ interface NewProps {
   areaName: string;
   date: string;
   spots: MapSpot[];
-  /** Seasons a pass can be sold for; with none, only day bookings are offered. */
-  seasons: OpenSeason[];
+  /** The season a pass can be sold for; with none, only day bookings are offered. */
+  openSeason: OpenSeason | null;
   onRemove: (spotId: number) => void;
   onDone: () => void;
 }
 
 /** A pass sold mid-season starts on the day shown; one sold early starts on opening day. */
-/** One season per calendar year: the one for the year shown, else the next one open. */
-function seasonFor(seasons: OpenSeason[], date: string): OpenSeason | undefined {
-  const year = date.slice(0, 4);
-  return seasons.find((s) => s.startDate.startsWith(year)) ?? seasons[0];
-}
-
 function firstDayIn(season: OpenSeason, date: string): string {
   if (date < season.startDate) return season.startDate;
   return date > season.endDate ? season.endDate : date;
 }
 
-export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDone }: NewProps) {
+export function NewBookingForm({ areaName, date, spots, openSeason, onRemove, onDone }: NewProps) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [startDate, setStartDate] = useState(date);
   const [endDate, setEndDate] = useState(date);
-  const [seasonId, setSeasonId] = useState<number | null>(null);
-  const season = seasons.find((s) => s.id === seasonId);
+  const [asPass, setAsPass] = useState(false);
+  const season = asPass ? openSeason : null;
   const formatDate = useDate();
 
-  function chooseSeason(next: OpenSeason | undefined) {
-    setSeasonId(next?.id ?? null);
+  function togglePass(checked: boolean) {
+    setAsPass(checked);
     setFailure(null);
-    if (next) setStartDate(firstDayIn(next, date));
+    if (checked && openSeason) setStartDate(firstDayIn(openSeason, date));
     else changeStart(date);
   }
 
@@ -182,31 +176,15 @@ export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDon
         {t("customerPhone")}
         <input name="customerPhone" type="tel" inputMode="tel" maxLength={30} className={field} />
       </label>
-      {seasons.length > 0 && (
+      {openSeason && (
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={season !== undefined}
-            onChange={(e) => chooseSeason(e.target.checked ? seasonFor(seasons, date) : undefined)}
+            checked={asPass}
+            onChange={(e) => togglePass(e.target.checked)}
             className="size-5"
           />
           {t("seasonPass")}
-        </label>
-      )}
-      {season && seasons.length > 1 && (
-        <label className="flex flex-col gap-1 text-sm">
-          {t("season")}
-          <select
-            value={season.id}
-            onChange={(e) => chooseSeason(seasons.find((s) => s.id === Number(e.target.value)))}
-            className={field}
-          >
-            {seasons.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
         </label>
       )}
       {/* Keys: without them React reuses the "to" input, and its date would end the pass. */}

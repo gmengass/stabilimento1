@@ -14,12 +14,12 @@ interface Props {
   occupancy: Record<number, Occupant>;
   /** Season passes that gave this day back, by spot: free to book, or to give back. */
   released: Record<number, Occupant>;
-  /** Seasons a pass can be sold for. */
-  seasons: OpenSeason[];
+  /** The season a pass can be sold for, if one is open. */
+  openSeason: OpenSeason | null;
 }
 
 /** The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it. */
-export function BeachBoard({ areaName, date, lines, occupancy, released, seasons }: Props) {
+export function BeachBoard({ areaName, date, lines, occupancy, released, openSeason }: Props) {
   const [selected, setSelected] = useState<MapSpot[]>([]);
   const [openBooking, setOpenBooking] = useState<number | null>(null);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
@@ -75,7 +75,7 @@ export function BeachBoard({ areaName, date, lines, occupancy, released, seasons
         areaName={areaName}
         date={date}
         spots={freeSelected}
-        seasons={seasons}
+        openSeason={openSeason}
         onRemove={(id) => setSelected((current) => current.filter((s) => s.id !== id))}
         onDone={() => setSelected([])}
       />

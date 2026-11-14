@@ -8,7 +8,7 @@ import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/fo
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { loadOccupancy, loadReleased } from "@/lib/booking/bookings";
-import { listOpenSeasons } from "@/lib/booking/seasons";
+import { loadOpenSeason } from "@/lib/booking/seasons";
 import { BeachBoard } from "./beach-board";
 
 export default async function Home(props: PageProps<"/">) {
@@ -37,7 +37,7 @@ export default async function Home(props: PageProps<"/">) {
 
   const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
   const released = await loadReleased(getDb(), beach.areaId, date);
-  const seasons = await listOpenSeasons(getDb(), venueToday());
+  const openSeason = await loadOpenSeason(getDb(), venueToday());
   const areas = await listAreas(getDb());
   const at = (day?: string) => {
     const query = new URLSearchParams({ area: String(beach.areaId) });
@@ -105,7 +105,7 @@ export default async function Home(props: PageProps<"/">) {
         lines={beach.lines}
         occupancy={occupancy}
         released={released}
-        seasons={seasons}
+        openSeason={openSeason}
       />
     </main>
   );
