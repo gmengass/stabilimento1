@@ -11,6 +11,7 @@ import {
   cancelBookingAction,
   createBookingAction,
   createSeasonPassAction,
+  endSeasonPassAction,
   releaseDaysAction,
   restoreDaysAction,
 } from "./booking-actions";
@@ -19,6 +20,7 @@ type ErrorKey =
   | "invalid"
   | "invalidPass"
   | "invalidDays"
+  | "invalidLastDay"
   | "sunbeds"
   | "taken"
   | "takenNow"
@@ -83,6 +85,12 @@ interface NewProps {
 }
 
 /** A pass sold mid-season starts on the day shown; one sold early starts on opening day. */
+/** One season per calendar year: the one for the year shown, else the next one open. */
+function seasonFor(seasons: OpenSeason[], date: string): OpenSeason | undefined {
+  const year = date.slice(0, 4);
+  return seasons.find((s) => s.startDate.startsWith(year)) ?? seasons[0];
+}
+
 function firstDayIn(season: OpenSeason, date: string): string {
   if (date < season.startDate) return season.startDate;
   return date > season.endDate ? season.endDate : date;
@@ -122,9 +130,10 @@ export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDon
     };
     startTransition(async () => {
       try {
+        const booking = { ...customer, endDate: form.get("endDate") };
         const result = season
-          ? await createSeasonPassAction({ ...customer, seasonId: season.id })
-          : await createBookingAction({ ...customer, endDate: form.get("endDate") });
+          ? await createSeasonPassAction({ ...booking, seasonId: season.id })
+          : await createBookingAction(booking);
         if (result.ok) onDone();
         else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
       } catch {
@@ -178,7 +187,7 @@ export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDon
           <input
             type="checkbox"
             checked={season !== undefined}
-            onChange={(e) => chooseSeason(e.target.checked ? seasons[0] : undefined)}
+            onChange={(e) => chooseSeason(e.target.checked ? seasonFor(seasons, date) : undefined)}
             className="size-5"
           />
           {t("seasonPass")}
@@ -200,8 +209,9 @@ export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDon
           </select>
         </label>
       )}
+      {/* Keys: without them React reuses the "to" input, and its date would end the pass. */}
       {season ? (
-        <div className="flex flex-col gap-1">
+        <div key="pass" className="flex flex-col gap-1">
           <label className="flex flex-col gap-1 text-sm">
             {t("firstDay")}
             <input
@@ -215,12 +225,22 @@ export function NewBookingForm({ areaName, date, spots, seasons, onRemove, onDon
               className={field}
             />
           </label>
-          <p className="text-sm text-gray-700">
-            {t("untilSeasonEnd", { date: formatDate(season.endDate) })}
-          </p>
+          <label className="flex flex-col gap-1 text-sm">
+            {t("lastDayOptional")}
+            <input
+              name="endDate"
+              type="date"
+              min={startDate}
+              max={season.endDate}
+              className={field}
+            />
+            <span className="text-gray-600">
+              {t("lastDayHint", { date: formatDate(season.endDate) })}
+            </span>
+          </label>
         </div>
       ) : (
-        <div className="flex gap-2">
+        <div key="days" className="flex gap-2">
           <label className="flex flex-1 flex-col gap-1 text-sm">
             {t("from")}
             <input
@@ -370,6 +390,58 @@ function ReleaseForm({ occupant, date }: { occupant: Occupant; date: string }) {
   );
 }
 
+/** Set the holder's last day once they know it; the pass then ends that day. */
+function LastDayForm({ occupant, date }: { occupant: Occupant; date: string }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const lastDay = new FormData(event.currentTarget).get("lastDay");
+    setFailure(null);
+    setSaved(false);
+    startTransition(async () => {
+      try {
+        const result = await endSeasonPassAction({ bookingId: occupant.bookingId, lastDay });
+        if (result.ok) setSaved(true);
+        else setFailure({ key: result.error === "invalid" ? "invalidLastDay" : result.error });
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
+      <h3 className="font-semibold">{t("lastDayTitle")}</h3>
+      <p className="text-sm text-gray-700">{t("lastDayHelp")}</p>
+      <label className="flex flex-col gap-1 text-sm">
+        {t("lastDay")}
+        <input
+          name="lastDay"
+          type="date"
+          required
+          min={occupant.startDate}
+          max={occupant.endDate}
+          defaultValue={date}
+          className={field}
+        />
+      </label>
+      <button type="submit" disabled={pending} className="rounded border px-3 py-2">
+        {pending ? t("saving") : t("setLastDay")}
+      </button>
+      {saved && (
+        <p role="status" className="text-sm text-green-700">
+          {t("lastDaySaved")}
+        </p>
+      )}
+      <ErrorLine failure={failure} />
+    </form>
+  );
+}
+
 interface DetailsProps {
   occupant: Occupant;
   /** The day shown on the map. */
@@ -429,6 +501,7 @@ export function BookingDetails({ occupant, date, onClose }: DetailsProps) {
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
       {isPass && <ReleaseForm occupant={occupant} date={date} />}
+      {isPass && <LastDayForm occupant={occupant} date={date} />}
       {confirming ? (
         <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 p-3">
           <p className="text-sm">{t(isPass ? "cancelPassConfirm" : "cancelConfirm")}</p>

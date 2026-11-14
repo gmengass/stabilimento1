@@ -6,7 +6,7 @@ import { readCurrentUser } from "@/lib/auth/session";
 import * as bookings from "@/lib/booking/bookings";
 import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
 import * as passes from "@/lib/booking/passes";
-import type { DaysResult } from "@/lib/booking/passes";
+import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
@@ -48,6 +48,14 @@ export async function restoreDaysAction(input: unknown): Promise<DaysResult | Fo
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await passes.restoreDays(getDb(), input);
+  if (result.ok) revalidatePath("/");
+  return result;
+}
+
+export async function endSeasonPassAction(input: unknown): Promise<EndPassResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await passes.endSeasonPass(getDb(), input);
   if (result.ok) revalidatePath("/");
   return result;
 }
