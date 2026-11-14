@@ -7,6 +7,7 @@ import { setupBeach, loadBeach } from "@/lib/beach/layout";
 import { cancelBooking, createBooking, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import {
   createSeasonPass,
+  endSeasonPass,
   releaseDays,
   restoreDays,
   type CreateSeasonPassInput,
@@ -63,6 +64,7 @@ afterAll(async () => {
 function pass(overrides: Partial<CreateSeasonPassInput> = {}): CreateSeasonPassInput {
   return {
     seasonId,
+    startDate: SEASON.startDate,
     customerName: "Bianchi",
     customerPhone: "",
     spots: [{ spotId: spot[101], sunbeds: 2 }],
@@ -94,30 +96,29 @@ describe("seasons", () => {
   it.each([
     ["blank name", { ...SEASON, name: "  " }],
     ["end before start", { name: "X", startDate: "2028-06-02", endDate: "2028-06-01" }],
-    ["longer than a year", { name: "X", startDate: "2028-01-01", endDate: "2029-01-01" }],
+    ["spanning two years", { name: "X", startDate: "2028-12-01", endDate: "2029-01-31" }],
     ["impossible date", { name: "X", startDate: "2028-02-30", endDate: "2028-03-01" }],
   ])("rejects %s", async (_label, input) => {
     expect(await createSeason(db, input)).toEqual({ ok: false, error: "invalid" });
   });
 
-  it("allows a one-day season and one exactly 366 days long", async () => {
-    const day = { name: "Day", startDate: "2028-06-01", endDate: "2028-06-01" };
+  it("allows a one-day season and one covering a whole leap year", async () => {
+    const day = { name: "Day", startDate: "2029-06-01", endDate: "2029-06-01" };
     expect(await createSeason(db, day)).toEqual({ ok: true });
-    const year = { name: "Year", startDate: "2029-01-01", endDate: "2030-01-01" };
+    const year = { name: "Year", startDate: "2028-01-01", endDate: "2028-12-31" };
     expect(await createSeason(db, year)).toEqual({ ok: true });
   });
 
-  it("refuses a season that shares a day with another, boundaries included", async () => {
-    const overlap = { ok: false, error: "overlap" };
+  it("refuses a second season in the same calendar year, even if the days don't overlap", async () => {
+    const taken = { ok: false, error: "yearTaken" };
     for (const [startDate, endDate] of [
-      ["2027-09-15", "2027-10-01"],
-      ["2027-05-01", "2027-06-01"],
+      ["2027-09-16", "2027-10-01"],
+      ["2027-01-01", "2027-05-31"],
       ["2027-07-01", "2027-07-02"],
-      ["2027-01-01", "2027-12-31"],
     ]) {
-      expect(await createSeason(db, { name: "Other", startDate, endDate })).toEqual(overlap);
+      expect(await createSeason(db, { name: "Other", startDate, endDate })).toEqual(taken);
     }
-    const next = { name: "Autumn", startDate: "2027-09-16", endDate: "2027-10-01" };
+    const next = { name: "Estate 2028", startDate: "2028-01-01", endDate: "2028-12-31" };
     expect(await createSeason(db, next)).toEqual({ ok: true });
   });
 
@@ -126,12 +127,12 @@ describe("seasons", () => {
     expect(await createSeason(db, twin)).toEqual({ ok: false, error: "nameTaken" });
   });
 
-  it("lets only one of two overlapping seasons created at once succeed", async () => {
-    const a = createSeason(db, { name: "A", startDate: "2028-06-01", endDate: "2028-09-01" });
+  it("lets only one of two seasons for the same year created at once succeed", async () => {
+    const a = createSeason(db, { name: "A", startDate: "2028-06-01", endDate: "2028-07-01" });
     const b = createSeason(db, { name: "B", startDate: "2028-08-01", endDate: "2028-10-01" });
     const results = await Promise.all([a, b]);
     expect(results.filter((r) => r.ok)).toHaveLength(1);
-    expect(results.find((r) => !r.ok)).toEqual({ ok: false, error: "overlap" });
+    expect(results.find((r) => !r.ok)).toEqual({ ok: false, error: "yearTaken" });
   });
 
   it("needs a beach first", async () => {
@@ -158,13 +159,10 @@ describe("seasons", () => {
     expect(await updateSeason(db, moved)).toEqual({ ok: false, error: "hasPasses" });
   });
 
-  it("refuses to move a season onto another, and reports a missing one", async () => {
-    const next = { name: "Autumn", startDate: "2027-09-16", endDate: "2027-10-01" };
-    await createSeason(db, next);
-    expect(await updateSeason(db, { seasonId, ...SEASON, endDate: "2027-09-16" })).toEqual({
-      ok: false,
-      error: "overlap",
-    });
+  it("refuses to move a season into another's year, and reports a missing one", async () => {
+    await createSeason(db, { name: "Next", startDate: "2028-06-01", endDate: "2028-09-15" });
+    const moved = { seasonId, name: SEASON.name, startDate: "2028-10-01", endDate: "2028-10-31" };
+    expect(await updateSeason(db, moved)).toEqual({ ok: false, error: "yearTaken" });
     expect(await updateSeason(db, { seasonId: 999, ...SEASON })).toEqual({
       ok: false,
       error: "notFound",
@@ -234,6 +232,38 @@ describe("createSeasonPass", () => {
     }
   });
 
+  it("needs a first day", async () => {
+    const noStart = { ...pass(), startDate: undefined };
+    expect(await createSeasonPass(db, USER, noStart)).toEqual({ ok: false, error: "invalid" });
+  });
+
+  it("runs to the season's last day when the last day is unknown (missing or blank)", async () => {
+    const open = await sellPass({ endDate: "" });
+    expect(await states(open)).toEqual({ booked: SEASON_DAYS });
+  });
+
+  it("ends on the holder's last day when they know it, inclusive", async () => {
+    const bookingId = await sellPass({ startDate: "2027-07-01", endDate: "2027-07-31" });
+    expect(await states(bookingId)).toEqual({ booked: 31 });
+    expect((await loadOccupancy(db, areaId, "2027-07-31"))[spot[101]]).toMatchObject({
+      kind: "season",
+      endDate: "2027-07-31",
+    });
+    expect(await loadOccupancy(db, areaId, "2027-08-01")).toEqual({});
+  });
+
+  it("allows a one-day pass, refuses a last day before the first or after the season", async () => {
+    await sellPass({ startDate: "2027-07-01", endDate: "2027-07-01" });
+    for (const endDate of ["2027-06-30", "2027-09-16"]) {
+      const result = await createSeasonPass(
+        db,
+        USER,
+        pass({ startDate: "2027-07-01", endDate, spots: [{ spotId: spot[102], sunbeds: 2 }] }),
+      );
+      expect(result).toEqual({ ok: false, error: "invalid" });
+    }
+  });
+
   it("rejects an unknown season, too many sunbeds and a missing name", async () => {
     const invalid = { ok: false, error: "invalid" };
     expect(await createSeasonPass(db, USER, pass({ seasonId: 999 }))).toEqual(invalid);
@@ -287,7 +317,7 @@ describe("createSeasonPass", () => {
       updateSeason(db, moved),
     ]);
     // Either the pass came first and pinned the dates, or the move came first and the pass
-    // (asking for the old opening day by default) was refused or started on the new one.
+    // (asking for the old opening day) was refused.
     const season = (await listSeasons(db))[0];
     const outside = await db
       .selectFrom("booking")
@@ -463,5 +493,104 @@ describe("restoreDays", () => {
     const bookingId = await sellPass();
     const past = { bookingId, startDate: "2027-06-19", endDate: "2027-06-19" };
     expect(await restoreDays(db, past, TODAY)).toEqual({ ok: false, error: "past" });
+  });
+});
+
+describe("endSeasonPass", () => {
+  it("ends the pass on the last day and frees every later day, released ones too", async () => {
+    const bookingId = await sellPass();
+    await releaseDays(db, { bookingId, startDate: "2027-07-10", endDate: "2027-08-10" }, TODAY);
+    expect(await endSeasonPass(db, { bookingId, lastDay: "2027-07-31" }, TODAY)).toEqual({
+      ok: true,
+    });
+    // 1 June – 31 July is 61 days, 22 of them released (10–31 July).
+    expect(await states(bookingId)).toEqual({ booked: 39, released: 22 });
+    expect((await loadOccupancy(db, areaId, "2027-07-09"))[spot[101]]).toMatchObject({
+      endDate: "2027-07-31",
+      releasedDays: 22,
+    });
+    expect(await loadOccupancy(db, areaId, "2027-08-01")).toEqual({});
+    const later = await createBooking(db, USER, {
+      customerName: "Rossi",
+      startDate: "2027-08-01",
+      endDate: "2027-08-20",
+      spots: [{ spotId: spot[101], sunbeds: 2 }],
+    });
+    expect(later).toMatchObject({ ok: true });
+  });
+
+  it("accepts today, yesterday and the current last day; refuses earlier days", async () => {
+    const bookingId = await sellPass();
+    const end = (lastDay: string) => endSeasonPass(db, { bookingId, lastDay }, TODAY);
+    expect(await end(SEASON.endDate)).toEqual({ ok: true });
+    expect(await states(bookingId)).toEqual({ booked: SEASON_DAYS });
+    expect(await end("2027-06-18")).toEqual({ ok: false, error: "past" });
+    expect(await end(TODAY)).toEqual({ ok: true });
+    expect(await end("2027-06-19")).toEqual({ ok: true });
+    expect(await states(bookingId)).toEqual({ booked: 19 });
+  });
+
+  it("only shortens: a later day or one before the first day is refused", async () => {
+    const bookingId = await sellPass({ startDate: "2027-07-01", endDate: "2027-07-31" });
+    const end = (lastDay: string) => endSeasonPass(db, { bookingId, lastDay }, TODAY);
+    expect(await end("2027-08-01")).toEqual({ ok: false, error: "invalid" });
+    expect(await end("2027-06-30")).toEqual({ ok: false, error: "invalid" });
+    expect(await end("2027-07-01")).toEqual({ ok: true });
+    expect(await states(bookingId)).toEqual({ booked: 1 });
+  });
+
+  it("refuses day bookings and cancelled passes", async () => {
+    const day = await createBooking(db, USER, {
+      customerName: "Rossi",
+      startDate: "2027-07-10",
+      endDate: "2027-07-12",
+      spots: [{ spotId: spot[103], sunbeds: 2 }],
+    });
+    if (!day.ok) throw new Error("booking failed");
+    const lastDay = "2027-07-11";
+    expect(await endSeasonPass(db, { bookingId: day.bookingId, lastDay }, TODAY)).toEqual({
+      ok: false,
+      error: "notSeason",
+    });
+    const bookingId = await sellPass();
+    await cancelBooking(db, USER, { bookingId }, TODAY);
+    expect(await endSeasonPass(db, { bookingId, lastDay }, TODAY)).toEqual({
+      ok: false,
+      error: "notFound",
+    });
+  });
+
+  it("leaves no day behind when it races a release of later days", async () => {
+    const bookingId = await sellPass();
+    await Promise.all([
+      endSeasonPass(db, { bookingId, lastDay: "2027-07-31" }, TODAY),
+      releaseDays(db, { bookingId, startDate: "2027-08-01", endDate: "2027-08-10" }, TODAY),
+    ]);
+    const { rows } = await sql<{ n: number }>`
+      select count(*)::int as n from spot_day where date > '2027-07-31'
+    `.execute(db);
+    expect(rows[0].n).toBe(0);
+  });
+});
+
+describe("migration 0006 rollback", () => {
+  it("turns passes into ordinary bookings, keeps their days, and migrates up again", async () => {
+    const pass = await sellPass();
+    const oneDay = await sellPass({
+      startDate: "2027-07-01",
+      endDate: "2027-07-01",
+      spots: [{ spotId: spot[102], sunbeds: 2 }],
+    });
+    expect((await runMigrations(db, "down")).error).toBeUndefined();
+    const kinds = await sql<{ id: number; kind: string }>`
+      select id, kind from booking order by id
+    `.execute(db);
+    expect(kinds.rows).toEqual([
+      { id: pass, kind: "multi_day" },
+      { id: oneDay, kind: "day" },
+    ]);
+    expect(await states(pass)).toEqual({ booked: SEASON_DAYS });
+    expect((await runMigrations(db, "up")).error).toBeUndefined();
+    expect(await createSeason(db, SEASON)).toEqual({ ok: true });
   });
 });

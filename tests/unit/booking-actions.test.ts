@@ -11,6 +11,7 @@ const { actor, bookingsModule, passesModule } = vi.hoisted(() => ({
     createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
     releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
     restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
+    endSeasonPass: vi.fn(async () => ({ ok: true as const })),
   },
 }));
 
@@ -26,6 +27,7 @@ const {
   createSeasonPassAction,
   releaseDaysAction,
   restoreDaysAction,
+  endSeasonPassAction,
 } = await import("@/app/(app)/booking-actions");
 
 const staff: CurrentUser = {
@@ -45,6 +47,7 @@ const actions = [
 const dayActions = [
   ["releaseDaysAction", releaseDaysAction, passesModule.releaseDays],
   ["restoreDaysAction", restoreDaysAction, passesModule.restoreDays],
+  ["endSeasonPassAction", endSeasonPassAction, passesModule.endSeasonPass],
 ] as const;
 
 beforeEach(() => vi.clearAllMocks());
@@ -72,7 +75,7 @@ describe.each(dayActions)("%s", (_name, action, operation) => {
 
   it("runs for staff", async () => {
     actor.current = staff;
-    await expect(action({ x: 1 })).resolves.toEqual({ ok: true, days: 1 });
+    await expect(action({ x: 1 })).resolves.toMatchObject({ ok: true });
     expect(operation).toHaveBeenCalledWith({}, { x: 1 });
   });
 });

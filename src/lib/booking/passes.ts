@@ -1,7 +1,7 @@
 import type { Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
-import { venueToday } from "@/i18n/format";
+import { addDays, venueToday } from "@/i18n/format";
 import {
   bookingDate,
   bookSpots,
@@ -14,15 +14,21 @@ import {
 const passSchema = z.object({
   ...customerAndSpots,
   seasonId: z.number().int().positive(),
-  /** The holder's first day; the season's opening day when left out (ADR 0004). */
-  startDate: bookingDate.nullish(),
+  /** The holder's first day, which can be later than the season's opening day (ADR 0004). */
+  startDate: bookingDate,
+  /** The holder's last day, if they know it. Blank or missing: the season's last day. */
+  endDate: z
+    .union([z.literal(""), bookingDate])
+    .nullish()
+    .transform((date) => date || null),
 });
 
 export type CreateSeasonPassInput = z.input<typeof passSchema>;
 
 /**
- * Sells a season pass: the spots are booked for every day from the holder's first day to the
- * season's last day, all or nothing, exactly like a day booking (ADR 0004).
+ * Sells a season pass: the spots are booked for every day from the holder's first day to their
+ * last day, all or nothing, exactly like a day booking (ADR 0004). A holder who doesn't know
+ * their last day yet keeps the spots to the end of the season; `endSeasonPass` sets it later.
  */
 export async function createSeasonPass(
   db: Kysely<DB>,
@@ -31,18 +37,77 @@ export async function createSeasonPass(
 ): Promise<CreateResult> {
   const parsed = passSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { startDate, ...pass } = parsed.data;
+  const pass = parsed.data;
   const season = await db
     .selectFrom("season")
     .select(["start_date", "end_date"])
     .where("id", "=", pass.seasonId)
     .executeTakeFirst();
   if (!season) return { ok: false, error: "invalid" };
-  const firstDay = startDate ?? season.start_date;
-  if (firstDay < season.start_date || firstDay > season.end_date) {
-    return { ok: false, error: "invalid" };
-  }
-  return bookSpots(db, userId, { ...pass, startDate: firstDay, endDate: season.end_date });
+  const endDate = pass.endDate ?? season.end_date;
+  const inSeason = pass.startDate >= season.start_date && endDate <= season.end_date;
+  if (!inSeason || endDate < pass.startDate) return { ok: false, error: "invalid" };
+  return bookSpots(db, userId, { ...pass, endDate });
+}
+
+type PassError = "notFound" | "notSeason";
+
+/** Locks an active season pass, so changes to it can't interleave with a cancel or each other. */
+async function lockPass(
+  tx: Kysely<DB>,
+  bookingId: number,
+): Promise<{ ok: true; startDate: string; endDate: string } | { ok: false; error: PassError }> {
+  const booking = await tx
+    .selectFrom("booking")
+    .select(["kind", "start_date", "end_date"])
+    .where("id", "=", bookingId)
+    .where("status", "=", "active")
+    .forUpdate()
+    .executeTakeFirst();
+  if (!booking) return { ok: false, error: "notFound" };
+  if (booking.kind !== "season") return { ok: false, error: "notSeason" };
+  return { ok: true, startDate: booking.start_date, endDate: booking.end_date };
+}
+
+const endSchema = z.object({ bookingId: z.number().int().positive(), lastDay: bookingDate });
+
+export type EndPassResult = { ok: true } | { ok: false; error: "invalid" | "past" | PassError };
+
+/**
+ * Sets the holder's last day once they know it: the pass ends that day and every later day is
+ * freed, released ones included. The last day can be yesterday (they have already left) but no
+ * earlier, so days already used stay on record. A pass can only be shortened; to stay longer
+ * the holder needs a new booking for the extra days.
+ */
+export async function endSeasonPass(
+  db: Kysely<DB>,
+  input: unknown,
+  today: string = venueToday(),
+): Promise<EndPassResult> {
+  const parsed = endSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const { bookingId, lastDay } = parsed.data;
+  if (lastDay < addDays(today, -1)) return { ok: false, error: "past" };
+  return db.transaction().execute(async (tx) => {
+    const pass = await lockPass(tx, bookingId);
+    if (!pass.ok) return pass;
+    if (lastDay < pass.startDate || lastDay > pass.endDate) {
+      return { ok: false, error: "invalid" } as const;
+    }
+    await tx
+      .updateTable("booking")
+      .set({ end_date: lastDay })
+      .where("id", "=", bookingId)
+      .execute();
+    await tx
+      .deleteFrom("spot_day")
+      .where("date", ">", lastDay)
+      .where("booking_spot_id", "in", (q) =>
+        q.selectFrom("booking_spot").select("id").where("booking_id", "=", bookingId),
+      )
+      .execute();
+    return { ok: true } as const;
+  });
 }
 
 const daysSchema = z
@@ -55,16 +120,13 @@ const daysSchema = z
 
 export type DaysResult =
   | { ok: true; days: number }
-  | { ok: false; error: "invalid" | "notFound" | "notSeason" | "past" }
+  | { ok: false; error: "invalid" | "past" | PassError }
   | { ok: false; error: "taken"; clashes: Clash[] };
 
 type Days = z.output<typeof daysSchema>;
 type Change = (tx: Kysely<DB>, days: Days, bookingSpotIds: number[]) => Promise<DaysResult>;
 
-/**
- * Runs a release or restore on an active season pass with its booking row locked, so it can't
- * interleave with a cancel or with another release of the same pass. Past days stay as they were.
- */
+/** Runs a release or restore on a locked season pass. Past days stay as they were. */
 async function onPassDays(
   db: Kysely<DB>,
   input: unknown,
@@ -76,15 +138,8 @@ async function onPassDays(
   const days = parsed.data;
   if (days.startDate < today) return { ok: false, error: "past" };
   return db.transaction().execute(async (tx) => {
-    const booking = await tx
-      .selectFrom("booking")
-      .select("kind")
-      .where("id", "=", days.bookingId)
-      .where("status", "=", "active")
-      .forUpdate()
-      .executeTakeFirst();
-    if (!booking) return { ok: false, error: "notFound" } as const;
-    if (booking.kind !== "season") return { ok: false, error: "notSeason" } as const;
+    const pass = await lockPass(tx, days.bookingId);
+    if (!pass.ok) return pass;
     const bookingSpots = await tx
       .selectFrom("booking_spot")
       .select("id")

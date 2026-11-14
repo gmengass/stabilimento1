@@ -3,9 +3,6 @@ import { z } from "zod";
 import type { DB } from "@/db/types";
 import { bookingDate } from "./bookings";
 
-/** A season is one summer, not several years. */
-export const MAX_SEASON_DAYS = 366;
-
 export interface SeasonRow {
   id: number;
   name: string;
@@ -16,7 +13,7 @@ export interface SeasonRow {
 }
 
 export type SeasonError =
-  "invalid" | "noBeach" | "notFound" | "nameTaken" | "overlap" | "hasPasses";
+  "invalid" | "noBeach" | "notFound" | "nameTaken" | "yearTaken" | "hasPasses";
 export type SeasonResult = { ok: true } | { ok: false; error: SeasonError };
 
 const fail = (error: SeasonError): SeasonResult => ({ ok: false, error });
@@ -28,10 +25,6 @@ function pgCode(error: unknown): string {
   return String((error as { code?: unknown } | null)?.code);
 }
 
-function daysInclusive(start: string, end: string): number {
-  return (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1;
-}
-
 const seasonFields = z
   .object({
     name: z.string().trim().min(1).max(60),
@@ -39,7 +32,8 @@ const seasonFields = z
     endDate: bookingDate,
   })
   .refine((s) => s.endDate >= s.startDate)
-  .refine((s) => daysInclusive(s.startDate, s.endDate) <= MAX_SEASON_DAYS);
+  // One season per calendar year: it starts and ends in the same year.
+  .refine((s) => s.startDate.slice(0, 4) === s.endDate.slice(0, 4));
 
 const seasonId = z.number().int().positive();
 
@@ -77,10 +71,7 @@ export async function listOpenSeasons(db: Kysely<DB>, today: string): Promise<Op
 
 type Tx = Transaction<DB>;
 
-/**
- * Runs one season change with the venue row locked, so two admins can't create overlapping
- * seasons at the same moment.
- */
+/** Runs one season change with the venue row locked; the unique indexes decide clashes. */
 async function inVenue(
   db: Kysely<DB>,
   change: (tx: Tx, venueId: number) => Promise<SeasonResult>,
@@ -97,37 +88,21 @@ async function inVenue(
       return change(tx, venue.id);
     });
   } catch (error) {
-    if (pgCode(error) === PG_UNIQUE_VIOLATION) return fail("nameTaken");
+    if (pgCode(error) === PG_UNIQUE_VIOLATION) {
+      const index = String((error as { constraint?: unknown }).constraint);
+      return fail(index === "season_one_per_year" ? "yearTaken" : "nameTaken");
+    }
     if (pgCode(error) === PG_FOREIGN_KEY_VIOLATION) return fail("hasPasses");
     throw error;
   }
 }
 
-/** True when another season of the venue shares at least one day with the range. */
-async function overlaps(
-  tx: Tx,
-  venueId: number,
-  range: { startDate: string; endDate: string },
-  exceptId = 0,
-): Promise<boolean> {
-  const other = await tx
-    .selectFrom("season")
-    .select("id")
-    .where("venue_id", "=", venueId)
-    .where("id", "<>", exceptId)
-    .where("start_date", "<=", range.endDate)
-    .where("end_date", ">=", range.startDate)
-    .executeTakeFirst();
-  return other !== undefined;
-}
-
-/** Seasons never overlap, so any day belongs to at most one. */
+/** One season per calendar year, so any day belongs to at most one season. */
 export async function createSeason(db: Kysely<DB>, input: unknown): Promise<SeasonResult> {
   const parsed = seasonFields.safeParse(input);
   if (!parsed.success) return fail("invalid");
   const season = parsed.data;
   return inVenue(db, async (tx, venueId) => {
-    if (await overlaps(tx, venueId, season)) return fail("overlap");
     await tx
       .insertInto("season")
       .values({
@@ -170,7 +145,6 @@ export async function updateSeason(db: Kysely<DB>, input: unknown): Promise<Seas
         .limit(1)
         .executeTakeFirst();
       if (pass) return fail("hasPasses");
-      if (await overlaps(tx, venueId, season, season.seasonId)) return fail("overlap");
     }
     await tx
       .updateTable("season")
