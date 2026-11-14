@@ -3,14 +3,26 @@
 import { useTranslations } from "next-intl";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 
-export type SpotView = "free" | "selected" | "booked" | "open";
+export type SpotView = "free" | "released" | "selected" | "booked" | "season" | "open";
 
 const viewClass: Record<SpotView, string> = {
   free: "border-green-600 bg-green-50 text-green-900",
+  released: "border-dashed border-violet-700 bg-green-50 text-green-900",
   selected: "border-blue-700 bg-blue-600 text-white",
   booked: "border-red-700 bg-red-100 text-red-950",
+  season: "border-violet-700 bg-violet-100 text-violet-950",
   open: "border-red-900 bg-red-700 text-white",
 };
+
+/** Screen-reader text per view. A selected spot is a free one being picked. */
+const labelKey = {
+  free: "spotFree",
+  released: "spotReleased",
+  selected: "spotFree",
+  booked: "spotBooked",
+  season: "spotSeason",
+  open: "spotBooked",
+} as const satisfies Record<SpotView, string>;
 
 interface Props {
   /** Shown on the sea band, so the space is named right above the umbrellas. */
@@ -48,7 +60,6 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Pr
               {line.spots.map((spot) => {
                 const view = viewOf(spot);
                 const caption = captionOf(spot);
-                const free = view === "free" || view === "selected";
                 return (
                   <li key={spot.id} style={{ gridColumn: spot.position }}>
                     <button
@@ -67,9 +78,7 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Pr
                         </span>
                       )}
                       <span className="sr-only">
-                        {free
-                          ? t("spotFree", { number: spot.number })
-                          : t("spotBooked", { number: spot.number, name: caption ?? "" })}
+                        {t(labelKey[view], { number: spot.number, name: caption ?? "" })}
                       </span>
                     </button>
                   </li>

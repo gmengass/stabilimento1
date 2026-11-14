@@ -3,26 +3,27 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2). `main` = PR #21.
-- In v0.2.1: #13 beach map, #14 bookings, #15 editable beach settings, #16 several beach spaces,
-  #17 update fix (EACCES at the migrate step). Roadmap Milestone 1 items 1 and 2 are ticked.
-- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg` (Ubuntu 24.04 WSL), #19 tracker,
-  #21 CI skips the heavy jobs on docs-only pull requests (pushes to `main` still run everything).
+- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2).
+- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg`, #19 tracker, #21 CI skips the
+  heavy jobs on docs-only pull requests.
+- Open PR `feat/season-passes` (migration `0006_seasons`) ticks Roadmap Milestone 1 item 4.
 
 ## Done this session
-- Added the `tracker` agent (PR #19), wired into `/start` and `/wrap-up`. Merged #12, #18, #20, #21.
-- Checked on the box (#12 wrap-up): WSL2 mirrored networking keeps LAN source IPs.
+- Seasons (one per year), season passes with an optional last day, release and give back
+  (`docs/plans/season-passes.md`). E2E test `e2e/season-pass.spec.ts`.
 
 ## Next up
-1. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
-2. Seasons and season passes with released days.
+1. Review and merge `feat/season-passes`, then tag a release and update the box.
+2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
 3. Backups (USB + OneDrive) before the first real season. Share the lock with `update.sh`.
 4. Trusted certificate: Android Chrome blocks the internal-CA cert with no "Proceed". Let's Encrypt
    via DNS-01 on the club's domain (new ADR amending ADR 0008). Ask the owner: domain, DNS host.
 
 ## Open questions
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
-- AuditLog table (ADR 0004 mentions it) is not built yet: create and cancel write no audit entry.
+- No AuditLog yet (ADR 0004): bookings and pass changes write no entry. Needed before payments.
+- Any staff member can set a pass's last day (it frees later days for good): admin-only?
+- Day and multi-day bookings can still be created for past days (pre-existing; passes can't).
 - No rate limit on booking actions; spots aren't checked against the area.
 - Umbrellas with past bookings can never be removed (FK restrict): add "retire" before next season.
 - Venue name accepts control characters; setup numbers accept `true`/`1e1` (bounds still hold).
