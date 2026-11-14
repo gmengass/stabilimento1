@@ -29,11 +29,14 @@ export type CreateSeasonPassInput = z.input<typeof passSchema>;
  * Sells a season pass: the spots are booked for every day from the holder's first day to their
  * last day, all or nothing, exactly like a day booking (ADR 0004). A holder who doesn't know
  * their last day yet keeps the spots to the end of the season; `endSeasonPass` sets it later.
+ * Only for a season that hasn't ended, starting no earlier than yesterday (a holder who arrived
+ * yesterday), so days already over can't be sold after the fact.
  */
 export async function createSeasonPass(
   db: Kysely<DB>,
   userId: string,
   input: unknown,
+  today: string = venueToday(),
 ): Promise<CreateResult> {
   const parsed = passSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
@@ -43,7 +46,8 @@ export async function createSeasonPass(
     .select(["start_date", "end_date"])
     .where("id", "=", pass.seasonId)
     .executeTakeFirst();
-  if (!season) return { ok: false, error: "invalid" };
+  if (!season || season.end_date < today) return { ok: false, error: "invalid" };
+  if (pass.startDate < addDays(today, -1)) return { ok: false, error: "invalid" };
   const endDate = pass.endDate ?? season.end_date;
   const inSeason = pass.startDate >= season.start_date && endDate <= season.end_date;
   if (!inSeason || endDate < pass.startDate) return { ok: false, error: "invalid" };

@@ -29,6 +29,8 @@ let spot: Record<number, number>;
 let seasonId: number;
 const USER = "u-staff";
 const TODAY = "2027-06-20";
+/** When the passes in these tests are sold: before the season opens. */
+const SOLD_ON = "2027-05-01";
 const SEASON = { name: "Estate 2027", startDate: "2027-06-01", endDate: "2027-09-15" };
 const SEASON_DAYS = 107;
 /** The day after the 2027 season ended: the next season may be added. */
@@ -74,8 +76,12 @@ function pass(overrides: Partial<CreateSeasonPassInput> = {}): CreateSeasonPassI
   };
 }
 
+function sell(input: unknown, today = SOLD_ON) {
+  return createSeasonPass(db, USER, input, today);
+}
+
 async function sellPass(overrides: Partial<CreateSeasonPassInput> = {}): Promise<number> {
-  const result = await createSeasonPass(db, USER, pass(overrides));
+  const result = await sell(pass(overrides));
   if (!result.ok) throw new Error(`pass failed: ${result.error}`);
   return result.bookingId;
 }
@@ -254,7 +260,7 @@ describe("createSeasonPass", () => {
     await sellPass({ startDate: SEASON.startDate });
     await sellPass({ startDate: SEASON.endDate, spots: [{ spotId: spot[102], sunbeds: 2 }] });
     for (const startDate of ["2027-05-31", "2027-09-16"]) {
-      expect(await createSeasonPass(db, USER, pass({ startDate }))).toEqual({
+      expect(await sell(pass({ startDate }))).toEqual({
         ok: false,
         error: "invalid",
       });
@@ -263,7 +269,7 @@ describe("createSeasonPass", () => {
 
   it("needs a first day", async () => {
     const noStart = { ...pass(), startDate: undefined };
-    expect(await createSeasonPass(db, USER, noStart)).toEqual({ ok: false, error: "invalid" });
+    expect(await sell(noStart)).toEqual({ ok: false, error: "invalid" });
   });
 
   it("runs to the season's last day when the last day is unknown (missing or blank)", async () => {
@@ -284,22 +290,35 @@ describe("createSeasonPass", () => {
   it("allows a one-day pass, refuses a last day before the first or after the season", async () => {
     await sellPass({ startDate: "2027-07-01", endDate: "2027-07-01" });
     for (const endDate of ["2027-06-30", "2027-09-16"]) {
-      const result = await createSeasonPass(
-        db,
-        USER,
+      const result = await sell(
         pass({ startDate: "2027-07-01", endDate, spots: [{ spotId: spot[102], sunbeds: 2 }] }),
       );
       expect(result).toEqual({ ok: false, error: "invalid" });
     }
   });
 
+  it("refuses an ended season", async () => {
+    expect(await sell(pass(), AFTER)).toEqual({ ok: false, error: "invalid" });
+    expect(await sell(pass({ startDate: SEASON.endDate }), SEASON.endDate)).toMatchObject({
+      ok: true,
+    });
+  });
+
+  it("starts no earlier than yesterday once the season is under way", async () => {
+    const midSeason = "2027-07-10";
+    const early = pass({ startDate: "2027-07-08" });
+    expect(await sell(early, midSeason)).toEqual({ ok: false, error: "invalid" });
+    expect(await sell(pass({ startDate: "2027-07-09" }), midSeason)).toMatchObject({ ok: true });
+  });
+
   it("rejects an unknown season, too many sunbeds and a missing name", async () => {
     const invalid = { ok: false, error: "invalid" };
-    expect(await createSeasonPass(db, USER, pass({ seasonId: 999 }))).toEqual(invalid);
-    expect(await createSeasonPass(db, USER, pass({ customerName: " " }))).toEqual(invalid);
-    expect(
-      await createSeasonPass(db, USER, pass({ spots: [{ spotId: spot[101], sunbeds: 4 }] })),
-    ).toEqual({ ok: false, error: "sunbeds" });
+    expect(await sell(pass({ seasonId: 999 }))).toEqual(invalid);
+    expect(await sell(pass({ customerName: " " }))).toEqual(invalid);
+    expect(await sell(pass({ spots: [{ spotId: spot[101], sunbeds: 4 }] }))).toEqual({
+      ok: false,
+      error: "sunbeds",
+    });
   });
 
   it("fails whole when one day is taken, naming the clash", async () => {
@@ -309,7 +328,7 @@ describe("createSeasonPass", () => {
       endDate: "2027-08-15",
       spots: [{ spotId: spot[101], sunbeds: 2 }],
     });
-    expect(await createSeasonPass(db, USER, pass())).toEqual({
+    expect(await sell(pass())).toEqual({
       ok: false,
       error: "taken",
       clashes: [{ spotNumber: 101, date: "2027-08-15" }],
@@ -330,8 +349,8 @@ describe("createSeasonPass", () => {
 
   it("lets exactly one of two passes for the same umbrella win", async () => {
     const results = await Promise.all([
-      createSeasonPass(db, USER, pass({ customerName: "A" })),
-      createSeasonPass(db, USER, pass({ customerName: "B" })),
+      sell(pass({ customerName: "A" })),
+      sell(pass({ customerName: "B" })),
     ]);
     expect(results.filter((r) => r.ok)).toHaveLength(1);
     expect(results.find((r) => !r.ok)).toMatchObject({ error: "taken" });
@@ -341,10 +360,7 @@ describe("createSeasonPass", () => {
 
   it("never leaves a pass outside its season when the dates move at the same moment", async () => {
     const moved = { seasonId, ...SEASON, startDate: "2027-06-10" };
-    const [sold, update] = await Promise.all([
-      createSeasonPass(db, USER, pass()),
-      updateSeason(db, moved),
-    ]);
+    const [sold, update] = await Promise.all([sell(pass()), updateSeason(db, moved)]);
     // Either the pass came first and pinned the dates, or the move came first and the pass
     // (asking for the old opening day) was refused.
     const season = (await listSeasons(db))[0];
