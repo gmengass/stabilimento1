@@ -1,6 +1,7 @@
 import type { Kysely, Transaction } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
+import { venueToday } from "@/i18n/format";
 import { bookingDate } from "./bookings";
 
 export interface SeasonRow {
@@ -13,7 +14,7 @@ export interface SeasonRow {
 }
 
 export type SeasonError =
-  "invalid" | "noBeach" | "notFound" | "nameTaken" | "yearTaken" | "hasPasses";
+  "invalid" | "noBeach" | "notFound" | "nameTaken" | "yearTaken" | "seasonOpen" | "hasPasses";
 export type SeasonResult = { ok: true } | { ok: false; error: SeasonError };
 
 /** The club's usual season: 1 May to 30 September (month-day). Only pre-fills the form. */
@@ -84,14 +85,15 @@ export async function listSeasons(db: Kysely<DB>): Promise<SeasonRow[]> {
 
 export type OpenSeason = Omit<SeasonRow, "passes">;
 
-/** Seasons a pass can still be sold for: those that haven't ended, earliest first. */
-export async function listOpenSeasons(db: Kysely<DB>, today: string): Promise<OpenSeason[]> {
-  return db
+/** The season passes are sold for: the one that hasn't ended yet. There is at most one. */
+export async function loadOpenSeason(db: Kysely<DB>, today: string): Promise<OpenSeason | null> {
+  const season = await db
     .selectFrom("season")
     .select(["id", "name", "start_date as startDate", "end_date as endDate"])
     .where("end_date", ">=", today)
     .orderBy("start_date")
-    .execute();
+    .executeTakeFirst();
+  return season ?? null;
 }
 
 type Tx = Transaction<DB>;
@@ -122,12 +124,40 @@ async function inVenue(
   }
 }
 
-/** One season per calendar year, so any day belongs to at most one season. */
-export async function createSeason(db: Kysely<DB>, input: unknown): Promise<SeasonResult> {
+/** The season that hasn't ended yet (its last day is today or later), if any. */
+export function openSeason<S extends Pick<SeasonRow, "endDate">>(
+  seasons: S[],
+  today: string,
+): S | undefined {
+  return seasons.find((s) => s.endDate >= today);
+}
+
+/** True when a season other than `exceptId` hasn't ended yet. */
+async function anotherIsOpen(tx: Tx, venueId: number, today: string, exceptId = 0) {
+  const open = await tx
+    .selectFrom("season")
+    .select("id")
+    .where("venue_id", "=", venueId)
+    .where("id", "<>", exceptId)
+    .where("end_date", ">=", today)
+    .executeTakeFirst();
+  return open !== undefined;
+}
+
+/**
+ * One season per calendar year, so any day belongs to at most one season. The next season can
+ * only be added once the current one has ended, so at most one season is ever open.
+ */
+export async function createSeason(
+  db: Kysely<DB>,
+  input: unknown,
+  today: string = venueToday(),
+): Promise<SeasonResult> {
   const parsed = seasonFields.safeParse(input);
   if (!parsed.success) return fail("invalid");
   const season = parsed.data;
   return inVenue(db, async (tx, venueId) => {
+    if (await anotherIsOpen(tx, venueId, today)) return fail("seasonOpen");
     await tx
       .insertInto("season")
       .values({
@@ -147,7 +177,11 @@ const updateSchema = seasonFields.and(z.object({ seasonId }));
  * Renames a season or moves its dates. Once a pass has been sold the dates are fixed: the pass
  * already holds its days.
  */
-export async function updateSeason(db: Kysely<DB>, input: unknown): Promise<SeasonResult> {
+export async function updateSeason(
+  db: Kysely<DB>,
+  input: unknown,
+  today: string = venueToday(),
+): Promise<SeasonResult> {
   const parsed = updateSchema.safeParse(input);
   if (!parsed.success) return fail("invalid");
   const season = parsed.data;
@@ -170,6 +204,10 @@ export async function updateSeason(db: Kysely<DB>, input: unknown): Promise<Seas
         .limit(1)
         .executeTakeFirst();
       if (pass) return fail("hasPasses");
+      const reopens = season.endDate >= today;
+      if (reopens && (await anotherIsOpen(tx, venueId, today, season.seasonId))) {
+        return fail("seasonOpen");
+      }
     }
     await tx
       .updateTable("season")

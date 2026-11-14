@@ -14,7 +14,7 @@ import {
 } from "@/lib/booking/passes";
 import {
   createSeason,
-  listOpenSeasons,
+  loadOpenSeason,
   listSeasons,
   removeSeason,
   updateSeason,
@@ -31,6 +31,8 @@ const USER = "u-staff";
 const TODAY = "2027-06-20";
 const SEASON = { name: "Estate 2027", startDate: "2027-06-01", endDate: "2027-09-15" };
 const SEASON_DAYS = 107;
+/** The day after the 2027 season ended: the next season may be added. */
+const AFTER = "2027-09-16";
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl());
@@ -103,10 +105,31 @@ describe("seasons", () => {
   });
 
   it("allows a one-day season and one covering a whole leap year", async () => {
-    const day = { name: "Day", startDate: "2029-06-01", endDate: "2029-06-01" };
-    expect(await createSeason(db, day)).toEqual({ ok: true });
-    const year = { name: "Year", startDate: "2028-01-01", endDate: "2028-12-31" };
-    expect(await createSeason(db, year)).toEqual({ ok: true });
+    const day = { name: "Day", startDate: "2028-06-01", endDate: "2028-06-01" };
+    expect(await createSeason(db, day, AFTER)).toEqual({ ok: true });
+    const year = { name: "Year", startDate: "2032-01-01", endDate: "2032-12-31" };
+    expect(await createSeason(db, year, "2028-06-02")).toEqual({ ok: true });
+  });
+
+  it("refuses the next season until the open one has ended, its last day included", async () => {
+    const next = { name: "Estate 2028", startDate: "2028-05-01", endDate: "2028-09-30" };
+    const open = { ok: false, error: "seasonOpen" };
+    expect(await createSeason(db, next, "2026-11-14")).toEqual(open);
+    expect(await createSeason(db, next, SEASON.endDate)).toEqual(open);
+    expect(await createSeason(db, next, AFTER)).toEqual({ ok: true });
+  });
+
+  it("refuses moving a past season into the future while another is open", async () => {
+    await createSeason(
+      db,
+      { name: "Estate 2028", startDate: "2028-05-01", endDate: "2028-09-30" },
+      AFTER,
+    );
+    const back = { seasonId, ...SEASON, startDate: "2027-06-01", endDate: "2027-10-31" };
+    expect(await updateSeason(db, back, "2027-10-01")).toEqual({ ok: false, error: "seasonOpen" });
+    expect(await updateSeason(db, { ...back, endDate: "2027-09-20" }, "2027-10-01")).toEqual({
+      ok: true,
+    });
   });
 
   it("refuses a second season in the same calendar year, even if the days don't overlap", async () => {
@@ -116,23 +139,25 @@ describe("seasons", () => {
       ["2027-01-01", "2027-05-31"],
       ["2027-07-01", "2027-07-02"],
     ]) {
-      expect(await createSeason(db, { name: "Other", startDate, endDate })).toEqual(taken);
+      const other = { name: "Other", startDate, endDate };
+      expect(await createSeason(db, other, "2028-01-01")).toEqual(taken);
     }
     const next = { name: "Estate 2028", startDate: "2028-01-01", endDate: "2028-12-31" };
-    expect(await createSeason(db, next)).toEqual({ ok: true });
+    expect(await createSeason(db, next, AFTER)).toEqual({ ok: true });
   });
 
   it("refuses a duplicate name", async () => {
     const twin = { name: SEASON.name, startDate: "2028-06-01", endDate: "2028-09-15" };
-    expect(await createSeason(db, twin)).toEqual({ ok: false, error: "nameTaken" });
+    expect(await createSeason(db, twin, AFTER)).toEqual({ ok: false, error: "nameTaken" });
   });
 
-  it("lets only one of two seasons for the same year created at once succeed", async () => {
-    const a = createSeason(db, { name: "A", startDate: "2028-06-01", endDate: "2028-07-01" });
-    const b = createSeason(db, { name: "B", startDate: "2028-08-01", endDate: "2028-10-01" });
-    const results = await Promise.all([a, b]);
+  it("lets only one of two next seasons created at once succeed", async () => {
+    const results = await Promise.all([
+      createSeason(db, { name: "A", startDate: "2028-06-01", endDate: "2028-07-01" }, AFTER),
+      createSeason(db, { name: "B", startDate: "2029-06-01", endDate: "2029-07-01" }, AFTER),
+    ]);
     expect(results.filter((r) => r.ok)).toHaveLength(1);
-    expect(results.find((r) => !r.ok)).toEqual({ ok: false, error: "yearTaken" });
+    expect(results.find((r) => !r.ok)).toEqual({ ok: false, error: "seasonOpen" });
   });
 
   it("needs a beach first", async () => {
@@ -160,9 +185,13 @@ describe("seasons", () => {
   });
 
   it("refuses to move a season into another's year, and reports a missing one", async () => {
-    await createSeason(db, { name: "Next", startDate: "2028-06-01", endDate: "2028-09-15" });
+    const next = { name: "Next", startDate: "2028-06-01", endDate: "2028-09-15" };
+    await createSeason(db, next, AFTER);
     const moved = { seasonId, name: SEASON.name, startDate: "2028-10-01", endDate: "2028-10-31" };
-    expect(await updateSeason(db, moved)).toEqual({ ok: false, error: "yearTaken" });
+    expect(await updateSeason(db, moved, "2029-01-01")).toEqual({
+      ok: false,
+      error: "yearTaken",
+    });
     expect(await updateSeason(db, { seasonId: 999, ...SEASON })).toEqual({
       ok: false,
       error: "notFound",
@@ -172,15 +201,15 @@ describe("seasons", () => {
   it("removes a season without passes only", async () => {
     await sellPass();
     expect(await removeSeason(db, { seasonId })).toEqual({ ok: false, error: "hasPasses" });
-    await createSeason(db, { name: "Next", startDate: "2028-06-01", endDate: "2028-09-15" });
+    await createSeason(db, { name: "Next", startDate: "2028-06-01", endDate: "2028-09-15" }, AFTER);
     const next = (await listSeasons(db))[0];
     expect(await removeSeason(db, { seasonId: next.id })).toEqual({ ok: true });
     expect(await removeSeason(db, { seasonId: next.id })).toEqual({ ok: false, error: "notFound" });
   });
 
-  it("lists open seasons: those not yet ended, the last day included", async () => {
-    expect(await listOpenSeasons(db, "2027-09-15")).toHaveLength(1);
-    expect(await listOpenSeasons(db, "2027-09-16")).toEqual([]);
+  it("loads the open season: until its last day, included", async () => {
+    expect(await loadOpenSeason(db, "2027-09-15")).toMatchObject({ id: seasonId });
+    expect(await loadOpenSeason(db, "2027-09-16")).toBeNull();
   });
 });
 

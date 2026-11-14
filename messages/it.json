@@ -194,7 +194,6 @@
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
-    "season": "Stagione",
     "firstDay": "Primo giorno",
     "sellPass": "{count, plural, one {Vendi un abbonamento per # ombrellone} other {Vendi un abbonamento per # ombrelloni}}",
     "passTitle": "Abbonamento stagionale",
@@ -253,8 +252,10 @@
       "nameTaken": "Un'altra stagione ha già questo nome.",
       "hasPasses": "Per questa stagione sono stati venduti abbonamenti: le date non si possono cambiare e non si può rimuovere.",
       "generic": "Qualcosa è andato storto. Riprova.",
-      "yearTaken": "Quest'anno ha già una stagione."
+      "yearTaken": "Quest'anno ha già una stagione.",
+      "seasonOpen": "Un'altra stagione è ancora aperta: aggiungi la prossima quando sarà finita."
     },
-    "defaultName": "Stagione {year}"
+    "defaultName": "Stagione {year}",
+    "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date})."
   }
 }

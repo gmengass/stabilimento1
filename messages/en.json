@@ -194,7 +194,6 @@
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
-    "season": "Season",
     "firstDay": "First day",
     "sellPass": "{count, plural, one {Sell a season pass for # umbrella} other {Sell a season pass for # umbrellas}}",
     "passTitle": "Season pass",
@@ -253,8 +252,10 @@
       "nameTaken": "Another season already has this name.",
       "hasPasses": "Season passes were sold for this season: its dates can't change and it can't be removed.",
       "generic": "Something went wrong. Try again.",
-      "yearTaken": "This year already has a season."
+      "yearTaken": "This year already has a season.",
+      "seasonOpen": "Another season is still open: add the next one once it has ended."
     },
-    "defaultName": "Season {year}"
+    "defaultName": "Season {year}",
+    "nextAfter": "You can add the next season once {name} has ended (last day {date})."
   }
 }
