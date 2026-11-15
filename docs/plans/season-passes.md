@@ -21,8 +21,8 @@ released day back while the umbrella is still free.
   be released or restored; today can.
 - Once any pass exists, even a cancelled one, the season's dates are fixed and it can't be
   removed. Its name can still change.
-- (Not confirmed) Any staff member can sell, release, restore and end a pass; only admins manage
-  seasons.
+- Any staff member can sell, release, restore and end a pass (owner, 2026-11-15); only admins
+  manage seasons.
 - Nothing is sold or changed in the past: a pass for an ended season is refused, a pass starts no
   earlier than yesterday, release and restore from today, a last day no earlier than yesterday,
   and an admin can't add a season that has already ended. The panel forms use the same limits.

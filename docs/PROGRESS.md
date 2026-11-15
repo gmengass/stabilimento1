@@ -22,7 +22,6 @@
 ## Open questions
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
 - No AuditLog yet (ADR 0004): bookings and pass changes write no entry. Needed before payments.
-- Any staff member can set a pass's last day (it frees later days for good): admin-only?
 - Day and multi-day bookings can still be created for past days (pre-existing; passes can't).
 - No rate limit on booking actions; spots aren't checked against the area.
 - Umbrellas with past bookings can never be removed (FK restrict): add "retire" before next season.
