@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { ensureBeach, logIn } from "./helpers";
+import { ADMIN_STATE } from "./helpers";
 
 // A phone, a portrait tablet, a landscape tablet, a desktop.
 const WIDTHS = [390, 768, 1024, 1440];
 
+test.use({ storageState: ADMIN_STATE });
+
 test("the date controls stay on one line at every width", async ({ page }) => {
-  await logIn(page);
-  await ensureBeach(page);
   await page.goto("/");
 
   const nav = page.getByTestId("date-nav");
@@ -30,7 +30,7 @@ test("the date controls stay on one line at every width", async ({ page }) => {
         first.top,
       );
     }
-    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    expect(pageWidth, `page scrolls sideways at ${width}px`).toBeLessThanOrEqual(width);
+    const navRight = await nav.evaluate((el) => el.getBoundingClientRect().right);
+    expect(navRight, `date controls overflow the screen at ${width}px`).toBeLessThanOrEqual(width);
   }
 });

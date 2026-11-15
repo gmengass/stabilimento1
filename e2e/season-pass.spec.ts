@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ensureBeach, logIn } from "./helpers";
+import { ADMIN_STATE } from "./helpers";
 
 // Far in the future, so the dates are never "past" and never clash with real seasons.
 const SEASON = { name: "E2E 2090", startDate: "2090-06-01", endDate: "2090-09-15" };
@@ -9,6 +9,8 @@ const LAST_DAY = "2090-07-20";
 const DAY_AFTER = "2090-07-21";
 
 // Selectors avoid translated text: another test switches the shared admin's language.
+
+test.use({ storageState: ADMIN_STATE });
 
 async function ensureSeason(page: Page): Promise<void> {
   await page.goto("/admin/seasons");
@@ -31,8 +33,6 @@ test("a season pass without a last day runs to the season's end and can be ended
   page,
 }) => {
   const customer = `Pass ${Date.now()}`;
-  await logIn(page);
-  await ensureBeach(page);
   await ensureSeason(page);
 
   await page.goto(`/?date=${FIRST_DAY}`);
