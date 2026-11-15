@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The beach space tabs sit on the same row as the date and day buttons, saving a line above
+  the map.
+
 ### Fixed
 - Updating the server failed at the migration step ("EACCES: permission denied") when a release
   added new files: the update script checked them out readable by their owner only. Releases
