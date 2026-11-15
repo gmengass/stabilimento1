@@ -7,7 +7,8 @@ import { isLocale } from "@/i18n/config";
 import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
-import { loadOccupancy } from "@/lib/booking/bookings";
+import { loadOccupancy, loadReleased } from "@/lib/booking/bookings";
+import { loadOpenSeason } from "@/lib/booking/seasons";
 import { BeachBoard } from "./beach-board";
 
 export default async function Home(props: PageProps<"/">) {
@@ -15,7 +16,8 @@ export default async function Home(props: PageProps<"/">) {
   const t = await getTranslations("map");
   const locale = await getLocale();
   const { date: requested, area } = await props.searchParams;
-  const date = isBookingDate(requested) ? requested : venueToday();
+  const today = venueToday();
+  const date = isBookingDate(requested) ? requested : today;
   const requestedArea = parseAreaId(area);
   const beach = await loadBeach(getDb(), requestedArea);
 
@@ -35,6 +37,8 @@ export default async function Home(props: PageProps<"/">) {
   }
 
   const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
+  const released = await loadReleased(getDb(), beach.areaId, date);
+  const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
   const at = (day?: string) => {
     const query = new URLSearchParams({ area: String(beach.areaId) });
@@ -44,8 +48,11 @@ export default async function Home(props: PageProps<"/">) {
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
   const total = beach.lines.reduce((sum, line) => sum + line.spots.length, 0);
-  const booked = Object.keys(occupancy).length;
-  const free = total - booked;
+  const occupants = Object.values(occupancy);
+  const passes = occupants.filter((o) => o.kind === "season").length;
+  const booked = occupants.length - passes;
+  const free = total - occupants.length;
+  const freeReleased = Object.keys(released).filter((id) => !occupancy[Number(id)]).length;
 
   return (
     <main className="flex w-full flex-col gap-4 p-4">
@@ -88,14 +95,19 @@ export default async function Home(props: PageProps<"/">) {
       <p className="flex flex-wrap gap-4 text-sm text-gray-700">
         <span>{t("legendFree", { count: free })}</span>
         <span>{t("legendBooked", { count: booked })}</span>
+        {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}
+        {freeReleased > 0 && <span>{t("legendReleased", { count: freeReleased })}</span>}
         <span>{t("hint")}</span>
       </p>
       <BeachBoard
+        today={today}
         key={beach.areaId}
         areaName={beach.areaName}
         date={date}
         lines={beach.lines}
         occupancy={occupancy}
+        released={released}
+        openSeason={openSeason}
       />
     </main>
   );

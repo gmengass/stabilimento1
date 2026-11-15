@@ -16,6 +16,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         {user.role === "admin" && (
           <>
             <Link href="/admin/beach">{t("beach")}</Link>
+            <Link href="/admin/seasons">{t("seasons")}</Link>
             <Link href="/admin/staff">{t("staff")}</Link>
           </>
         )}

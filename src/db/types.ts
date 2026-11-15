@@ -65,6 +65,7 @@ export interface Booking {
   id: Generated<number>;
   kind: BookingKind;
   notes: Generated<string>;
+  season_id: number | null;
   start_date: string;
   status: Generated<BookingStatus>;
   updated_at: Generated<Timestamp>;
@@ -77,6 +78,16 @@ export interface BookingSpot {
   spot_id: number;
   sunbeds: number;
   updated_at: Generated<Timestamp>;
+}
+
+export interface Season {
+  created_at: Generated<Timestamp>;
+  end_date: string;
+  id: Generated<number>;
+  name: string;
+  start_date: string;
+  updated_at: Generated<Timestamp>;
+  venue_id: number;
 }
 
 export interface Session {
@@ -154,6 +165,7 @@ export interface DB {
   area_line: AreaLine;
   booking: Booking;
   booking_spot: BookingSpot;
+  season: Season;
   session: Session;
   spot: Spot;
   spot_day: SpotDay;

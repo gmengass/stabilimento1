@@ -24,14 +24,15 @@ Each item ships something staff can use on the box.
 - [x] Bookings: create and cancel day / multi-day bookings from the map; SpotDay rows make
       double booking impossible (unique constraint + transaction)
 - [ ] Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm
-- [ ] Seasons (admin) and season passes, with released days
+- [x] Seasons (admin) and season passes, with released days
 - [ ] Move a booking to another spot or dates
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
 - [ ] Live map: changes show on every device within seconds
 
 ## Milestone 2 — Business features
-- [ ] Prices, payments recorded at the desk, daily cash-up report
+- [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the
+  end, once the holder knows their last day (owner, 2026-11-14)
 - [ ] Regular-customer history (who had which spot last season)
 - [ ] Reports for the admin
 - [ ] Remote access via Tailscale (ADR 0003)

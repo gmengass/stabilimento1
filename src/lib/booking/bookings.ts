@@ -1,13 +1,13 @@
 import { sql, type Kysely } from "kysely";
 import { z } from "zod";
-import type { DB } from "@/db/types";
+import type { BookingKind, DB } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
 
-/** Longest day / multi-day booking. Whole seasons are season passes (a later roadmap item). */
+/** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
 export const MAX_SPOTS_PER_BOOKING = 20;
 
-const bookingDate = z.string().refine(isBookingDate);
+export const bookingDate = z.string().refine(isBookingDate);
 
 const phoneNumber = z
   .string()
@@ -21,24 +21,25 @@ const optionalPhone = z
   .nullish()
   .transform((phone) => phone || null);
 
+/** Who books and which spots: the same for day bookings and season passes. */
+export const customerAndSpots = {
+  customerName: z.string().trim().min(1).max(100),
+  customerPhone: optionalPhone,
+  notes: z.string().trim().max(500).default(""),
+  spots: z
+    .array(
+      z.object({
+        spotId: z.number().int().positive(),
+        sunbeds: z.number().int().min(0).max(10),
+      }),
+    )
+    .min(1)
+    .max(MAX_SPOTS_PER_BOOKING)
+    .refine((spots) => new Set(spots.map((s) => s.spotId)).size === spots.length),
+};
+
 const createSchema = z
-  .object({
-    customerName: z.string().trim().min(1).max(100),
-    customerPhone: optionalPhone,
-    startDate: bookingDate,
-    endDate: bookingDate,
-    notes: z.string().trim().max(500).default(""),
-    spots: z
-      .array(
-        z.object({
-          spotId: z.number().int().positive(),
-          sunbeds: z.number().int().min(0).max(10),
-        }),
-      )
-      .min(1)
-      .max(MAX_SPOTS_PER_BOOKING)
-      .refine((spots) => new Set(spots.map((s) => s.spotId)).size === spots.length),
-  })
+  .object({ ...customerAndSpots, startDate: bookingDate, endDate: bookingDate })
   .refine((b) => b.endDate >= b.startDate)
   .refine((b) => daysBetween(b.startDate, b.endDate) < MAX_BOOKING_DAYS);
 
@@ -63,7 +64,7 @@ function daysBetween(start: string, end: string): number {
   return (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000;
 }
 
-function isConflict(error: unknown): boolean {
+export function isConflict(error: unknown): boolean {
   return CONFLICT_CODES.has(String((error as { code?: unknown } | null)?.code));
 }
 
@@ -115,19 +116,51 @@ async function sunbedsFit(
   return fits ? "ok" : "sunbeds";
 }
 
-type ValidBooking = z.output<typeof createSchema>;
+/** A validated booking ready to be written. A season pass names its season. */
+export interface BookingToWrite {
+  customerName: string;
+  customerPhone: string | null;
+  startDate: string;
+  endDate: string;
+  notes: string;
+  spots: { spotId: number; sunbeds: number }[];
+  seasonId?: number;
+}
 
-/** The sunbed limits changed between the first check and the insert. */
-class SunbedsChanged extends Error {}
+/** The sunbed limits or the season's dates changed between the first check and the insert. */
+class Stale extends Error {
+  constructor(readonly reason: "sunbeds" | "invalid") {
+    super(reason);
+  }
+}
+
+function kindOf(booking: BookingToWrite): BookingKind {
+  if (booking.seasonId !== undefined) return "season";
+  return booking.startDate === booking.endDate ? "day" : "multi_day";
+}
+
+/** Share-locks the season so an admin can't move its dates under a pass being written. */
+async function seasonStillCovers(tx: Kysely<DB>, booking: BookingToWrite): Promise<boolean> {
+  if (booking.seasonId === undefined) return true;
+  const season = await tx
+    .selectFrom("season")
+    .select(["start_date", "end_date"])
+    .where("id", "=", booking.seasonId)
+    .forShare()
+    .executeTakeFirst();
+  return !!season && booking.startDate >= season.start_date && booking.endDate <= season.end_date;
+}
 
 /** Inserts the booking and one spot_day per spot per day, in one transaction. */
-async function insertBooking(db: Kysely<DB>, userId: string, booking: ValidBooking) {
+async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToWrite) {
   return db.transaction().execute(async (tx) => {
-    if ((await sunbedsFit(tx, booking.spots, true)) !== "ok") throw new SunbedsChanged();
+    if (!(await seasonStillCovers(tx, booking))) throw new Stale("invalid");
+    if ((await sunbedsFit(tx, booking.spots, true)) !== "ok") throw new Stale("sunbeds");
     const { id } = await tx
       .insertInto("booking")
       .values({
-        kind: booking.startDate === booking.endDate ? "day" : "multi_day",
+        kind: kindOf(booking),
+        season_id: booking.seasonId ?? null,
         customer_name: booking.customerName,
         customer_phone: booking.customerPhone,
         start_date: booking.startDate,
@@ -163,14 +196,11 @@ const ATTEMPTS = 2;
  * index decides races: of two staff booking the same spot at once, exactly one wins. If the
  * winner is cancelled before we can name the clash, we simply try again.
  */
-export async function createBooking(
+export async function bookSpots(
   db: Kysely<DB>,
   userId: string,
-  input: unknown,
+  booking: BookingToWrite,
 ): Promise<CreateResult> {
-  const parsed = createSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: "invalid" };
-  const booking = parsed.data;
   const fit = await sunbedsFit(db, booking.spots);
   if (fit === "mixedAreas") return { ok: false, error: "invalid" };
   if (fit === "sunbeds") return { ok: false, error: "sunbeds" };
@@ -182,11 +212,22 @@ export async function createBooking(
     try {
       return { ok: true, bookingId: await insertBooking(db, userId, booking) };
     } catch (error) {
-      if (error instanceof SunbedsChanged) return { ok: false, error: "sunbeds" };
+      if (error instanceof Stale) return { ok: false, error: error.reason };
       if (!isConflict(error)) throw error;
       if (attempt >= ATTEMPTS) return { ok: false, error: "taken", clashes: [] };
     }
   }
+}
+
+/** A day or multi-day booking. Season passes go through `createSeasonPass`. */
+export async function createBooking(
+  db: Kysely<DB>,
+  userId: string,
+  input: unknown,
+): Promise<CreateResult> {
+  const parsed = createSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  return bookSpots(db, userId, parsed.data);
 }
 
 const cancelSchema = z.object({ bookingId: z.number().int().positive() });
@@ -232,20 +273,28 @@ export async function cancelBooking(
 
 export interface Occupant {
   bookingId: number;
+  kind: BookingKind;
   customerName: string;
   customerPhone: string | null;
   startDate: string;
   endDate: string;
   notes: string;
+  /** Days the holder gave back, counted from spot_day so it can't drift (ADR 0004). */
+  releasedDays: number;
   /** Every umbrella in the booking with its sunbeds, so staff see the whole group. */
   spots: { number: number; sunbeds: number }[];
 }
 
-/** Who is on each spot on one day, keyed by spot id. Only `booked` days count. */
-export async function loadOccupancy(
+/**
+ * Who has each spot on one day, keyed by spot id. `booked` rows are the occupants; `released`
+ * rows are season-pass holders who gave the day back (the spot is free unless someone else
+ * booked it).
+ */
+async function loadSpotDays(
   db: Kysely<DB>,
   areaId: number,
   date: string,
+  state: "booked" | "released",
 ): Promise<Record<number, Occupant>> {
   const rows = await db
     .selectFrom("spot_day")
@@ -255,11 +304,19 @@ export async function loadOccupancy(
     .select((eb) => [
       "spot_day.spot_id as spotId",
       "booking.id as bookingId",
+      "booking.kind",
       "booking.customer_name as customerName",
       "booking.customer_phone as customerPhone",
       "booking.start_date as startDate",
       "booking.end_date as endDate",
       "booking.notes",
+      eb
+        .selectFrom("spot_day as sd")
+        .innerJoin("booking_spot as bs", "bs.id", "sd.booking_spot_id")
+        .select(sql<number>`count(distinct sd.date)::int`.as("n"))
+        .whereRef("bs.booking_id", "=", "booking.id")
+        .where("sd.state", "=", "released")
+        .as("releasedDays"),
       eb
         .selectFrom("booking_spot as other")
         .innerJoin("spot as s", "s.id", "other.spot_id")
@@ -273,9 +330,23 @@ export async function loadOccupancy(
     ])
     .where("spot.area_id", "=", areaId)
     .where("spot_day.date", "=", date)
-    .where("spot_day.state", "=", "booked")
+    .where("spot_day.state", "=", state)
+    .orderBy("booking.id")
     .execute();
   return Object.fromEntries(
-    rows.map(({ spotId, spots, ...occupant }) => [spotId, { ...occupant, spots: spots ?? [] }]),
+    rows.map(({ spotId, spots, releasedDays, ...occupant }) => [
+      spotId,
+      { ...occupant, releasedDays: releasedDays ?? 0, spots: spots ?? [] },
+    ]),
   );
+}
+
+/** Who is on each spot on one day, keyed by spot id. Only `booked` days count. */
+export function loadOccupancy(db: Kysely<DB>, areaId: number, date: string) {
+  return loadSpotDays(db, areaId, date, "booked");
+}
+
+/** Season passes that released this day, keyed by spot id (the latest pass if several did). */
+export function loadReleased(db: Kysely<DB>, areaId: number, date: string) {
+  return loadSpotDays(db, areaId, date, "released");
 }
