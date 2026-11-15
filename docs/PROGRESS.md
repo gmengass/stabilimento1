@@ -3,9 +3,8 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.2.1` is tagged and deployed on the club box (Windows + WSL2).
-- Merged, not in a tagged release: #12 `setup-wsl.sh` without `sg`, #19 tracker, #21 CI skips the
-  heavy jobs on docs-only pull requests.
+- `v0.2.2` is tagged (main after #12, #19, #21, #24 optional phone, #25 language in user menu).
+  The club box (Windows + WSL2) runs `v0.2.1` until `scripts/update.sh v0.2.2` is run there.
 - Open PR `feat/season-passes` (migration `0006_seasons`) ticks Roadmap Milestone 1 item 4.
 
 ## Done this session
@@ -32,7 +31,7 @@
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 - RUNBOOK firewall example says `192.168.1.0/24`; the box is on `192.168.0.0/24`.
-- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.2.1; add the #12 fix.
+- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.2.2.
 
 ## Known issues
 - Sessions can't pull Docker images or push tags (HTTP 403): Docker/e2e run in CI, tags on GitHub.
