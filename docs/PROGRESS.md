@@ -5,16 +5,17 @@
 ## Current state
 - `v0.2.2` is tagged (main after #12, #19, #21, #24 optional phone, #25 language in user menu).
   The club box (Windows + WSL2) runs `v0.2.1` until `scripts/update.sh v0.2.2` is run there.
-- Open PR `feat/season-passes` (migration `0006_seasons`) ticks Roadmap Milestone 1 item 4.
+- Merged, not in a tagged release: #26 seasons and season passes (migration `0006_seasons`).
 
 ## Done this session
 - Seasons (one per year), season passes with an optional last day, release and give back
   (`docs/plans/season-passes.md`). E2E test `e2e/season-pass.spec.ts`.
 
 ## Next up
-1. Review and merge `feat/season-passes`, then tag a release and update the box.
-2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
-3. Backups (USB + OneDrive) before the first real season. Share the lock with `update.sh`.
+1. Update the box to `v0.2.2`, then tag `v0.3.0` (season passes) and update the box again.
+2. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
+   owner: OneDrive approval from whoever runs Microsoft 365, and a USB drive left in the box.
+3. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
 4. Trusted certificate: Android Chrome blocks the internal-CA cert with no "Proceed". Let's Encrypt
    via DNS-01 on the club's domain (new ADR amending ADR 0008). Ask the owner: domain, DNS host.
 
