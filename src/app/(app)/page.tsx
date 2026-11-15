@@ -56,12 +56,12 @@ export default async function Home(props: PageProps<"/">) {
 
   return (
     <main className="flex w-full flex-col gap-4 p-4">
-      <AreaTabs
-        areas={areas}
-        currentId={beach.areaId}
-        hrefOf={Object.fromEntries(areas.map((a) => [a.id, `/?area=${a.id}&date=${date}`]))}
-      />
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <AreaTabs
+          areas={areas}
+          currentId={beach.areaId}
+          hrefOf={Object.fromEntries(areas.map((a) => [a.id, `/?area=${a.id}&date=${date}`]))}
+        />
         <AreaBanner name={beach.areaName} />
         <h1 className="mr-auto text-xl font-semibold">
           {formatBookingDate(date, isLocale(locale) ? locale : "it")}
