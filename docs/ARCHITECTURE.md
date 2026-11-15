@@ -35,6 +35,9 @@ screens within seconds. Customers never use the app. They are contact details on
   (unique (spot, date) on SpotDay), not only in application code.
 - Booking days are local calendar dates (`Europe/Rome`); timestamps are stored in UTC (ADR 0004).
 - Status changes go through a single service function so they can be audited.
+- On the beach map, the date controls (previous day, today, next day, date picker, Show) stay
+  on one line: they wrap below the space tabs as one group, never apart, and scroll sideways on a
+  screen too narrow for them (`e2e/map-header.spec.ts`).
 
 ## Directory layout
 - `src/app/`: Next.js routes (App Router), incl. `/health`

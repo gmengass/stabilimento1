@@ -87,6 +87,7 @@
   "map": {
     "line": "Fila {number}",
     "spotFree": "Ombrellone {number}, libero",
+    "dateNav": "Scegli il giorno",
     "previousDay": "← Giorno prima",
     "today": "Oggi",
     "nextDay": "Giorno dopo →",

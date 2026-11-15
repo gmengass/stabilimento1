@@ -8,6 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   the map.
 
 ### Fixed
+- On the beach map, the previous day, today, next day, date picker and Show controls always
+  stay together on one line instead of breaking across two.
 - Updating the server failed at the migration step ("EACCES: permission denied") when a release
   added new files: the update script checked them out readable by their owner only. Releases
   are now checked out readable, and the migration image owns its sources either way.
