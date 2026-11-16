@@ -3,15 +3,16 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.4.0` deployed (latest tag). On `main`, untagged, CI green: #39 (activity + undo, ADR 0013,
-  migration 0007), #40 (Android app, ADR 0010/0011), #41 (e2e fix). APK not built, on no tablet.
+- `v0.5.1` released and deployed (activity + undo, Android app, `DEFAULT_SNI` fix #43).
+  APK built on the box and working on a tablet, via the IP fallback (`REMOTE_URL`=box IP).
 
 ## Done this session
-- Merged #41 (e2e looks up spots inside the map, alerts inside quick book) and #40 (Android app).
+- Android app on a real tablet. Found: `.local` doesn't resolve on Android, and HTTPS by IP had
+  no certificate behind Docker (fixed with Caddy `default_sni`, #43).
 
 ## Next up
-1. Release `v0.5.0` (#39, #40, #41; migration 0007 runs on update), deploy. Build the APK on
-   the box, try it on the **oldest** tablet (bundled root on Android 7, sign-in, pinning).
+1. Router DNS entry `stabilimento.local` → `192.168.0.50`; back up the Android signing key
+   off the box; screen pinning and the remaining tablets (RUNBOOK).
 2. Backups (USB + OneDrive; owner: M365 approval, USB in the box), incl. the Android signing key.
 3. Move a booking to another spot or dates (log it for undo, ADR 0013); then Phone layout.
 
