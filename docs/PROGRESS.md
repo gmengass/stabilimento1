@@ -3,13 +3,13 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.3.0` is tagged and deployed on the club box (Windows + WSL2): seasons and season passes
-  (#26, migration `0006_seasons`). `v0.2.2` before it: optional phone (#24), language switcher in
-  the user menu (#25), `setup-wsl.sh` without `sg` (#12).
+- `v0.3.1` is tagged (#28: beach space tabs on the date row); deploy on the box not confirmed.
+  `v0.3.0` (seasons and season passes, #26, migration `0006_seasons`) is deployed on the box.
+- Merged, not yet tagged: #29, the map's date controls always stay together on one line.
 
 ## Done this session
-- Seasons (one per year), season passes with an optional last day, release and give back
-  (`docs/plans/season-passes.md`). E2E test `e2e/season-pass.spec.ts`.
+- #29: the five date controls form one non-wrapping group (`e2e/map-header.spec.ts`).
+  E2E specs share one admin sign-in (`e2e/admin.setup.ts`): sign-in is limited to 5 per minute.
 
 ## Next up
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
@@ -31,7 +31,8 @@
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 - RUNBOOK firewall example says `192.168.1.0/24`; the box is on `192.168.0.0/24`.
-- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.3.0.
+- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.3.1.
+- E2E uses exactly 5 sign-ins (the per-minute limit): a CI retry of a login test can hit it.
 
 ## Known issues
 - Sessions can't pull Docker images or push tags (HTTP 403): Docker/e2e run in CI, tags on GitHub.
