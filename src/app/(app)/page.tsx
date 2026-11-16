@@ -8,8 +8,10 @@ import { isLocale } from "@/i18n/config";
 import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
+import { listActivity } from "@/lib/booking/audit";
 import { loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import { loadOpenSeason } from "@/lib/booking/seasons";
+import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
 
 export default async function Home(props: PageProps<"/">) {
@@ -41,6 +43,7 @@ export default async function Home(props: PageProps<"/">) {
   const released = await loadReleased(getDb(), beach.areaId, date);
   const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
+  const activity = await listActivity(getDb());
   const at = (day?: string) => {
     const query = new URLSearchParams({ area: String(beach.areaId) });
     if (day) query.set("date", day);
@@ -112,6 +115,7 @@ export default async function Home(props: PageProps<"/">) {
         released={released}
         openSeason={openSeason}
       />
+      <ActivityPanel entries={activity} viewer={{ id: user.id, role: user.role }} />
     </main>
   );
 }

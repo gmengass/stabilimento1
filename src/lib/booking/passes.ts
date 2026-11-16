@@ -2,9 +2,11 @@ import type { Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
 import { addDays, venueToday } from "@/i18n/format";
+import { movedOnly, writeEntry, type MovedDay } from "./audit";
 import {
   bookingDate,
   bookSpots,
+  DAY_COLUMNS,
   customerAndSpots,
   isConflict,
   type Clash,
@@ -85,6 +87,7 @@ export type EndPassResult = { ok: true } | { ok: false; error: "invalid" | "past
  */
 export async function endSeasonPass(
   db: Kysely<DB>,
+  userId: string,
   input: unknown,
   today: string = venueToday(),
 ): Promise<EndPassResult> {
@@ -103,13 +106,28 @@ export async function endSeasonPass(
       .set({ end_date: lastDay })
       .where("id", "=", bookingId)
       .execute();
-    await tx
+    const removed = await tx
       .deleteFrom("spot_day")
       .where("date", ">", lastDay)
       .where("booking_spot_id", "in", (q) =>
         q.selectFrom("booking_spot").select("id").where("booking_id", "=", bookingId),
       )
+      .returning(DAY_COLUMNS)
       .execute();
+    if (lastDay === pass.endDate) return { ok: true } as const;
+    await writeEntry(tx, {
+      userId,
+      action: "set_last_day",
+      bookingId,
+      detail: { lastDay, previous: pass.endDate },
+      change: {
+        before: { status: "active", endDate: pass.endDate },
+        after: { status: "active", endDate: lastDay },
+        added: [],
+        removed,
+        moved: [],
+      },
+    });
     return { ok: true } as const;
   });
 }
@@ -128,14 +146,21 @@ export type DaysResult =
   | { ok: false; error: "taken"; clashes: Clash[] };
 
 type Days = z.output<typeof daysSchema>;
-type Change = (tx: Kysely<DB>, days: Days, bookingSpotIds: number[]) => Promise<DaysResult>;
+type Taken = { ok: false; error: "taken"; clashes: Clash[] };
+/** Moves the pass's days, or says why it can't. */
+type Move = (tx: Kysely<DB>, days: Days, bookingSpotIds: number[]) => Promise<MovedDay[] | Taken>;
 
-/** Runs a release or restore on a locked season pass. Past days stay as they were. */
+/**
+ * Runs a release or restore on a locked season pass and logs the days it moved in the same
+ * transaction (ADR 0013). Past days stay as they were.
+ */
 async function onPassDays(
   db: Kysely<DB>,
+  userId: string,
+  action: "release" | "restore",
   input: unknown,
   today: string,
-  change: Change,
+  move: Move,
 ): Promise<DaysResult> {
   const parsed = daysSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
@@ -149,22 +174,34 @@ async function onPassDays(
       .select("id")
       .where("booking_id", "=", days.bookingId)
       .execute();
-    return change(
+    const moved = await move(
       tx,
       days,
       bookingSpots.map((b) => b.id),
     );
+    if (!Array.isArray(moved)) return moved;
+    const count = new Set(moved.map((day) => day.date)).size;
+    if (count > 0) {
+      await writeEntry(tx, {
+        userId,
+        action,
+        bookingId: days.bookingId,
+        detail: { startDate: days.startDate, endDate: days.endDate, days: count },
+        change: movedOnly({ status: "active", endDate: pass.endDate }, moved),
+      });
+    }
+    return { ok: true, days: count };
   });
 }
 
-/** Moves the pass's days in the range from one state to the other; returns how many days moved. */
+/** Moves the pass's days in the range from one state to the other. */
 async function moveDays(
   tx: Kysely<DB>,
   days: Days,
   bookingSpotIds: number[],
   from: "booked" | "released",
   to: "booked" | "released",
-): Promise<number> {
+): Promise<MovedDay[]> {
   const moved = await tx
     .updateTable("spot_day")
     .set({ state: to })
@@ -172,9 +209,9 @@ async function moveDays(
     .where("state", "=", from)
     .where("date", ">=", days.startDate)
     .where("date", "<=", days.endDate)
-    .returning("date")
+    .returning(["booking_spot_id as bookingSpotId", "spot_id as spotId", "date"])
     .execute();
-  return new Set(moved.map((row) => row.date)).size;
+  return moved.map((day) => ({ ...day, from, to }));
 }
 
 /**
@@ -184,13 +221,13 @@ async function moveDays(
  */
 export async function releaseDays(
   db: Kysely<DB>,
+  userId: string,
   input: unknown,
   today: string = venueToday(),
 ): Promise<DaysResult> {
-  return onPassDays(db, input, today, async (tx, days, bookingSpotIds) => ({
-    ok: true,
-    days: await moveDays(tx, days, bookingSpotIds, "booked", "released"),
-  }));
+  return onPassDays(db, userId, "release", input, today, (tx, days, bookingSpotIds) =>
+    moveDays(tx, days, bookingSpotIds, "booked", "released"),
+  );
 }
 
 /** The pass's released days in the range that someone else has booked since. */
@@ -227,14 +264,15 @@ async function takenSince(tx: Kysely<DB>, days: Days, bookingSpotIds: number[]):
  */
 export async function restoreDays(
   db: Kysely<DB>,
+  userId: string,
   input: unknown,
   today: string = venueToday(),
 ): Promise<DaysResult> {
   try {
-    return await onPassDays(db, input, today, async (tx, days, bookingSpotIds) => {
-      const clashes = await takenSince(tx, days, bookingSpotIds);
+    return await onPassDays(db, userId, "restore", input, today, async (tx, days, ids) => {
+      const clashes = await takenSince(tx, days, ids);
       if (clashes.length > 0) return { ok: false, error: "taken", clashes };
-      return { ok: true, days: await moveDays(tx, days, bookingSpotIds, "released", "booked") };
+      return moveDays(tx, days, ids, "released", "booked");
     });
   } catch (error) {
     // Someone booked one of the days between the check and the update: the unique index won.

@@ -13,6 +13,18 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [x: string]: JsonValue | undefined;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type SpotDayState = "booked" | "no_show" | "released";
 
 export type SpotKind = "sunbed" | "umbrella";
@@ -51,6 +63,18 @@ export interface AreaLine {
   id: Generated<number>;
   number: number;
   updated_at: Generated<Timestamp>;
+}
+
+export interface AuditLog {
+  action: string;
+  booking_id: number | null;
+  change: Json | null;
+  created_at: Generated<Timestamp>;
+  detail: Generated<Json>;
+  id: Generated<number>;
+  undoes_id: number | null;
+  undone_by_id: number | null;
+  user_id: string;
 }
 
 export interface Booking {
@@ -163,6 +187,7 @@ export interface DB {
   account: Account;
   area: Area;
   area_line: AreaLine;
+  audit_log: AuditLog;
   booking: Booking;
   booking_spot: BookingSpot;
   season: Season;

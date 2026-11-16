@@ -1,0 +1,89 @@
+import { getLocale, getTranslations } from "next-intl/server";
+import { defaultLocale, isLocale } from "@/i18n/config";
+import { formatBookingDate, formatTimestamp } from "@/i18n/format";
+import { mayUndo, type ActivityEntry, type Viewer } from "@/lib/booking/audit";
+import { UndoButton } from "./undo-button";
+
+interface Props {
+  entries: ActivityEntry[];
+  viewer: Viewer;
+}
+
+/** The latest actions for the whole venue, with Undo where this viewer may use it (ADR 0013). */
+export async function ActivityPanel({ entries, viewer }: Props) {
+  const t = await getTranslations("activity");
+  const requested = await getLocale();
+  const locale = isLocale(requested) ? requested : defaultLocale;
+  const now = new Date();
+  const day = (date: unknown) => formatBookingDate(String(date), locale);
+  const range = (from: unknown, to: unknown) =>
+    from === to ? day(from) : t("range", { from: day(from), to: day(to) });
+
+  function describe(entry: ActivityEntry): string {
+    const user = entry.userName;
+    const name = entry.customerName ?? "";
+    const spots = t("spots", { count: entry.spots.length, numbers: entry.spots.join(", ") });
+    const { detail } = entry;
+    switch (entry.action) {
+      case "book":
+        return entry.kind === "season"
+          ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
+          : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
+      case "cancel":
+        return t("cancel", { user, name, spots });
+      case "set_last_day":
+        return t("setLastDay", { user, name, date: day(detail.lastDay) });
+      case "release":
+      case "restore":
+        return t(entry.action, {
+          user,
+          name,
+          days: Number(detail.days),
+          dates: range(detail.startDate, detail.endDate),
+        });
+      case "undo":
+        return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
+      case "beach":
+        return t("beach", { user });
+      case "season":
+        return t("season", { user, what: String(detail.what) });
+    }
+  }
+
+  return (
+    // Native disclosure: works without client code, and a re-render after an undo keeps the
+    // state the staff member chose, because React only sets `open` when the prop changes.
+    <details open data-testid="activity" className="rounded border p-3">
+      <summary className="cursor-pointer py-1 text-lg font-semibold">{t("title")}</summary>
+      {entries.length === 0 ? (
+        <p className="mt-2 text-sm text-gray-700">{t("empty")}</p>
+      ) : (
+        <ol className="mt-2 flex flex-col divide-y">
+          {entries.map((entry) => {
+            const text = describe(entry);
+            return (
+              <li
+                key={entry.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
+              >
+                <time dateTime={entry.at.toISOString()} className="text-gray-600 tabular-nums">
+                  {formatTimestamp(entry.at, locale)}
+                </time>
+                <span className={entry.undone ? "flex-1 text-gray-500 line-through" : "flex-1"}>
+                  {text}
+                </span>
+                {entry.undone ? (
+                  <span className="text-gray-600">{t("undone")}</span>
+                ) : (
+                  mayUndo(entry, viewer, now) && (
+                    <UndoButton entryId={entry.id} label={t("undoLabel", { text })} />
+                  )
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </details>
+  );
+}

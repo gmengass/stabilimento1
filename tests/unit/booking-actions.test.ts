@@ -1,28 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, bookingsModule, passesModule, quickBookModule, cache } = vi.hoisted(() => ({
-  actor: { current: null as CurrentUser | null },
-  bookingsModule: {
-    createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
-    cancelBooking: vi.fn(async () => ({ ok: true as const })),
-  },
-  passesModule: {
-    createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
-    releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
-    restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
-    endSeasonPass: vi.fn(async () => ({ ok: true as const })),
-  },
-  quickBookModule: {
-    suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
-  },
-  cache: { revalidatePath: vi.fn() },
-}));
+const { actor, bookingsModule, passesModule, quickBookModule, undoModule, cache } = vi.hoisted(
+  () => ({
+    actor: { current: null as CurrentUser | null },
+    bookingsModule: {
+      createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
+      cancelBooking: vi.fn(async () => ({ ok: true as const })),
+    },
+    passesModule: {
+      createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
+      releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
+      restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
+      endSeasonPass: vi.fn(async () => ({ ok: true as const })),
+    },
+    quickBookModule: {
+      suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
+    },
+    undoModule: { undoEntry: vi.fn(async () => ({ ok: true as const })) },
+    cache: { revalidatePath: vi.fn() },
+  }),
+);
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
 vi.mock("@/lib/booking/passes", () => passesModule);
 vi.mock("@/lib/booking/quick-book", () => quickBookModule);
+vi.mock("@/lib/booking/undo", () => undoModule);
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("next/cache", () => cache);
 
@@ -34,6 +38,7 @@ const {
   restoreDaysAction,
   endSeasonPassAction,
   suggestQuickBookAction,
+  undoAction,
 } = await import("@/app/(app)/booking-actions");
 
 const staff: CurrentUser = {
@@ -79,10 +84,10 @@ describe.each(dayActions)("%s", (_name, action, operation) => {
     expect(operation).not.toHaveBeenCalled();
   });
 
-  it("runs for staff", async () => {
+  it("runs for staff, recording who did it", async () => {
     actor.current = staff;
     await expect(action({ x: 1 })).resolves.toMatchObject({ ok: true });
-    expect(operation).toHaveBeenCalledWith({}, { x: 1 });
+    expect(operation).toHaveBeenCalledWith({}, "u1", { x: 1 });
   });
 });
 
@@ -100,6 +105,32 @@ describe("suggestQuickBookAction", () => {
       suggestions: [],
     });
     expect(quickBookModule.suggestQuickBook).toHaveBeenCalledWith({}, { x: 1 });
+    expect(cache.revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("undoAction", () => {
+  it("is forbidden when logged out", async () => {
+    actor.current = null;
+    await expect(undoAction({ entryId: 1 })).resolves.toEqual({ ok: false, error: "forbidden" });
+    expect(undoModule.undoEntry).not.toHaveBeenCalled();
+  });
+
+  it("passes the session's id and role, never the client's", async () => {
+    actor.current = staff;
+    await expect(undoAction({ entryId: 1, role: "admin" })).resolves.toEqual({ ok: true });
+    expect(undoModule.undoEntry).toHaveBeenCalledWith(
+      {},
+      { id: "u1", role: "staff" },
+      { entryId: 1, role: "admin" },
+    );
+    expect(cache.revalidatePath).toHaveBeenCalledWith("/");
+  });
+
+  it("leaves the cache alone when the undo is refused", async () => {
+    actor.current = staff;
+    undoModule.undoEntry.mockResolvedValueOnce({ ok: false, error: "changed" } as never);
+    await expect(undoAction({ entryId: 1 })).resolves.toEqual({ ok: false, error: "changed" });
     expect(cache.revalidatePath).not.toHaveBeenCalled();
   });
 });

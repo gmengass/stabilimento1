@@ -2,6 +2,7 @@ import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { BookingKind, DB } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
+import { writeEntry, type DayRow } from "./audit";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -176,14 +177,29 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       .returning("id")
       .execute();
     // A fixed row order means two overlapping bookings wait for each other instead of deadlocking.
-    await sql`
+    const { rows: added } = await sql<DayRow>`
       insert into spot_day (spot_id, booking_spot_id, date)
       select bs.spot_id, bs.id, d::date
       from booking_spot bs
       cross join generate_series(${booking.startDate}::date, ${booking.endDate}::date, '1 day') d
       where bs.id in (${sql.join(bookingSpots.map((b) => b.id))})
       order by bs.spot_id, d
+      returning booking_spot_id as "bookingSpotId", spot_id as "spotId",
+        to_char(date, 'YYYY-MM-DD') as date, state
     `.execute(tx);
+    const { endDate } = booking;
+    await writeEntry(tx, {
+      userId,
+      action: "book",
+      bookingId: id,
+      change: {
+        before: { status: "cancelled", endDate },
+        after: { status: "active", endDate },
+        added,
+        removed: [],
+        moved: [],
+      },
+    });
     return id;
   });
 }
@@ -232,6 +248,14 @@ export async function createBooking(
   return bookSpots(db, userId, parsed.data);
 }
 
+/** A spot_day row as the audit log records it. */
+export const DAY_COLUMNS = [
+  "booking_spot_id as bookingSpotId",
+  "spot_id as spotId",
+  "date",
+  "state",
+] as const;
+
 const cancelSchema = z.object({ bookingId: z.number().int().positive() });
 
 /**
@@ -262,13 +286,27 @@ export async function cancelBooking(
       .set({ status: "cancelled", cancelled_at: new Date(), cancelled_by: userId })
       .where("id", "=", bookingId)
       .execute();
-    await tx
+    const removed = await tx
       .deleteFrom("spot_day")
       .where("date", ">=", today)
       .where("booking_spot_id", "in", (q) =>
         q.selectFrom("booking_spot").select("id").where("booking_id", "=", bookingId),
       )
+      .returning(DAY_COLUMNS)
       .execute();
+    const endDate = booking.end_date;
+    await writeEntry(tx, {
+      userId,
+      action: "cancel",
+      bookingId,
+      change: {
+        before: { status: "active", endDate },
+        after: { status: "cancelled", endDate },
+        added: [],
+        removed,
+        moved: [],
+      },
+    });
     return { ok: true } as const;
   });
 }

@@ -8,6 +8,7 @@ import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
 import * as passes from "@/lib/booking/passes";
 import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
 import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-book";
+import { undoEntry, type UndoResult } from "@/lib/booking/undo";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
@@ -40,7 +41,7 @@ export async function createSeasonPassAction(input: unknown): Promise<CreateResu
 export async function releaseDaysAction(input: unknown): Promise<DaysResult | Forbidden> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
-  const result = await passes.releaseDays(getDb(), input);
+  const result = await passes.releaseDays(getDb(), user.id, input);
   if (result.ok) revalidatePath("/");
   return result;
 }
@@ -48,7 +49,7 @@ export async function releaseDaysAction(input: unknown): Promise<DaysResult | Fo
 export async function restoreDaysAction(input: unknown): Promise<DaysResult | Forbidden> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
-  const result = await passes.restoreDays(getDb(), input);
+  const result = await passes.restoreDays(getDb(), user.id, input);
   if (result.ok) revalidatePath("/");
   return result;
 }
@@ -56,7 +57,7 @@ export async function restoreDaysAction(input: unknown): Promise<DaysResult | Fo
 export async function endSeasonPassAction(input: unknown): Promise<EndPassResult | Forbidden> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
-  const result = await passes.endSeasonPass(getDb(), input);
+  const result = await passes.endSeasonPass(getDb(), user.id, input);
   if (result.ok) revalidatePath("/");
   return result;
 }
@@ -68,4 +69,13 @@ export async function suggestQuickBookAction(
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   return suggestQuickBook(getDb(), input);
+}
+
+/** Who may undo what is decided in `undoEntry` from the session's role (ADR 0013). */
+export async function undoAction(input: unknown): Promise<UndoResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await undoEntry(getDb(), { id: user.id, role: user.role }, input);
+  if (result.ok) revalidatePath("/");
+  return result;
 }
