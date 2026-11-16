@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stabilimento</string>
+    <string name="connecting">Connecting…</string>
+    <string name="not_reachable">Server not reachable</string>
+    <string name="not_reachable_hint">Check that this device is on the staff Wi-Fi, then try again.</string>
+    <string name="retry">Retry</string>
+</resources>
