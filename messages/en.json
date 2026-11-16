@@ -191,7 +191,8 @@
       "invalidDays": "Check the dates: the last day must be on or after the first.",
       "notSeason": "Only season passes can release days.",
       "past": "Past days can't be changed.",
-      "invalidLastDay": "Pick a last day inside the pass. A pass can only be shortened."
+      "invalidLastDay": "Pick a last day inside the pass. A pass can only be shortened.",
+      "pastBooking": "Past days can't be booked."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -259,5 +260,31 @@
     },
     "defaultName": "Season {year}",
     "nextAfter": "You can add the next season once {name} has ended (last day {date})."
+  },
+  "quickBook": {
+    "open": "Quick book",
+    "title": "Quick book · {area}",
+    "umbrellas": "Umbrellas",
+    "sunbeds": "Sunbeds (in total)",
+    "suggest": "Suggest umbrellas",
+    "searching": "Looking…",
+    "suggestion": "Suggestion {index} of {total}: {spots}",
+    "summary": "{layout} · {dates}",
+    "layout": {
+      "adjacent": "Side by side",
+      "sameLine": "Same line, not side by side",
+      "split": "Across lines"
+    },
+    "editHint": "Tap umbrellas on the map to change the choice, then confirm below.",
+    "another": "Another suggestion",
+    "change": "Change request",
+    "errors": {
+      "noFit": "{free, plural, =0 {No umbrellas are free on those days.} one {Only # umbrella is free on those days.} other {Only # umbrellas are free on those days.}}",
+      "tooManySunbeds": "No group of free umbrellas can hold that many sunbeds.",
+      "past": "Past days can't be booked.",
+      "invalid": "Check the fields: 1 to 20 umbrellas, 0 or more sunbeds, and an end date on or after the start.",
+      "forbidden": "Your session has ended. Log in again.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }

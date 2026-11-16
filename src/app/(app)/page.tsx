@@ -104,6 +104,7 @@ export default async function Home(props: PageProps<"/">) {
       <BeachBoard
         today={today}
         key={beach.areaId}
+        areaId={beach.areaId}
         areaName={beach.areaName}
         date={date}
         lines={beach.lines}
