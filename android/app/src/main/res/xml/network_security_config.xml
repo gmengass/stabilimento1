@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ADR 0010: the system roots plus the club's Caddy root, for this app only. No user-installed
+     roots, no cleartext. raw/club_root.crt is copied in by scripts/build-android.sh. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/club_root" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -60,6 +60,10 @@ screens within seconds. Customers never use the app. They are contact details on
 - `scripts/update.sh`, `rollback.sh`, `pre-update-backup.sh`, `setup-wsl.sh` (one-time box setup):
   POSIX sh deploy scripts; operator steps
   in `docs/RUNBOOK.md`
+- `android/`: the tablet app (ADR 0010, ADR 0011), a WebView wrapper in Kotlin with no AndroidX.
+  `OriginPolicy`, `BoxSelector` and `HealthProbe` are plain Kotlin with JVM tests;
+  `android/Dockerfile` pins the SDK and Gradle. Built only by `scripts/build-android.sh`
+  (`scripts/lib/android.sh` checks `.env`), on the box and in CI
 
 ## Authorization
 - Every page, Server Action and route handler checks the user itself (`requireUser`,

@@ -179,6 +179,83 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  # The Android app (ADR 0010), built by the box's own script with a throwaway root and key.
+  android:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Key and APK directories outside the checkout
+        run: |
+          echo "ANDROID_KEY_DIR=$RUNNER_TEMP/secrets" >> "$GITHUB_ENV"
+          echo "ANDROID_OUT_DIR=$RUNNER_TEMP/apk" >> "$GITHUB_ENV"
+      - name: No JavaScript bridge or file access in the wrapper
+        run: "! grep -rnE 'addJavascriptInterface|setAllowFileAccess\\(true|allowFileAccess = true|onReceivedSslError.*proceed|handler\\.proceed' android/"
+      - name: Throwaway club root in a caddy_data volume, box-like .env
+        run: |
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=CI throwaway root" \
+            -keyout "$RUNNER_TEMP/ca.key" -out "$RUNNER_TEMP/root.crt"
+          docker volume create stabilimento_caddy_data
+          docker run --rm -v stabilimento_caddy_data:/d -v "$RUNNER_TEMP/root.crt:/root.crt:ro" caddy:2.10-alpine \
+            sh -c 'mkdir -p /d/caddy/pki/authorities/local && cp /root.crt /d/caddy/pki/authorities/local/root.crt'
+          {
+            echo "APP_URL=https://stabilimento.local"
+            echo "SITE_ADDRESS=stabilimento.local, 192.168.0.10, stabilimento.tail1234.ts.net"
+            echo "TRUSTED_ORIGINS=https://192.168.0.10,https://stabilimento.tail1234.ts.net"
+            echo "REMOTE_URL=https://stabilimento.tail1234.ts.net"
+          } > .env
+          cp .env "$RUNNER_TEMP/good.env"
+      - name: Bad settings are refused before anything is built
+        run: |
+          refuse() {
+            cp "$RUNNER_TEMP/good.env" .env
+            printf '%s\n' "$1" >> .env
+            if scripts/build-android.sh 2> err; then echo "accepted: $1"; exit 1; fi
+            grep -F "$2" err
+          }
+          refuse "APP_URL=http://stabilimento.local" "APP_URL must be an https origin"
+          refuse "TRUSTED_ORIGINS=https://192.168.0.10/,https://stabilimento.tail1234.ts.net" "is not an https origin"
+          refuse "REMOTE_URL=https://other.tail1234.ts.net" "must also be in TRUSTED_ORIGINS"
+          refuse "TRUSTED_ORIGINS=https://192.168.0.99,https://stabilimento.tail1234.ts.net" "192.168.0.99 is not in SITE_ADDRESS"
+          cp "$RUNNER_TEMP/good.env" .env
+          if CADDY_VOLUME=ci_empty_caddy_data scripts/build-android.sh 2> err; then exit 1; fi
+          grep -F "no Caddy root certificate" err
+          docker volume rm ci_empty_caddy_data
+          test ! -e "$ANDROID_OUT_DIR"
+      - name: Build twice with the same key
+        run: |
+          scripts/build-android.sh
+          scripts/build-android.sh
+          ls -l "$ANDROID_OUT_DIR" "$ANDROID_KEY_DIR"
+          test "$(find "$ANDROID_OUT_DIR" -name '*.apk' | wc -l)" = 2
+          test "$(stat -c %a "$ANDROID_KEY_DIR/stabilimento-android.p12")" = 600
+          test "$(stat -c %a "$ANDROID_KEY_DIR/stabilimento-android.pass")" = 600
+      - name: Same signer, growing version, minimum Android 7.0, INTERNET only, club root bundled
+        run: |
+          image=$(docker image ls stabilimento-android-build --format '{{.Repository}}:{{.Tag}}' | head -n 1)
+          docker run --rm -v "$ANDROID_OUT_DIR:/apk:ro" -v "$RUNNER_TEMP/root.crt:/root.crt:ro" "$image" sh -euc '
+            set -- /apk/*.apk
+            signer() { apksigner verify --print-certs "$1" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p"; }
+            code() { aapt2 dump badging "$1" | sed -n "s/^package: .* versionCode=.\([0-9]*\).*/\1/p"; }
+            test -n "$(signer "$1")" && test "$(signer "$1")" = "$(signer "$2")"
+            echo "versionCode $(code "$1") -> $(code "$2")"
+            test "$(code "$2")" -gt "$(code "$1")"
+            aapt2 dump badging "$2" > /tmp/badging
+            grep -E "^(package|(min|target)?[sS]dkVersion):" /tmp/badging
+            grep -Eqx "(min|)[sS]dkVersion:.24." /tmp/badging
+            grep "^uses-permission:" /tmp/badging
+            test "$(grep -c "^uses-permission:" /tmp/badging)" = 1
+            grep -Fq "uses-permission: name='"'"'android.permission.INTERNET'"'"'" /tmp/badging
+            mkdir /tmp/x && cd /tmp/x && unzip -q "$2"
+            find . -type f -exec cmp -s /root.crt {} \; -print | grep .
+          '
+      - name: The checkout is untouched
+        run: |
+          rm .env err
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+
   deploy-scripts:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}

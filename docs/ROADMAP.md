@@ -15,7 +15,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
       after login the switcher is in the user menu, ADR 0009)
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
-- [ ] Android app for club tablets: WebView wrapper that bundles the club's root certificate,
+- [x] Android app for club tablets: WebView wrapper that bundles the club's root certificate,
       built on the box by `scripts/build-android.sh`, screen pinning (ADR 0010);
       falls back to the box's Tailscale address off the club network (ADR 0011)
 - [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones in a plain browser):
@@ -34,6 +34,8 @@ Each item ships something staff can use on the box.
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
 - [ ] Live map: changes show on every device within seconds
+- [ ] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger
+      tap targets, phone-width e2e tests for booking and quick book (owner, 2026-11-16)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

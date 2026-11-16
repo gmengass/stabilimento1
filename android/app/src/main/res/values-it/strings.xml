@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stabilimento</string>
+    <string name="connecting">Connessione in corso…</string>
+    <string name="not_reachable">Server non raggiungibile</string>
+    <string name="not_reachable_hint">Controlla che il dispositivo sia connesso al Wi-Fi dello staff, poi riprova.</string>
+    <string name="retry">Riprova</string>
+</resources>
