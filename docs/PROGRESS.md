@@ -3,8 +3,8 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.3.2` is tagged and released (#29 date controls on one line, #31 instant calendar and
-  "Go to today"); deploy on the box not confirmed, nor for `v0.3.1` (#28). `v0.3.0` is deployed.
+- `v0.3.2` is deployed on the box (includes `v0.3.1`: #28 compact map header; #29 date controls
+  on one line; #31 instant calendar and "Go to today"). ADRs 0010 (#34) and 0011 (#35) accepted.
 
 ## Done this session
 - #29, #31 (`src/components/date-jump.tsx`); e2e specs share one sign-in (`e2e/admin.setup.ts`).
