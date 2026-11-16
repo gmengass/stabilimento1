@@ -70,6 +70,7 @@ services:
     restart: unless-stopped
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+      DEFAULT_SNI: ${DEFAULT_SNI:-localhost}
     # IPv4 only, matching the firewall rules; IPv6 would let one device rotate rate-limit
     # addresses (ADR 0008).
     ports:

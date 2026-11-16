@@ -51,6 +51,7 @@ write_box_env() {
 	set_env_value "$draft" APP_URL "https://$name"
 	set_env_value "$draft" SITE_ADDRESS "$name, $ip"
 	set_env_value "$draft" TRUSTED_ORIGINS "https://$ip"
+	set_env_value "$draft" DEFAULT_SNI "$ip"
 	set_env_value "$draft" POSTGRES_PASSWORD "$db_password"
 	set_env_value "$draft" AUTH_SECRET "$auth_secret"
 	set_env_value "$draft" ADMIN_USERNAME ""
