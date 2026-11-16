@@ -3,6 +3,12 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Android app for club tablets and phones (Android 7.0+), built on the box with
+  `scripts/build-android.sh`. It opens the booking app full screen, trusts the club's certificate
+  without installing it on the device, keeps the screen on, and shows "Server not reachable,
+  Retry" when the box can't be reached. With `REMOTE_URL` set, it falls back to the box's
+  Tailscale address. Install and screen-pinning steps are in the RUNBOOK.
 
 ## [0.4.0] - 2026-11-16
 ### Added

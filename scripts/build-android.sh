@@ -102,7 +102,7 @@ in_build_image --network none -v "$KEY_DIR:/keys:ro" -v "$OUT_DIR:/out" \
 	-e APK="$apk" -e KEYSTORE="/keys/$KEYSTORE" -e KEY_PASS="/keys/$KEY_PASS" -e KEY_ALIAS="$KEY_ALIAS" \
 	"$image" sh -euc '
 		apksigner sign --ks "$KEYSTORE" --ks-type PKCS12 --ks-key-alias "$KEY_ALIAS" \
-			--ks-pass "file:$KEY_PASS" --key-pass "file:$KEY_PASS" --out "/out/$APK" /work/aligned.apk
+			--ks-pass "file:$KEY_PASS" --out "/out/$APK" /work/aligned.apk
 		apksigner verify --print-certs "/out/$APK" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p" >/work/signer
 	'
 test -s "$WORK/signer" || die "apksigner did not verify $apk"
