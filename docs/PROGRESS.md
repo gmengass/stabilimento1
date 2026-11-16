@@ -3,13 +3,12 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.3.1` is tagged (#28: beach space tabs on the date row); deploy on the box not confirmed.
-  `v0.3.0` (seasons and season passes, #26, migration `0006_seasons`) is deployed on the box.
-- Merged, not yet tagged: #29 (the map's date controls stay together on one line) and #31.
+- `v0.3.2` is tagged and released (#29 date controls on one line, #31 instant calendar and
+  "Go to today"); deploy on the box not confirmed, nor for `v0.3.1` (#28). `v0.3.0` is deployed.
 
 ## Done this session
-- #31: a picked calendar day opens at once, no Show button (`src/components/date-jump.tsx`);
-  other days show an amber "Go to today". #29: e2e specs share one sign-in (`e2e/admin.setup.ts`).
+- #29, #31 (`src/components/date-jump.tsx`); e2e specs share one sign-in (`e2e/admin.setup.ts`).
+- CHANGELOG split into one section per release, v0.1.0 … v0.3.2.
 
 ## Next up
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
@@ -31,7 +30,6 @@
 - `formatEur` takes euros: switch to cents before the Prices item?
 - Ruleset `rulset1` requires `docker` only: add `checks`, `e2e` and `deploy-scripts`.
 - RUNBOOK firewall example says `192.168.1.0/24`; the box is on `192.168.0.0/24`.
-- CHANGELOG has everything under "Unreleased": split into v0.1.0 … v0.3.1.
 - E2E uses exactly 5 sign-ins (the per-minute limit): a CI retry of a login test can hit it.
 
 ## Known issues
