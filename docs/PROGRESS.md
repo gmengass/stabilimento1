@@ -11,8 +11,7 @@
 
 ## Next up
 1. Merge #39 once CI is green, release `v0.5.0`, deploy (migration 0007 runs on update).
-2. Backups: nightly encrypted dumps to USB + OneDrive. Ask the owner for OneDrive approval
-   (Microsoft 365 admin) and a USB drive left in the box.
+2. Backups: encrypted nightly dumps to USB + OneDrive (owner: M365 approval, USB in the box).
 3. Move a booking to another spot or dates (next Milestone 1 item; log it for undo, ADR 0013).
 
 ## Open questions
