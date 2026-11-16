@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Quick book on the beach map: enter the customer, how many umbrellas and sunbeds, and the days
+  or a season pass; the app suggests free umbrellas (side by side and nearest the sea first),
+  selects them on the map, and staff confirm with one tap. "Another suggestion" shows the next
+  option; tapping umbrellas on the map changes the choice.
+
+### Changed
+- Day and multi-day bookings can no longer start on a past day.
 
 ## [0.3.2] - 2026-11-16
 ### Changed
