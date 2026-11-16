@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 ### Added
 - Recent activity under the beach map: the last 10 actions for the whole venue (bookings,
   season passes, cancellations, last days, released and given-back days, beach and season
-  changes), with who did them and when.
+  changes), with who did them and when. Tap its title to fold it away.
 - Undo from the activity list: staff can undo their own actions for 30 minutes, admins any of
   the 10. Undo refuses, changing nothing, if the booking has changed since or an umbrella it
   would book again is now taken. An undo can itself be undone.

@@ -51,18 +51,14 @@ export async function ActivityPanel({ entries, viewer }: Props) {
   }
 
   return (
-    <section
-      aria-labelledby="activity-title"
-      data-testid="activity"
-      className="flex flex-col gap-2 rounded border p-3"
-    >
-      <h2 id="activity-title" className="text-lg font-semibold">
-        {t("title")}
-      </h2>
+    // Native disclosure: works without client code, and a re-render after an undo keeps the
+    // state the staff member chose, because React only sets `open` when the prop changes.
+    <details open data-testid="activity" className="rounded border p-3">
+      <summary className="cursor-pointer py-1 text-lg font-semibold">{t("title")}</summary>
       {entries.length === 0 ? (
-        <p className="text-sm text-gray-700">{t("empty")}</p>
+        <p className="mt-2 text-sm text-gray-700">{t("empty")}</p>
       ) : (
-        <ol className="flex flex-col divide-y">
+        <ol className="mt-2 flex flex-col divide-y">
           {entries.map((entry) => {
             const text = describe(entry);
             return (
@@ -88,6 +84,6 @@ export async function ActivityPanel({ entries, viewer }: Props) {
           })}
         </ol>
       )}
-    </section>
+    </details>
   );
 }
