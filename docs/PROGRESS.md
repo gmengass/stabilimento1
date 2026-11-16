@@ -7,8 +7,7 @@
   Nothing is unreleased on `main`.
 
 ## Done this session
-- Merged #37 (quick book, ADR 0012, passes included; past-date refusal), released `v0.4.0`
-  (CHANGELOG [0.4.0] - 2026-11-16) and deployed it on the box.
+- Merged #37 (quick book, ADR 0012; past-date refusal); `v0.4.0` released and deployed.
 
 ## Next up
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
