@@ -242,7 +242,8 @@ jobs:
             echo "versionCode $(code "$1") -> $(code "$2")"
             test "$(code "$2")" -gt "$(code "$1")"
             aapt2 dump badging "$2" > /tmp/badging
-            grep -Fx "sdkVersion:'"'"'24'"'"'" /tmp/badging
+            grep -E "^(package|(min|target)?[sS]dkVersion):" /tmp/badging
+            grep -Eqx "(min|)[sS]dkVersion:.24." /tmp/badging
             grep "^uses-permission:" /tmp/badging
             test "$(grep -c "^uses-permission:" /tmp/badging)" = 1
             grep -Fq "uses-permission: name='"'"'android.permission.INTERNET'"'"'" /tmp/badging
