@@ -1,41 +1,50 @@
 package app.stabilimento.tablet
 
-import com.sun.net.httpserver.HttpServer
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.InetAddress
-import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.net.SocketException
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.thread
 
 // Plain HTTP stands in for https: the scheme is the only difference, and trust is the network
-// security config's job, which a JVM test can't exercise.
+// security config's job, which a JVM test can't exercise. Unit tests compile against
+// android.jar, so the server is a bare socket rather than the JDK's com.sun HttpServer.
 class HealthProbeTest {
-    private val server = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0)
-    private val origin get() = Origin("127.0.0.1", server.address.port)
+    private val server = ServerSocket(0, 50, InetAddress.getLoopbackAddress())
+    private val origin = Origin("127.0.0.1", server.localPort)
     private val requested = CopyOnWriteArrayList<String>()
 
     private fun respond(status: Int, delayMs: Long = 0, headers: Map<String, String> = emptyMap()) {
-        server.createContext("/") { exchange ->
-            requested += exchange.requestURI.path
-            Thread.sleep(delayMs)
-            headers.forEach { (k, v) -> exchange.responseHeaders.add(k, v) }
-            exchange.sendResponseHeaders(status, -1)
-            exchange.close()
+        thread(isDaemon = true) {
+            try {
+                while (true) {
+                    server.accept().use { socket ->
+                        val requestLine = socket.getInputStream().bufferedReader().readLine().orEmpty()
+                        requested += requestLine.split(' ').getOrElse(1) { "" }
+                        Thread.sleep(delayMs)
+                        val extra = headers.entries.joinToString("") { (k, v) -> "$k: $v\r\n" }
+                        val reply = "HTTP/1.1 $status X\r\nContent-Length: 0\r\nConnection: close\r\n$extra\r\n"
+                        socket.getOutputStream().apply {
+                            write(reply.toByteArray())
+                            flush()
+                        }
+                    }
+                }
+            } catch (e: SocketException) {
+                // closed by stop()
+            }
         }
-    }
-
-    init {
-        server.start()
     }
 
     private fun probe(timeoutMs: Int = 1_000) = HealthProbe(timeoutMs = timeoutMs, scheme = "http")
 
     @After
-    fun stop() = server.stop(0)
+    fun stop() = server.close()
 
     @Test
     fun upOn200AtSlashHealth() {
