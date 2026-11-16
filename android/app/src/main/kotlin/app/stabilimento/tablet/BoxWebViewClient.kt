@@ -1,6 +1,7 @@
 package app.stabilimento.tablet
 
 import android.net.http.SslError
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -9,25 +10,33 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import java.io.ByteArrayInputStream
 
-/** Keeps the WebView on the box's origins (ADR 0010) and reports failed page loads. */
+/** Keeps the WebView on the box's origins (ADR 0010) and reports how page loads end. */
 class BoxWebViewClient(
     private val policy: OriginPolicy,
     private val onPageFailed: () -> Unit,
     private val onPageLoaded: () -> Unit,
+    private val onRendererGone: () -> Unit,
 ) : WebViewClient() {
+    private var mainFrameUrl: String? = null
     private var mainFrameFailed = false
 
-    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-        !policy.allows(request.url.toString())
+    /** Call before every page load the app starts itself (`loadUrl`, back). */
+    fun onLoadStarting(url: String?) {
+        mainFrameUrl = url
+        mainFrameFailed = false
+    }
+
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+        val url = request.url.toString()
+        if (!policy.allows(url)) return true
+        if (request.isForMainFrame) onLoadStarting(url)
+        return false
+    }
 
     // Runs on a WebView thread for every request, the main frame included; OriginPolicy is
     // immutable, so this is safe.
     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
         if (policy.allows(request.url.toString())) null else blocked()
-
-    override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
-        mainFrameFailed = false
-    }
 
     override fun onPageFinished(view: WebView, url: String) {
         if (!mainFrameFailed) onPageLoaded()
@@ -42,10 +51,17 @@ class BoxWebViewClient(
         if (request.isForMainFrame && response.statusCode in BOX_DOWN_STATUSES) failMainFrame()
     }
 
-    // Never proceed: a certificate the bundled root doesn't vouch for is never trusted.
+    // Never proceed: a certificate the bundled root doesn't vouch for is never trusted. Only a
+    // page's own failure reloads; a refused image or script leaves typed input alone.
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         handler.cancel()
-        failMainFrame()
+        if (mainFrameUrl == null || error.url == mainFrameUrl) failMainFrame()
+    }
+
+    // Android 8+: a crashed or killed renderer would otherwise take the whole app down.
+    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+        onRendererGone()
+        return true
     }
 
     private fun failMainFrame() {

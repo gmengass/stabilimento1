@@ -22,8 +22,20 @@ data class Origin(val host: String, val port: Int) {
             return of(uri)
         }
 
-        /** The origin of a URL about to load, or null unless it is https with a host. */
-        fun ofUrl(url: String): Origin? = parse(url)?.let(::of)
+        /**
+         * The origin of a URL about to load, or null unless it is https with a host. Only the
+         * scheme and authority are parsed: Chromium sends paths and queries that java.net.URI
+         * rejects (`/[id]/page.js`, `?a=|`), and they don't change the origin.
+         */
+        fun ofUrl(url: String): Origin? {
+            val match = SCHEME_AND_AUTHORITY.find(url) ?: return null
+            val (scheme, authority) = match.destructured
+            return parse("$scheme://$authority")?.let(::of)
+        }
+
+        // Up to the first / ? # \ after "scheme://". A backslash ends the authority in
+        // Chromium, so it ends it here too.
+        private val SCHEME_AND_AUTHORITY = Regex("""^([A-Za-z][A-Za-z0-9+.-]*)://([^/?#\\]*)""")
 
         private fun parse(value: String): URI? =
             try {

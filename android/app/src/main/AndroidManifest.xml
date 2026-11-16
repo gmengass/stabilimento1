@@ -14,10 +14,20 @@
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
-        <!-- configChanges: rotating or docking a tablet keeps the page and what staff typed. -->
+        <!-- The box is a first-party local site: no Safe Browsing lookups or usage metrics to
+             Google (GDPR). -->
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="false" />
+        <meta-data
+            android:name="android.webkit.WebView.MetricsOptOut"
+            android:value="true" />
+
+        <!-- configChanges: rotating or docking a tablet, dark mode, font size or language changes
+             keep the page and what staff typed. -->
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>

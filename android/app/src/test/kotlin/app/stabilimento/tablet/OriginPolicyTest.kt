@@ -71,6 +71,12 @@ class OriginPolicyTest {
             "https://192.168.0.10/health",
             "https://box.lan:8443/",
             "https://stabilimento.tail1234.ts.net/",
+            "https://stabilimento.local/_next/static/chunks/app/[id]/page-1a2b.js",
+            "https://stabilimento.local/_next/static/chunks/%5Bid%5D.js",
+            "https://stabilimento.local/?q=a|b{c}^`",
+            "https://192.168.0.10:443/_next/image?url=%2Fx.png&w=64",
+            "HTTPS://STABILIMENTO.LOCAL/",
+            "https://stabilimento.local",
         ).forEach { assertTrue("refused '$it'", policy.allows(it)) }
     }
 
@@ -84,6 +90,12 @@ class OriginPolicyTest {
             "http://stabilimento.local/",
             "https://stabilimento.local@evil.com/",
             "https://evil.com/#https://stabilimento.local",
+            "https://evil.com\\@stabilimento.local/",
+            "https://evil.com?@stabilimento.local/",
+            "https://stabilimento.local:99999/",
+            "https:/stabilimento.local/",
+            "https:///stabilimento.local/",
+            " https://stabilimento.local/",
             "javascript:alert(1)",
             "data:text/html,hi",
             "file:///sdcard/x.html",

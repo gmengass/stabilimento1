@@ -21,6 +21,7 @@ class MainActivity : Activity() {
     private lateinit var statusHint: TextView
     private lateinit var retryButton: Button
     private lateinit var selector: BoxSelector
+    private lateinit var client: BoxWebViewClient
 
     // BoxSelector is used on this thread only; health checks never block the UI.
     private val probeThread: ExecutorService = Executors.newSingleThreadExecutor()
@@ -56,11 +57,13 @@ class MainActivity : Activity() {
             javaScriptCanOpenWindowsAutomatically = false
             setGeolocationEnabled(false)
         }
-        webView.webViewClient = BoxWebViewClient(
+        client = BoxWebViewClient(
             policy,
             onPageFailed = ::onPageFailed,
             onPageLoaded = { loadedSinceConnect = true },
+            onRendererGone = ::recreate,
         )
+        webView.webViewClient = client
         // No file chooser, no camera, microphone or location: every web permission is refused.
         webView.webChromeClient = object : WebChromeClient() {
             override fun onPermissionRequest(request: PermissionRequest) = request.deny()
@@ -93,7 +96,9 @@ class MainActivity : Activity() {
         loadedSinceConnect = false
         statusView.visibility = View.GONE
         webView.visibility = View.VISIBLE
-        webView.loadUrl("$origin/")
+        val url = "$origin/"
+        client.onLoadStarting(url)
+        webView.loadUrl(url)
     }
 
     private fun showStatus(title: Int, offerRetry: Boolean) {
@@ -105,10 +110,17 @@ class MainActivity : Activity() {
         retryButton.visibility = retry
     }
 
-    // Back goes back in the app's history and never leaves the app (shared tablets).
+    // Back goes back in the app's history; on the first page it sends the app to the
+    // background (a pinned tablet stays on the app). Move to OnBackInvokedCallback before
+    // targetSdk 36 (predictive back).
     @Suppress("OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack()
+        if (webView.canGoBack()) {
+            client.onLoadStarting(null)
+            webView.goBack()
+        } else {
+            moveTaskToBack(true)
+        }
     }
 
     override fun onResume() {
