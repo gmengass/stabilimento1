@@ -29,7 +29,7 @@ Each item ships something staff can use on the box.
       double booking impossible (unique constraint + transaction)
 - [x] Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm
 - [x] Seasons (admin) and season passes, with released days
-- [ ] Activity stream: last 10 actions on the map, undo (own 30 min, admin any) (ADR 0013)
+- [x] Activity stream: last 10 actions on the map, undo (own 30 min, admin any) (ADR 0013)
 - [ ] Move a booking to another spot or dates
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
