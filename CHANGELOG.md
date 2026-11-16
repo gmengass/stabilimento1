@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.4.0] - 2026-11-16
 ### Added
 - Quick book on the beach map: enter the customer, how many umbrellas and sunbeds, and the days
   or a season pass; the app suggests free umbrellas (side by side and nearest the sea first),
