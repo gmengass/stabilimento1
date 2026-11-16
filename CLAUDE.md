@@ -57,4 +57,6 @@ Node 24 (`.nvmrc`). Copy `.env.example` to `.env` first.
 - Test: `npm test` (integration tests need `TEST_DATABASE_URL`; `docker compose -f docker-compose.test.yml up -d`)
 - Lint/format/types: `npm run lint`, `npm run format`, `npm run typecheck`
 - Migrations: `npm run db:migrate`, `npm run db:rollback`, then `npm run db:types` to regenerate `src/db/types.ts`
+- Android app: `scripts/build-android.sh` (needs Docker, a running stack and internet; CI job
+  `android`). Sessions can't reach Google's Maven repo, so it builds in CI only
 - Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` before using an API (`AGENTS.md`).
