@@ -26,7 +26,7 @@ require_env_file
 app_url=$(env_value APP_URL)
 trusted=$(env_value TRUSTED_ORIGINS)
 remote=$(env_value REMOTE_URL)
-check_android_config "$app_url" "$trusted" "$remote" "$(env_value SITE_ADDRESS)"
+check_android_config "$app_url" "$trusted" "$remote" "$(env_value SITE_ADDRESS)" "$(env_value DEFAULT_SNI)"
 command -v docker >/dev/null || die "docker not found"
 command -v openssl >/dev/null || die "openssl not found"
 
