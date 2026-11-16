@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AreaBanner, AreaTabs } from "@/components/area-tabs";
+import { DateJump } from "@/components/date-jump";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
@@ -74,28 +75,23 @@ export default async function Home(props: PageProps<"/">) {
           <Link href={at(addDays(date, -1))} className="rounded border px-3 py-2">
             {t("previousDay")}
           </Link>
-          <Link href={at()} className="rounded border px-3 py-2">
-            {t("today")}
-          </Link>
+          {date === today ? (
+            <Link href={at()} className="rounded border px-3 py-2">
+              {t("today")}
+            </Link>
+          ) : (
+            <Link
+              href={at()}
+              data-testid="go-to-today"
+              className="rounded border-2 border-amber-600 bg-amber-300 px-3 py-2 font-semibold text-amber-950"
+            >
+              {t("goToToday")}
+            </Link>
+          )}
           <Link href={at(addDays(date, 1))} className="rounded border px-3 py-2">
             {t("nextDay")}
           </Link>
-          <form className="flex flex-nowrap gap-2">
-            <input type="hidden" name="area" value={beach.areaId} />
-            <label className="sr-only" htmlFor="map-date">
-              {t("pickDate")}
-            </label>
-            <input
-              id="map-date"
-              type="date"
-              name="date"
-              defaultValue={date}
-              className="rounded border px-2 py-2"
-            />
-            <button type="submit" className="rounded border px-3 py-2">
-              {t("go")}
-            </button>
-          </form>
+          <DateJump key={date} date={date} areaId={beach.areaId} />
         </nav>
       </div>
       <p className="flex flex-wrap gap-4 text-sm text-gray-700">

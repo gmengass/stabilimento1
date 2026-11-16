@@ -4,12 +4,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Changed
+- Picking a day in the map's calendar opens it straight away; the "Show" button is gone.
+- When the map shows a day other than today, the Today button reads "Go to today" and is
+  highlighted.
 - The beach space tabs sit on the same row as the date and day buttons, saving a line above
   the map.
 
 ### Fixed
-- On the beach map, the previous day, today, next day, date picker and Show controls always
-  stay together on one line instead of breaking across two.
+- On the beach map, the previous day, today, next day and calendar controls always stay
+  together on one line instead of breaking across two.
 - Updating the server failed at the migration step ("EACCES: permission denied") when a release
   added new files: the update script checked them out readable by their owner only. Releases
   are now checked out readable, and the migration image owns its sources either way.
