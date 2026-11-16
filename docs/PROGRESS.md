@@ -3,11 +3,12 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.3.2` is deployed on the box (#36). PR #37 (`feat/quick-book`) is open.
-  Nothing is unreleased on `main` yet.
+- `v0.4.0` (quick book, #37) is tagged, released and deployed on the box.
+  Nothing is unreleased on `main`.
 
 ## Done this session
-- Quick book (#37, ADR 0012), passes included; day/multi-day bookings now refuse past dates.
+- Merged #37 (quick book, ADR 0012, passes included; past-date refusal), released `v0.4.0`
+  (CHANGELOG [0.4.0] - 2026-11-16) and deployed it on the box.
 
 ## Next up
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
