@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, seasons } = vi.hoisted(() => {
+const { actor, audit, seasons } = vi.hoisted(() => {
   const ok = () => vi.fn(async () => ({ ok: true as const }));
   return {
     actor: { current: null as CurrentUser | null },
+    audit: { writeEntry: vi.fn(async () => 1) },
     seasons: { createSeason: ok(), updateSeason: ok(), removeSeason: ok() },
   };
 });
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/seasons", () => seasons);
+vi.mock("@/lib/booking/audit", () => audit);
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
@@ -40,11 +42,27 @@ describe.each(cases)("%s", (_name, action, operation) => {
     actor.current = current;
     await expect(action({})).resolves.toEqual({ ok: false, error: "forbidden" });
     expect(operation).not.toHaveBeenCalled();
+    expect(audit.writeEntry).not.toHaveBeenCalled();
   });
 
   it("runs for an admin", async () => {
     actor.current = user("admin");
     await expect(action({ x: 1 })).resolves.toEqual({ ok: true });
     expect(operation).toHaveBeenCalledWith({}, { x: 1 });
+    expect(audit.writeEntry).toHaveBeenCalledWith(
+      {},
+      {
+        userId: "u1",
+        action: "season",
+        detail: { what: expect.any(String) },
+      },
+    );
+  });
+
+  it("logs nothing when the change fails", async () => {
+    actor.current = user("admin");
+    vi.mocked(operation).mockResolvedValueOnce({ ok: false, error: "invalid" } as never);
+    await expect(action({})).resolves.toMatchObject({ ok: false });
+    expect(audit.writeEntry).not.toHaveBeenCalled();
   });
 });

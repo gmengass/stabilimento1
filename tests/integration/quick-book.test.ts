@@ -130,9 +130,9 @@ describe("suggestQuickBook", () => {
     const partly = await sellPass(102);
     await sellPass(103);
     const all = { bookingId: released, startDate: START, endDate: END };
-    expect(await releaseDays(db, all, TODAY)).toEqual({ ok: true, days: 3 });
+    expect(await releaseDays(db, USER, all, TODAY)).toEqual({ ok: true, days: 3 });
     const some = { bookingId: partly, startDate: START, endDate: "2027-07-11" };
-    expect(await releaseDays(db, some, TODAY)).toEqual({ ok: true, days: 2 });
+    expect(await releaseDays(db, USER, some, TODAY)).toEqual({ ok: true, days: 2 });
     expect(numbers(await suggest())).toEqual([[101], [104], [105], [201], [202]]);
   });
 

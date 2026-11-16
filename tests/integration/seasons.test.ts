@@ -398,7 +398,7 @@ describe("releaseDays", () => {
       ],
     });
     const range = { bookingId, startDate: "2027-07-10", endDate: "2027-07-12" };
-    expect(await releaseDays(db, range, TODAY)).toEqual({ ok: true, days: 3 });
+    expect(await releaseDays(db, USER, range, TODAY)).toEqual({ ok: true, days: 3 });
     expect(await states(bookingId)).toEqual({ booked: (SEASON_DAYS - 3) * 2, released: 6 });
     for (const date of ["2027-07-10", "2027-07-12"]) {
       expect(await loadOccupancy(db, areaId, date)).toEqual({});
@@ -417,7 +417,12 @@ describe("releaseDays", () => {
 
   it("lets someone else book a released day, and only that day", async () => {
     const bookingId = await sellPass();
-    await releaseDays(db, { bookingId, startDate: "2027-07-10", endDate: "2027-07-10" }, TODAY);
+    await releaseDays(
+      db,
+      USER,
+      { bookingId, startDate: "2027-07-10", endDate: "2027-07-10" },
+      TODAY,
+    );
     const day = {
       customerName: "Rossi",
       startDate: "2027-07-10",
@@ -439,18 +444,20 @@ describe("releaseDays", () => {
   it("counts a day once, skips days already released or outside the pass", async () => {
     const bookingId = await sellPass();
     const range = { bookingId, startDate: "2027-09-14", endDate: "2027-09-20" };
-    expect(await releaseDays(db, range, TODAY)).toEqual({ ok: true, days: 2 });
-    expect(await releaseDays(db, range, TODAY)).toEqual({ ok: true, days: 0 });
+    expect(await releaseDays(db, USER, range, TODAY)).toEqual({ ok: true, days: 2 });
+    expect(await releaseDays(db, USER, range, TODAY)).toEqual({ ok: true, days: 0 });
   });
 
   it("releases today but not a past day", async () => {
     const bookingId = await sellPass();
-    expect(await releaseDays(db, { bookingId, startDate: TODAY, endDate: TODAY }, TODAY)).toEqual({
+    expect(
+      await releaseDays(db, USER, { bookingId, startDate: TODAY, endDate: TODAY }, TODAY),
+    ).toEqual({
       ok: true,
       days: 1,
     });
     const past = { bookingId, startDate: "2027-06-19", endDate: "2027-06-25" };
-    expect(await releaseDays(db, past, TODAY)).toEqual({ ok: false, error: "past" });
+    expect(await releaseDays(db, USER, past, TODAY)).toEqual({ ok: false, error: "past" });
   });
 
   it("refuses day bookings, cancelled passes and bad input", async () => {
@@ -462,24 +469,34 @@ describe("releaseDays", () => {
     });
     if (!day.ok) throw new Error("booking failed");
     const range = { startDate: "2027-07-10", endDate: "2027-07-11" };
-    expect(await releaseDays(db, { bookingId: day.bookingId, ...range }, TODAY)).toEqual({
+    expect(await releaseDays(db, USER, { bookingId: day.bookingId, ...range }, TODAY)).toEqual({
       ok: false,
       error: "notSeason",
     });
     const bookingId = await sellPass();
     await cancelBooking(db, USER, { bookingId }, TODAY);
-    expect(await releaseDays(db, { bookingId, ...range }, TODAY)).toEqual({
+    expect(await releaseDays(db, USER, { bookingId, ...range }, TODAY)).toEqual({
       ok: false,
       error: "notFound",
     });
     expect(
-      await releaseDays(db, { bookingId, startDate: "2027-07-11", endDate: "2027-07-10" }, TODAY),
+      await releaseDays(
+        db,
+        USER,
+        { bookingId, startDate: "2027-07-11", endDate: "2027-07-10" },
+        TODAY,
+      ),
     ).toEqual({ ok: false, error: "invalid" });
   });
 
   it("removes released future days too when the pass is cancelled", async () => {
     const bookingId = await sellPass();
-    await releaseDays(db, { bookingId, startDate: "2027-07-10", endDate: "2027-07-12" }, TODAY);
+    await releaseDays(
+      db,
+      USER,
+      { bookingId, startDate: "2027-07-10", endDate: "2027-07-12" },
+      TODAY,
+    );
     await cancelBooking(db, USER, { bookingId }, TODAY);
     expect(await states(bookingId)).toEqual({ booked: 19 });
   });
@@ -490,42 +507,42 @@ describe("restoreDays", () => {
 
   it("takes free released days back", async () => {
     const bookingId = await sellPass();
-    await releaseDays(db, { bookingId, ...range }, TODAY);
+    await releaseDays(db, USER, { bookingId, ...range }, TODAY);
     const one = { bookingId, startDate: "2027-07-11", endDate: "2027-07-11" };
-    expect(await restoreDays(db, one, TODAY)).toEqual({ ok: true, days: 1 });
+    expect(await restoreDays(db, USER, one, TODAY)).toEqual({ ok: true, days: 1 });
     expect(await states(bookingId)).toEqual({ booked: SEASON_DAYS - 2, released: 2 });
     expect((await loadOccupancy(db, areaId, "2027-07-11"))[spot[101]]).toMatchObject({
       bookingId,
       releasedDays: 2,
     });
-    expect(await restoreDays(db, one, TODAY)).toEqual({ ok: true, days: 0 });
+    expect(await restoreDays(db, USER, one, TODAY)).toEqual({ ok: true, days: 0 });
   });
 
   it("changes nothing when one of the days was sold meanwhile", async () => {
     const bookingId = await sellPass();
-    await releaseDays(db, { bookingId, ...range }, TODAY);
+    await releaseDays(db, USER, { bookingId, ...range }, TODAY);
     await createBooking(db, USER, {
       customerName: "Rossi",
       startDate: "2027-07-12",
       endDate: "2027-07-12",
       spots: [{ spotId: spot[101], sunbeds: 2 }],
     });
-    expect(await restoreDays(db, { bookingId, ...range }, TODAY)).toEqual({
+    expect(await restoreDays(db, USER, { bookingId, ...range }, TODAY)).toEqual({
       ok: false,
       error: "taken",
       clashes: [{ spotNumber: 101, date: "2027-07-12" }],
     });
     expect(await states(bookingId)).toEqual({ booked: SEASON_DAYS - 3, released: 3 });
     const free = { bookingId, startDate: "2027-07-10", endDate: "2027-07-11" };
-    expect(await restoreDays(db, free, TODAY)).toEqual({ ok: true, days: 2 });
+    expect(await restoreDays(db, USER, free, TODAY)).toEqual({ ok: true, days: 2 });
   });
 
   it("lets exactly one of a restore and a new booking for the same day win", async () => {
     const bookingId = await sellPass();
     const day = { startDate: "2027-07-10", endDate: "2027-07-10" };
-    await releaseDays(db, { bookingId, ...day }, TODAY);
+    await releaseDays(db, USER, { bookingId, ...day }, TODAY);
     const [restored, booked] = await Promise.all([
-      restoreDays(db, { bookingId, ...day }, TODAY),
+      restoreDays(db, USER, { bookingId, ...day }, TODAY),
       createBooking(db, USER, {
         customerName: "Rossi",
         ...day,
@@ -543,15 +560,20 @@ describe("restoreDays", () => {
   it("refuses past days", async () => {
     const bookingId = await sellPass();
     const past = { bookingId, startDate: "2027-06-19", endDate: "2027-06-19" };
-    expect(await restoreDays(db, past, TODAY)).toEqual({ ok: false, error: "past" });
+    expect(await restoreDays(db, USER, past, TODAY)).toEqual({ ok: false, error: "past" });
   });
 });
 
 describe("endSeasonPass", () => {
   it("ends the pass on the last day and frees every later day, released ones too", async () => {
     const bookingId = await sellPass();
-    await releaseDays(db, { bookingId, startDate: "2027-07-10", endDate: "2027-08-10" }, TODAY);
-    expect(await endSeasonPass(db, { bookingId, lastDay: "2027-07-31" }, TODAY)).toEqual({
+    await releaseDays(
+      db,
+      USER,
+      { bookingId, startDate: "2027-07-10", endDate: "2027-08-10" },
+      TODAY,
+    );
+    expect(await endSeasonPass(db, USER, { bookingId, lastDay: "2027-07-31" }, TODAY)).toEqual({
       ok: true,
     });
     // 1 June – 31 July is 61 days, 22 of them released (10–31 July).
@@ -572,7 +594,7 @@ describe("endSeasonPass", () => {
 
   it("accepts today, yesterday and the current last day; refuses earlier days", async () => {
     const bookingId = await sellPass();
-    const end = (lastDay: string) => endSeasonPass(db, { bookingId, lastDay }, TODAY);
+    const end = (lastDay: string) => endSeasonPass(db, USER, { bookingId, lastDay }, TODAY);
     expect(await end(SEASON.endDate)).toEqual({ ok: true });
     expect(await states(bookingId)).toEqual({ booked: SEASON_DAYS });
     expect(await end("2027-06-18")).toEqual({ ok: false, error: "past" });
@@ -583,7 +605,7 @@ describe("endSeasonPass", () => {
 
   it("only shortens: a later day or one before the first day is refused", async () => {
     const bookingId = await sellPass({ startDate: "2027-07-01", endDate: "2027-07-31" });
-    const end = (lastDay: string) => endSeasonPass(db, { bookingId, lastDay }, TODAY);
+    const end = (lastDay: string) => endSeasonPass(db, USER, { bookingId, lastDay }, TODAY);
     expect(await end("2027-08-01")).toEqual({ ok: false, error: "invalid" });
     expect(await end("2027-06-30")).toEqual({ ok: false, error: "invalid" });
     expect(await end("2027-07-01")).toEqual({ ok: true });
@@ -599,13 +621,13 @@ describe("endSeasonPass", () => {
     });
     if (!day.ok) throw new Error("booking failed");
     const lastDay = "2027-07-11";
-    expect(await endSeasonPass(db, { bookingId: day.bookingId, lastDay }, TODAY)).toEqual({
+    expect(await endSeasonPass(db, USER, { bookingId: day.bookingId, lastDay }, TODAY)).toEqual({
       ok: false,
       error: "notSeason",
     });
     const bookingId = await sellPass();
     await cancelBooking(db, USER, { bookingId }, TODAY);
-    expect(await endSeasonPass(db, { bookingId, lastDay }, TODAY)).toEqual({
+    expect(await endSeasonPass(db, USER, { bookingId, lastDay }, TODAY)).toEqual({
       ok: false,
       error: "notFound",
     });
@@ -614,8 +636,8 @@ describe("endSeasonPass", () => {
   it("leaves no day behind when it races a release of later days", async () => {
     const bookingId = await sellPass();
     await Promise.all([
-      endSeasonPass(db, { bookingId, lastDay: "2027-07-31" }, TODAY),
-      releaseDays(db, { bookingId, startDate: "2027-08-01", endDate: "2027-08-10" }, TODAY),
+      endSeasonPass(db, USER, { bookingId, lastDay: "2027-07-31" }, TODAY),
+      releaseDays(db, USER, { bookingId, startDate: "2027-08-01", endDate: "2027-08-10" }, TODAY),
     ]);
     const { rows } = await sql<{ n: number }>`
       select count(*)::int as n from spot_day where date > '2027-07-31'
@@ -632,6 +654,8 @@ describe("migration 0006 rollback", () => {
       endDate: "2027-07-01",
       spots: [{ spotId: spot[102], sunbeds: 2 }],
     });
+    // Down to 0006 first: 0007 (audit log) sits on top of it.
+    expect((await runMigrations(db, "down")).error).toBeUndefined();
     expect((await runMigrations(db, "down")).error).toBeUndefined();
     const kinds = await sql<{ id: number; kind: string }>`
       select id, kind from booking order by id
