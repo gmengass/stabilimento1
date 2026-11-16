@@ -4,15 +4,15 @@
 
 ## Current state
 - `v0.5.1` released and deployed (activity + undo, Android app, `DEFAULT_SNI` fix #43).
-  APK built on the box and working on a tablet, via the IP fallback (`REMOTE_URL`=box IP).
+  APK built on the box and working on a tablet; `REMOTE_URL`=box IP as fallback.
 
 ## Done this session
-- Android app on a real tablet. Found: `.local` doesn't resolve on Android, and HTTPS by IP had
-  no certificate behind Docker (fixed with Caddy `default_sni`, #43).
+- Android app on a real tablet. HTTPS by IP had no certificate behind Docker (fixed with Caddy
+  `default_sni`, #43). Router already maps `stabilimento.local`; unconfirmed on the tablet.
 
 ## Next up
-1. Router DNS entry `stabilimento.local` → `192.168.0.50`; back up the Android signing key
-   off the box; screen pinning and the remaining tablets (RUNBOOK).
+1. Check `https://stabilimento.local/health` in the tablet's Chrome (name resolves?); back up
+   the Android signing key off the box; screen pinning and the remaining tablets (RUNBOOK).
 2. Backups (USB + OneDrive; owner: M365 approval, USB in the box), incl. the Android signing key.
 3. Move a booking to another spot or dates (log it for undo, ADR 0013); then Phone layout.
 
