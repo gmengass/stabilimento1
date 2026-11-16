@@ -15,7 +15,10 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
       after login the switcher is in the user menu, ADR 0009)
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
-- [ ] Trusted certificate: Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
+- [ ] Android app for club tablets: WebView wrapper that bundles the club's root certificate,
+      built on the box by `scripts/build-android.sh`, screen pinning (ADR 0010, proposed)
+- [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones and remote access):
+      Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
 ## Milestone 1 — Core booking (MVP, PROJECT_BRIEF.md and ADR 0004)
 Each item ships something staff can use on the box.
