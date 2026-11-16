@@ -177,6 +177,12 @@ describe("suggestSpots", () => {
     ]);
   });
 
+  it("offers a gapped pair in one line before a split across lines", () => {
+    // Line 1 holds enough umbrellas, none side by side: no split starts there, so 101 + 201
+    // (front and back) is never offered over 101 + 103.
+    expect(shape(suggestSpots(free(101, 103, 201), 2, 0))).toEqual([["sameLine", 101, 103]]);
+  });
+
   it("never offers a split for a single umbrella", () => {
     expect(shape(suggestSpots(free(305, 101, 203), 1, 1))).toEqual([
       ["adjacent", 101],

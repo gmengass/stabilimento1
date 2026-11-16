@@ -59,3 +59,23 @@ test("quick book asking for more umbrellas than the beach has shows an alert", a
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(page.getByTestId("quick-book-suggestion")).toHaveCount(0);
 });
+
+test("emptying a suggestion on the map ends quick book: the next spot starts blank", async ({
+  page,
+}) => {
+  await page.goto(`/?date=${DAY}`);
+  await page.getByTestId("quick-book-open").click();
+  await page.locator('input[name="customerName"]').fill(`Stale ${Date.now()}`);
+  await page.getByTestId("quick-book-umbrellas").fill("1");
+  await page.getByTestId("quick-book-suggest").click();
+
+  const suggestion = page.getByTestId("quick-book-suggestion");
+  const [number = ""] = (await suggestion.innerText()).match(/\b\d{3}\b/g) ?? [];
+  await spotButton(page, number).click();
+  await expect(page.locator('input[name="customerName"]')).toHaveCount(0);
+
+  const other = page.locator("ol button", { hasNot: page.locator("span.truncate") }).last();
+  await other.click();
+  await expect(page.locator('input[name="customerName"]')).toHaveValue("");
+  await expect(page.getByTestId("quick-book-suggestion")).toHaveCount(0);
+});

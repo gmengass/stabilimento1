@@ -63,3 +63,31 @@ test("a season pass without a last day runs to the season's end and can be ended
   await page.goto(`/?date=${LAST_DAY}`);
   await expect(spotButton(page, number)).toContainText(customer);
 });
+
+test("quick book sells a season pass that runs to the season's end", async ({ page }) => {
+  // Here, not in quick-book.spec: tests in this file share the season and run one after another.
+  const customer = `Quick pass ${Date.now()}`;
+  const day = "2090-08-10";
+  await ensureSeason(page);
+
+  await page.goto(`/?date=${day}`);
+  await page.getByTestId("quick-book-open").click();
+  const panel = page.locator("aside");
+  await panel.locator('input[name="customerName"]').fill(customer);
+  await page.getByTestId("quick-book-umbrellas").fill("1");
+  await page.getByTestId("quick-book-sunbeds").fill("1");
+  await page.getByTestId("quick-book-pass").check();
+  await page.getByTestId("quick-book-suggest").click();
+
+  const suggestion = page.getByTestId("quick-book-suggestion");
+  const [number = ""] = (await suggestion.innerText()).match(/\b\d{3}\b/g) ?? [];
+  const form = panel.locator("form");
+  await expect(form.locator('input[type="checkbox"]')).toBeChecked();
+  await expect(form.locator('input[name="startDate"]')).toHaveValue(day);
+  await expect(form.locator('input[name="endDate"]')).toHaveValue("");
+  await form.locator('button[type="submit"]').click();
+  await expect(panel).toHaveCount(0);
+
+  await page.goto(`/?date=${SEASON.endDate}`);
+  await expect(spotButton(page, number)).toContainText(customer);
+});
