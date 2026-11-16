@@ -5,13 +5,14 @@ import { ADMIN_STATE } from "./helpers";
 // Far in the future, never "past", and a year no other spec books in (they use 2090).
 const DAY = "2091-07-15";
 
-// Selectors avoid translated text: another test switches the shared admin's language.
+// Selectors avoid translated text: another test switches the shared admin's language. Spot
+// buttons are looked up inside the map: the activity panel below it is a list of buttons too.
 
 test.use({ storageState: ADMIN_STATE });
 
 function spotButton(page: Page, number: string) {
   const label = page.locator("span[aria-hidden]", { hasText: new RegExp(`^${number}$`) });
-  return page.locator("ol button", { has: label });
+  return page.getByTestId("beach-map").locator("ol button", { has: label });
 }
 
 test("quick book suggests two umbrellas, selects them on the map and books them", async ({
@@ -56,7 +57,7 @@ test("quick book asking for more umbrellas than the beach has shows an alert", a
   await page.getByTestId("quick-book-sunbeds").fill("1");
   await page.getByTestId("quick-book-suggest").click();
 
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByTestId("quick-book-form").getByRole("alert")).toBeVisible();
   await expect(page.getByTestId("quick-book-suggestion")).toHaveCount(0);
 });
 
@@ -74,7 +75,10 @@ test("emptying a suggestion on the map ends quick book: the next spot starts bla
   await spotButton(page, number).click();
   await expect(page.locator('input[name="customerName"]')).toHaveCount(0);
 
-  const other = page.locator("ol button", { hasNot: page.locator("span.truncate") }).last();
+  const other = page
+    .getByTestId("beach-map")
+    .locator("ol button", { hasNot: page.locator("span.truncate") })
+    .last();
   await other.click();
   await expect(page.locator('input[name="customerName"]')).toHaveValue("");
   await expect(page.getByTestId("quick-book-suggestion")).toHaveCount(0);

@@ -43,7 +43,7 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Pr
   const t = useTranslations("map");
   const columns = Math.max(1, ...lines.flatMap((line) => line.spots.map((s) => s.position)));
   return (
-    <div className="overflow-x-auto">
+    <div data-testid="beach-map" className="overflow-x-auto">
       <div className="inline-flex min-w-full flex-col gap-2">
         <div className="rounded bg-sky-200 py-2 text-center text-sm font-medium text-sky-900">
           {t("seaOf", { area: areaName })}

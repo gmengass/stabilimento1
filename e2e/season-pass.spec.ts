@@ -26,7 +26,7 @@ async function ensureSeason(page: Page): Promise<void> {
 
 function spotButton(page: Page, number: string) {
   const label = page.locator("span[aria-hidden]", { hasText: new RegExp(`^${number}$`) });
-  return page.locator("ol button", { has: label });
+  return page.getByTestId("beach-map").locator("ol button", { has: label });
 }
 
 test("a season pass without a last day runs to the season's end and can be ended later", async ({
@@ -36,7 +36,10 @@ test("a season pass without a last day runs to the season's end and can be ended
   await ensureSeason(page);
 
   await page.goto(`/?date=${FIRST_DAY}`);
-  const free = page.locator("ol button", { hasNot: page.locator("span.truncate") }).first();
+  const free = page
+    .getByTestId("beach-map")
+    .locator("ol button", { hasNot: page.locator("span.truncate") })
+    .first();
   const number = (await free.locator("span[aria-hidden]").first().innerText()).trim();
   await free.click();
   const panel = page.locator("aside");

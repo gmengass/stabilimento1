@@ -106,7 +106,7 @@ export function QuickBookForm(props: FormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} data-testid="quick-book-form" className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{t("title", { area: areaName })}</h2>
       <label className="flex flex-col gap-1 text-sm">
         {tb("customerName")}
