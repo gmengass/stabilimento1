@@ -90,7 +90,7 @@ trusts the bundled Caddy root, stays on the box's origins, and falls back to `RE
 ## CI job `android` (needs `changes`, same `if` as the others)
 - Throwaway root via `openssl req -x509`, placed in volume `stabilimento_caddy_data` at
   `caddy/pki/authorities/local/root.crt`; `.env` with APP_URL, an IP origin and a fake
-  `*.ts.net` REMOTE_URL (all in SITE_ADDRESS); `HOME=$RUNNER_TEMP/home`.
+  `*.ts.net` REMOTE_URL (all in SITE_ADDRESS); key and APK directories in `$RUNNER_TEMP`.
 - Failure cases first (fast, no Docker build): http APP_URL, REMOTE_URL not in TRUSTED_ORIGINS,
   host not in SITE_ADDRESS → non-zero exit.
 - Build twice. Assert: `apksigner verify`; same signer digest both times; versionCode grew;

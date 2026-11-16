@@ -128,27 +128,37 @@ device. It works on Android 7.0 and later, on tablets and phones.
 while): `scripts/build-android.sh`.
 - It reads `APP_URL`, `TRUSTED_ORIGINS` and the optional `REMOTE_URL` (Tailscale, ADR 0011)
   from `.env`, and the root from `caddy_data`. Bad values are refused before anything is built.
-- The APK lands in `~/stabilimento-android/`. The script prints the root's and the signer's
-  SHA-256 fingerprints: note both.
+- The APK lands in `~/stabilimento-android/`. The script prints three SHA-256 values: the club
+  root, the signer, and the APK file.
+- On the first build, write the root and signer fingerprints into the password manager next to
+  `.env`. The root must match the one browser devices check (next section). The signer must be
+  the same on every later build: a different one means a different key.
 - The first build creates the signing key in `~/secrets` (`stabilimento-android.p12` and
-  `.pass`). Back both up encrypted next to `.env`, for example
-  `tar czf - -C ~/secrets stabilimento-android.p12 stabilimento-android.pass | gpg --symmetric --output stabilimento-android-key.tgz.gpg`.
-  Without the key, a new APK won't install over the old one: every tablet has to uninstall the
-  app (and sign in again) first.
+  `.pass`, mode 600). Back both up encrypted, off the box, like `caddy_data` (Recovery):
+  ```sh
+  tar czf - -C ~/secrets stabilimento-android.p12 stabilimento-android.pass |
+    gpg --symmetric --output ~/secrets/stabilimento-android-key.tgz.gpg
+  ```
+  Then copy `~/secrets/stabilimento-android-key.tgz.gpg` off the box. Without the key, a new APK
+  won't install over the old one: every tablet has to uninstall the app (and sign in again) first.
 
 **Install on each device:**
-1. Copy the APK by USB cable or stick. Don't send it through a chat app or email.
+1. Copy the APK by USB cable or stick. Don't send it through a chat app or email. With the stick
+   back in the box, check `sha256sum` of the file on it against the APK SHA-256 the script printed.
 2. Open it from the file manager. Android asks to allow "Install unknown apps" for the file
-   manager: allow it, install, then turn it off again.
+   manager: allow it, install, then turn it off again. Once the app is installed, Android only
+   accepts updates signed with the same key, so a swapped APK fails to install over it.
 3. Open the app: it shows the sign-in page. If it shows "Server not reachable", check the device is
    on the staff Wi-Fi and that `APP_URL` opens from the box.
-4. If the device had the root installed system-wide (previous section), remove it: Settings →
-   Security → Encryption & credentials → User credentials.
+4. If the device had the root installed system-wide (next section), remove it: Settings →
+   Security → Encryption & credentials → Trusted credentials → User tab → the root → Remove.
 
 **Lock shared tablets to the app** (screen pinning, once per tablet):
 1. Settings → Security → App pinning (or Screen pinning): on, with "Ask for PIN before unpinning".
+   Use a PIN only the owner and managers know, not one every staff member uses.
 2. Open the app, open Recents, tap the app icon above its window → Pin.
-3. To unpin: hold Back and Recents (or Back and Home), then enter the PIN.
+3. To unpin: with buttons, hold Back and Recents (or Back and Home); with gesture navigation,
+   swipe up and hold. Then enter the PIN.
 
 **Rebuild and install over the old app** after a new box or a new `caddy_data` (new root), a
 change to `APP_URL`, `TRUSTED_ORIGINS` or `REMOTE_URL`, or a change under `android/`. App releases

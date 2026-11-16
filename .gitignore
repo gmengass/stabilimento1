@@ -46,3 +46,4 @@ android/local.properties
 *.apk
 *.p12
 *.pass
+*.gpg
