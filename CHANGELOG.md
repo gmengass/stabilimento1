@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Opening the app by the box's IP (`https://192.168.x.x`) failed with a TLS error, in browsers
+  and in the Android app's IP fallback. Set `DEFAULT_SNI` to the box's IP in `.env` (RUNBOOK).
+
+## [0.5.0] - 2026-11-16
 ### Added
 - Recent activity under the beach map: the last 10 actions for the whole venue (bookings,
   season passes, cancellations, last days, released and given-back days, beach and season

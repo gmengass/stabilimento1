@@ -20,10 +20,13 @@ in_site_address() {
 		grep -Fqx "$ias_host"
 }
 
+# Whether $1 is an IPv4 address.
+is_ipv4() { printf '%s\n' "$1" | grep -Eqx '([0-9]{1,3}\.){3}[0-9]{1,3}'; }
+
 # Refuses values the APK can't use: APP_URL $1, TRUSTED_ORIGINS $2, REMOTE_URL $3 (optional),
-# SITE_ADDRESS $4.
+# SITE_ADDRESS $4, DEFAULT_SNI $5.
 check_android_config() {
-	cac_app=$1 cac_trusted=$2 cac_remote=$3 cac_site=$4
+	cac_app=$1 cac_trusted=$2 cac_remote=$3 cac_site=$4 cac_sni=$5
 	set -f # a * in an origin must not expand to file names
 	valid_origin "$cac_app" || die "APP_URL must be an https origin like https://stabilimento.local (got '$cac_app')"
 	for cac_origin in $(list_items "$cac_trusted"); do
@@ -38,6 +41,13 @@ check_android_config() {
 		cac_host=$(origin_host "$cac_origin")
 		in_site_address "$cac_host" "$cac_site" ||
 			die "$cac_host is not in SITE_ADDRESS, so Caddy has no certificate for it"
+	done
+	# The app opens APP_URL and REMOTE_URL. By IP, Caddy only answers with DEFAULT_SNI's certificate.
+	for cac_origin in "$cac_app" $cac_remote; do
+		cac_host=$(origin_host "$cac_origin")
+		if is_ipv4 "$cac_host" && [ "$cac_host" != "$cac_sni" ]; then
+			die "$cac_origin is an IP: set DEFAULT_SNI=$cac_host in .env and restart Caddy (RUNBOOK)"
+		fi
 	done
 	set +f
 }

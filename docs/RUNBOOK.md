@@ -108,6 +108,7 @@ Do these once, and again after any router change.
    - `APP_URL=https://stabilimento.local`
    - `SITE_ADDRESS=stabilimento.local, 192.168.1.10`
    - `TRUSTED_ORIGINS=https://192.168.1.10`: exact https origins only, no `*` and no trailing `/`
+   - `DEFAULT_SNI=192.168.1.10`: the box's IP, so `https://192.168.1.10` gets a certificate
    - `BACKUP_DIR` stays on the box's own disk (default `./backups`). Don't use an unencrypted USB
      stick: dumps contain customer data, and the Backups item adds encryption.
 3. Run `scripts/update.sh vX.Y.Z`, using the latest release tag. This is the first install, so it
@@ -252,4 +253,8 @@ script stops with the app down and prints the rollback command.
   `rmdir .deploy/lock`.
 - **Unreachable from tablets but `curl -k https://localhost/health` works in WSL**: check the
   mirrored networking setting and both firewall rules, then `wsl --shutdown` and restart the task.
+- **`https://<box IP>` fails with "tlsv1 alert internal error"** (curl) or "can't provide a
+  secure connection" (browser), while the name works: `.env` lacks `DEFAULT_SNI=<box IP>`.
+  Add it, then `docker compose up -d caddy`. Check with
+  `curl --cacert ~/stabilimento-root.crt https://<box IP>/health`.
 - **Logs**: `docker compose logs --tail 200 app caddy db`.

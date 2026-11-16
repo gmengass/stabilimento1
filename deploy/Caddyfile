@@ -1,4 +1,11 @@
 # Reverse proxy and HTTPS for the club box (ADR 0003, ADR 0008).
+{
+	# A device that connects by IP (https://192.168.0.50) sends no server name, and behind
+	# Docker's port mapping Caddy can't pick a certificate by the address it dialed: without
+	# this, those connections fail with a TLS "internal error". Set to the box's IP.
+	default_sni {$DEFAULT_SNI:localhost}
+}
+
 # SITE_ADDRESS lists every name/IP staff use, e.g. "stabilimento.local, 192.168.1.10".
 {$SITE_ADDRESS:localhost} {
 	# Caddy's own CA: works offline; each staff device trusts its root once (RUNBOOK).

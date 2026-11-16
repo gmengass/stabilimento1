@@ -127,7 +127,8 @@ jobs:
       ADMIN_USERNAME: ci_admin
       ADMIN_PASSWORD: ci-only-admin-password
       APP_URL: https://localhost
-      SITE_ADDRESS: localhost
+      SITE_ADDRESS: localhost, 127.0.0.1
+      DEFAULT_SNI: 127.0.0.1
     steps:
       - uses: actions/checkout@v4
       - name: Validate compose file and Caddyfile
@@ -156,6 +157,10 @@ jobs:
         run: |
           body=$(curl -fsS --retry 10 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://localhost/health)
           echo "$body"
+          test "$body" = '{"status":"ok","db":"ok"}'
+      - name: HTTPS by IP (no server name) gets the IP's certificate (DEFAULT_SNI)
+        run: |
+          body=$(curl -fsS --retry 5 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://127.0.0.1/health)
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: App port is not published on the host
         run: "! curl -s --max-time 3 http://localhost:3000/health"
