@@ -87,6 +87,7 @@
   "map": {
     "line": "Line {number}",
     "spotFree": "Umbrella {number}, free",
+    "dateNav": "Choose the day",
     "previousDay": "← Previous day",
     "today": "Today",
     "nextDay": "Next day →",

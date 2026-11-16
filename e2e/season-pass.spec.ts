@@ -1,7 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin-pass-123";
+import { ADMIN_STATE } from "./helpers";
 
 // Far in the future, so the dates are never "past" and never clash with real seasons.
 const SEASON = { name: "E2E 2090", startDate: "2090-06-01", endDate: "2090-09-15" };
@@ -11,25 +10,7 @@ const DAY_AFTER = "2090-07-21";
 
 // Selectors avoid translated text: another test switches the shared admin's language.
 
-async function logIn(page: Page): Promise<void> {
-  await page.goto("/login");
-  await page.locator('input[name="username"]').fill(ADMIN_USERNAME);
-  await page.locator('input[name="password"]').fill(ADMIN_PASSWORD);
-  await page.locator('button[type="submit"]').click();
-  await page.waitForURL("/");
-}
-
-/** The first-run setup is the only form with both the venue name and the layout fields. */
-async function ensureBeach(page: Page): Promise<void> {
-  await page.goto("/admin/beach");
-  const setup = page.locator('form:has(input[name="venueName"]):has(input[name="lines"])');
-  if ((await setup.count()) === 0) return;
-  await setup.locator('input[name="venueName"]').fill("Lido E2E");
-  await setup.locator('input[name="lines"]').fill("2");
-  await setup.locator('input[name="umbrellasPerLine"]').fill("6");
-  await setup.locator('button[type="submit"]').click();
-  await page.waitForURL("/", { timeout: 15_000 });
-}
+test.use({ storageState: ADMIN_STATE });
 
 async function ensureSeason(page: Page): Promise<void> {
   await page.goto("/admin/seasons");
@@ -52,8 +33,6 @@ test("a season pass without a last day runs to the season's end and can be ended
   page,
 }) => {
   const customer = `Pass ${Date.now()}`;
-  await logIn(page);
-  await ensureBeach(page);
   await ensureSeason(page);
 
   await page.goto(`/?date=${FIRST_DAY}`);

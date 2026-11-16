@@ -66,31 +66,37 @@ export default async function Home(props: PageProps<"/">) {
         <h1 className="mr-auto text-xl font-semibold">
           {formatBookingDate(date, isLocale(locale) ? locale : "it")}
         </h1>
-        <Link href={at(addDays(date, -1))} className="rounded border px-3 py-2">
-          {t("previousDay")}
-        </Link>
-        <Link href={at()} className="rounded border px-3 py-2">
-          {t("today")}
-        </Link>
-        <Link href={at(addDays(date, 1))} className="rounded border px-3 py-2">
-          {t("nextDay")}
-        </Link>
-        <form className="flex gap-2">
-          <input type="hidden" name="area" value={beach.areaId} />
-          <label className="sr-only" htmlFor="map-date">
-            {t("pickDate")}
-          </label>
-          <input
-            id="map-date"
-            type="date"
-            name="date"
-            defaultValue={date}
-            className="rounded border px-2 py-2"
-          />
-          <button type="submit" className="rounded border px-3 py-2">
-            {t("go")}
-          </button>
-        </form>
+        <nav
+          aria-label={t("dateNav")}
+          data-testid="date-nav"
+          className="flex max-w-full shrink-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap"
+        >
+          <Link href={at(addDays(date, -1))} className="rounded border px-3 py-2">
+            {t("previousDay")}
+          </Link>
+          <Link href={at()} className="rounded border px-3 py-2">
+            {t("today")}
+          </Link>
+          <Link href={at(addDays(date, 1))} className="rounded border px-3 py-2">
+            {t("nextDay")}
+          </Link>
+          <form className="flex flex-nowrap gap-2">
+            <input type="hidden" name="area" value={beach.areaId} />
+            <label className="sr-only" htmlFor="map-date">
+              {t("pickDate")}
+            </label>
+            <input
+              id="map-date"
+              type="date"
+              name="date"
+              defaultValue={date}
+              className="rounded border px-2 py-2"
+            />
+            <button type="submit" className="rounded border px-3 py-2">
+              {t("go")}
+            </button>
+          </form>
+        </nav>
       </div>
       <p className="flex flex-wrap gap-4 text-sm text-gray-700">
         <span>{t("legendFree", { count: free })}</span>
