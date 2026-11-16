@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl";
 import { useRef, type KeyboardEvent } from "react";
 import { isBookingDate } from "@/i18n/format";
 
+/** Keys that edit the field. Space, Alt+Down and the like open the picker instead. */
+const TYPING_KEYS = /^(\d|Arrow(Up|Down|Left|Right)|Backspace|Delete)$/;
+
 interface Props {
   /** The day being viewed (`YYYY-MM-DD`). */
   date: string;
@@ -30,7 +33,7 @@ export function DateJump({ date, areaId }: Props) {
     if (event.key === "Enter") {
       event.preventDefault();
       go(event.currentTarget.value);
-    } else if (event.key !== "Tab") {
+    } else if (TYPING_KEYS.test(event.key)) {
       typing.current = true;
     }
   };
@@ -41,7 +44,6 @@ export function DateJump({ date, areaId }: Props) {
       <span>{t("calendar")}</span>
       <input
         type="date"
-        aria-label={t("pickDate")}
         defaultValue={date}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         onClick={(event) => {
