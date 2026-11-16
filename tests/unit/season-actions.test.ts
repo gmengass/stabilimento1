@@ -59,6 +59,13 @@ describe.each(cases)("%s", (_name, action, operation) => {
     );
   });
 
+  it("still reports success when the log write fails", async () => {
+    actor.current = user("admin");
+    vi.spyOn(console, "error").mockImplementationOnce(() => {});
+    audit.writeEntry.mockRejectedValueOnce(new Error("db down"));
+    await expect(action({})).resolves.toMatchObject({ ok: true });
+  });
+
   it("logs nothing when the change fails", async () => {
     actor.current = user("admin");
     vi.mocked(operation).mockResolvedValueOnce({ ok: false, error: "invalid" } as never);

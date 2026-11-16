@@ -18,7 +18,7 @@ const undoSchema = z.object({ entryId: z.number().int().positive() });
 
 export type UndoResult =
   | { ok: true }
-  | { ok: false; error: "invalid" | "notFound" | "forbidden" | "undone" | "changed" }
+  | { ok: false; error: "invalid" | "notFound" | "forbidden" | "undone" | "changed" | "ended" }
   | { ok: false; error: "taken"; clashes: Clash[] };
 
 type Day = Pick<DayRow, "bookingSpotId" | "date">;
@@ -169,7 +169,7 @@ async function undoIn(
   if (!latest.some((row) => row.id === entryId)) return { ok: false, error: "notFound" };
   const entry = await tx
     .selectFrom("audit_log")
-    .select(["user_id", "created_at", "booking_id", "change", "undone_by_id"])
+    .select(["user_id", "created_at", "booking_id", "change", "undone_by_id", "undoes_id"])
     .where("id", "=", entryId)
     .forUpdate()
     .executeTakeFirstOrThrow();
@@ -187,6 +187,9 @@ async function undoIn(
     .where("id", "=", bookingId)
     .forUpdate()
     .executeTakeFirstOrThrow();
+  // Nothing from today on to change: undo would only flip the status of a finished booking.
+  const lastDay = [booking.end_date, change.before.endDate, change.after.endDate].sort().at(-1);
+  if (lastDay !== undefined && lastDay < today) return { ok: false, error: "ended" };
   const current = fromToday(change, today);
   const unchanged =
     booking.status === change.after.status &&
@@ -210,6 +213,14 @@ async function undoIn(
     .set({ undone_by_id: undoId })
     .where("id", "=", entryId)
     .execute();
+  // Undoing an undo puts the original change back, so the original no longer reads as undone.
+  if (entry.undoes_id !== null) {
+    await tx
+      .updateTable("audit_log")
+      .set({ undone_by_id: null })
+      .where("id", "=", entry.undoes_id)
+      .execute();
+  }
   return { ok: true };
 }
 

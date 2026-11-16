@@ -8,7 +8,15 @@ import type { Clash } from "@/lib/booking/bookings";
 import { undoAction } from "./booking-actions";
 
 type ErrorKey =
-  "changed" | "undone" | "forbidden" | "notFound" | "invalid" | "taken" | "takenNow" | "generic";
+  | "changed"
+  | "ended"
+  | "undone"
+  | "forbidden"
+  | "notFound"
+  | "invalid"
+  | "taken"
+  | "takenNow"
+  | "generic";
 
 interface Failure {
   key: ErrorKey;

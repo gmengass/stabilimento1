@@ -10,6 +10,15 @@ import { setupBeach, type SetupResult } from "@/lib/beach/layout";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
+/** Best effort: the change is already saved, so a failed log write must not report it as failed. */
+async function logChange(userId: string, what: string) {
+  try {
+    await writeEntry(getDb(), { userId, action: "beach", detail: { what } });
+  } catch (error) {
+    console.error("activity log write failed", error);
+  }
+}
+
 /**
  * Every beach action checks the role itself: the page guard is not a security boundary. A change
  * that worked shows in the activity stream; it can't be undone there (ADR 0013).
@@ -22,7 +31,7 @@ async function asAdmin<R extends { ok: boolean }>(
   if (actor?.role !== "admin") return { ok: false, error: "forbidden" };
   const result = await run();
   if (!result.ok) return result;
-  await writeEntry(getDb(), { userId: actor.id, action: "beach", detail: { what } });
+  await logChange(actor.id, what);
   revalidatePath("/", "layout");
   return result;
 }

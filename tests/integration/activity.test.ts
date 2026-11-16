@@ -293,6 +293,31 @@ describe("undo", () => {
     expect(await bookingState(id)).toMatchObject({ status: "active", days: { booked: 6 } });
   });
 
+  it("refuses once the booking has ended, even inside the 30 minutes", async () => {
+    await book(ANNA, { endDate: TODAY });
+    const entryId = await latestId();
+    expect(await undo(entryId, ANNA, addDays(TODAY, 1))).toEqual({ ok: false, error: "ended" });
+  });
+
+  it("brings released days back as released when a last day is undone", async () => {
+    const pass = await sellPass();
+    const august = { bookingId: pass, startDate: "2027-08-10", endDate: "2027-08-11" };
+    await releaseDays(db, ANNA.id, august, TODAY);
+    await endSeasonPass(db, ANNA.id, { bookingId: pass, lastDay: "2027-07-31" }, TODAY);
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect((await bookingState(pass)).days).toEqual({ booked: 86, released: 2 });
+  });
+
+  it("shows the original as standing again once its undo is undone", async () => {
+    await book();
+    const original = await latestId();
+    await undo(original);
+    await undo(await latestId());
+    const entries = await listActivity(db);
+    expect(entries.find((e) => e.id === original)).toMatchObject({ undone: false });
+    expect(entries[1]).toMatchObject({ action: "undo", undone: true });
+  });
+
   it("undoes an entry only once, even when two people try at the same time", async () => {
     await book();
     const entryId = await latestId();

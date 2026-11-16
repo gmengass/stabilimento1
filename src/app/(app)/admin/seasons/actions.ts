@@ -9,6 +9,15 @@ import type { SeasonResult } from "@/lib/booking/seasons";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
+/** Best effort: the change is already saved, so a failed log write must not report it as failed. */
+async function logChange(userId: string, what: string) {
+  try {
+    await writeEntry(getDb(), { userId, action: "season", detail: { what } });
+  } catch (error) {
+    console.error("activity log write failed", error);
+  }
+}
+
 /**
  * Every season action checks the role itself: the page guard is not a security boundary. A change
  * that worked shows in the activity stream; it can't be undone there (ADR 0013).
@@ -21,7 +30,7 @@ async function asAdmin(
   if (actor?.role !== "admin") return { ok: false, error: "forbidden" };
   const result = await run();
   if (!result.ok) return result;
-  await writeEntry(getDb(), { userId: actor.id, action: "season", detail: { what } });
+  await logChange(actor.id, what);
   revalidatePath("/", "layout");
   return result;
 }

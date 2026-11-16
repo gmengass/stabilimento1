@@ -314,7 +314,8 @@
       "invalid": "Questa modifica non si può ripristinare qui.",
       "taken": "Impossibile ripristinare: questi ombrelloni ora sono prenotati da altri:",
       "takenNow": "Qualcuno ha appena prenotato uno di questi ombrelloni. Controlla la mappa.",
-      "generic": "Qualcosa è andato storto. Riprova."
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "ended": "Questa prenotazione è già finita: non c'è più niente da ripristinare."
     }
   }
 }
