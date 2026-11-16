@@ -5,11 +5,11 @@
 ## Current state
 - `v0.3.1` is tagged (#28: beach space tabs on the date row); deploy on the box not confirmed.
   `v0.3.0` (seasons and season passes, #26, migration `0006_seasons`) is deployed on the box.
-- Merged, not yet tagged: #29, the map's date controls always stay together on one line.
+- Merged, not yet tagged: #29 (the map's date controls stay together on one line) and #31.
 
 ## Done this session
-- #29: the five date controls form one non-wrapping group (`e2e/map-header.spec.ts`).
-  E2E specs share one admin sign-in (`e2e/admin.setup.ts`): sign-in is limited to 5 per minute.
+- #31: a picked calendar day opens at once, no Show button (`src/components/date-jump.tsx`);
+  other days show an amber "Go to today". #29: e2e specs share one sign-in (`e2e/admin.setup.ts`).
 
 ## Next up
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
