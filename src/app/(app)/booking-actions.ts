@@ -7,6 +7,7 @@ import * as bookings from "@/lib/booking/bookings";
 import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
 import * as passes from "@/lib/booking/passes";
 import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
+import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-book";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
@@ -58,4 +59,13 @@ export async function endSeasonPassAction(input: unknown): Promise<EndPassResult
   const result = await passes.endSeasonPass(getDb(), input);
   if (result.ok) revalidatePath("/");
   return result;
+}
+
+/** Read-only: suggests free umbrellas. Staff confirm with `createBookingAction` or a pass. */
+export async function suggestQuickBookAction(
+  input: unknown,
+): Promise<QuickSuggestResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  return suggestQuickBook(getDb(), input);
 }
