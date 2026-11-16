@@ -4,6 +4,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
+- Recent activity under the beach map: the last 10 actions for the whole venue (bookings,
+  season passes, cancellations, last days, released and given-back days, beach and season
+  changes), with who did them and when. Tap its title to fold it away.
+- Undo from the activity list: staff can undo their own actions for 30 minutes, admins any of
+  the 10. Undo refuses, changing nothing, if the booking has changed since or an umbrella it
+  would book again is now taken. An undo can itself be undone.
 - Android app for club tablets and phones (Android 7.0+), built on the box with
   `scripts/build-android.sh`. It opens the booking app full screen, trusts the club's certificate
   without installing it on the device, keeps the screen on, and shows "Server not reachable,

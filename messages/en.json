@@ -287,5 +287,35 @@
       "generic": "Something went wrong. Try again."
     },
     "edited": "Your own choice: the umbrellas differ from the suggestion."
+  },
+  "activity": {
+    "title": "Recent activity",
+    "empty": "Nothing yet. Bookings and changes will show here.",
+    "spots": "{count, plural, one {umbrella {numbers}} other {umbrellas {numbers}}}",
+    "range": "{from} – {to}",
+    "book": "{user} booked {spots} for {name}, {dates}",
+    "sellPass": "{user} sold a season pass for {spots} to {name}, from {from}",
+    "cancel": "{user} cancelled the booking of {name} ({spots})",
+    "setLastDay": "{user} set the last day of {name}'s pass to {date}",
+    "release": "{user} released {days, plural, one {# day} other {# days}} of {name}'s pass, {dates}",
+    "restore": "{user} gave {name} back {days, plural, one {# day} other {# days}}, {dates}",
+    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} other {an undo}} of {name} ({spots})",
+    "beach": "{user} changed the beach settings",
+    "season": "{what, select, create {{user} added a season} remove {{user} removed a season} other {{user} changed a season}}",
+    "undoButton": "Undo",
+    "undoLabel": "Undo: {text}",
+    "undoing": "Undoing…",
+    "undone": "Undone",
+    "errors": {
+      "changed": "This booking has changed since. Undo the later change first.",
+      "undone": "This was already undone.",
+      "forbidden": "You can undo only your own changes, for 30 minutes. Ask an admin.",
+      "notFound": "This is no longer among the last 10 actions.",
+      "invalid": "This change can't be undone here.",
+      "taken": "Can't undo: these umbrellas are booked by someone else now:",
+      "takenNow": "Someone just booked one of these umbrellas. Check the map.",
+      "generic": "Something went wrong. Try again.",
+      "ended": "This booking has already ended: there is nothing left to undo."
+    }
   }
 }
