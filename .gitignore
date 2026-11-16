@@ -39,3 +39,10 @@ backups/
 *.tgz
 *.crt
 *.dump
+
+# Android app (scripts/build-android.sh builds outside the checkout; these guard local builds)
+android/.gradle/
+android/local.properties
+*.apk
+*.p12
+*.pass
