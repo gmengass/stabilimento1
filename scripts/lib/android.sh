@@ -13,9 +13,11 @@ origin_host() { printf '%s\n' "$1" | sed -e 's|^https://||' -e 's|:[0-9]*$||'; }
 list_items() { printf '%s\n' "$1" | tr ',' ' ' | tr -s ' ' '\n' | sed '/^$/d'; }
 
 # Whether $1 is one of the names/IPs in SITE_ADDRESS $2, so Caddy has a certificate for it.
+# Caddy also accepts entries like https://name or name:443: compare the bare host.
 in_site_address() {
 	ias_host=$1
-	list_items "$2" | tr '[:upper:]' '[:lower:]' | grep -Fqx "$ias_host"
+	list_items "$2" | tr '[:upper:]' '[:lower:]' | sed -e 's|^[a-z]*://||' -e 's|:[0-9]*$||' |
+		grep -Fqx "$ias_host"
 }
 
 # Refuses values the APK can't use: APP_URL $1, TRUSTED_ORIGINS $2, REMOTE_URL $3 (optional),

@@ -30,6 +30,8 @@ check_android_config "$app_url" "$trusted" "$remote" "$(env_value SITE_ADDRESS)"
 command -v docker >/dev/null || die "docker not found"
 command -v openssl >/dev/null || die "openssl not found"
 
+# update.sh must not check out another tag while android/ is copied.
+acquire_lock
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"; cleanup' EXIT
 
@@ -60,11 +62,13 @@ in_build_image() {
 if [ ! -e "$KEY_DIR/$KEYSTORE" ] && [ ! -e "$KEY_DIR/$KEY_PASS" ]; then
 	log "creating the signing key in $KEY_DIR: back it up with .env (RUNBOOK)"
 	openssl rand -hex 32 | tr -d '\n' >"$KEY_DIR/$KEY_PASS"
-	in_build_image -v "$KEY_DIR:/keys" "$image" keytool -genkeypair -noprompt \
+	in_build_image --network none -v "$KEY_DIR:/keys" "$image" keytool -genkeypair -noprompt \
 		-keystore "/keys/$KEYSTORE" -storetype PKCS12 -storepass:file "/keys/$KEY_PASS" \
 		-alias "$KEY_ALIAS" -keyalg RSA -keysize 4096 -validity 10950 \
 		-dname "CN=Stabilimento tablet app" 2>/dev/null
 fi
+# The container's umask isn't ours: keep the key owner-only whatever created it.
+chmod 600 "$KEY_DIR/$KEYSTORE" "$KEY_DIR/$KEY_PASS" 2>/dev/null || true
 [ -f "$KEY_DIR/$KEYSTORE" ] && [ -f "$KEY_DIR/$KEY_PASS" ] ||
 	die "$KEY_DIR has only one of $KEYSTORE and $KEY_PASS: restore both from the backup"
 
@@ -79,22 +83,31 @@ version_code=$((now - VERSION_EPOCH))
 apk="stabilimento-$version_name-$(date -u +%Y%m%d%H%M%S).apk"
 
 log "building $apk"
+# Gradle runs downloaded plugins, so the signing key is not mounted here.
 # shellcheck disable=SC2016 # expanded by the shell inside the container
-in_build_image -v "$KEY_DIR:/keys:ro" -v "$OUT_DIR:/out" -w /work/android \
+in_build_image -w /work/android \
 	-e APP_URL="$app_url" -e TRUSTED_ORIGINS="$trusted" -e REMOTE_URL="$remote" \
-	-e VERSION_CODE="$version_code" -e VERSION_NAME="$version_name" -e APK="$apk" \
-	-e KEYSTORE="/keys/$KEYSTORE" -e KEY_PASS="/keys/$KEY_PASS" -e KEY_ALIAS="$KEY_ALIAS" \
+	-e VERSION_CODE="$version_code" -e VERSION_NAME="$version_name" \
 	"$image" sh -euc '
 		gradle --no-daemon --quiet \
 			-PappUrl="$APP_URL" -PtrustedOrigins="$TRUSTED_ORIGINS" -PremoteUrl="$REMOTE_URL" \
 			-PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME" \
 			test assembleRelease
 		zipalign -p -f 4 app/build/outputs/apk/release/app-release-unsigned.apk /work/aligned.apk
+	'
+
+# Signing: the key, read-only, in a container with no network.
+# shellcheck disable=SC2016 # expanded by the shell inside the container
+in_build_image --network none -v "$KEY_DIR:/keys:ro" -v "$OUT_DIR:/out" \
+	-e APK="$apk" -e KEYSTORE="/keys/$KEYSTORE" -e KEY_PASS="/keys/$KEY_PASS" -e KEY_ALIAS="$KEY_ALIAS" \
+	"$image" sh -euc '
 		apksigner sign --ks "$KEYSTORE" --ks-type PKCS12 --ks-key-alias "$KEY_ALIAS" \
 			--ks-pass "file:$KEY_PASS" --key-pass "file:$KEY_PASS" --out "/out/$APK" /work/aligned.apk
 		apksigner verify --print-certs "/out/$APK" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p" >/work/signer
 	'
+test -s "$WORK/signer" || die "apksigner did not verify $apk"
 
 log "APK: $OUT_DIR/$apk (version $version_name, code $version_code)"
 log "signer SHA-256: $(cat "$WORK/signer")"
-log "check both fingerprints before installing on a tablet (RUNBOOK)"
+log "APK SHA-256: $(openssl dgst -sha256 -r "$OUT_DIR/$apk" | cut -d' ' -f1)"
+log "check these against the RUNBOOK record before installing (Android app for club tablets)"
