@@ -184,11 +184,12 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
-    env:
-      ANDROID_KEY_DIR: ${{ runner.temp }}/secrets
-      ANDROID_OUT_DIR: ${{ runner.temp }}/apk
     steps:
       - uses: actions/checkout@v4
+      - name: Key and APK directories outside the checkout
+        run: |
+          echo "ANDROID_KEY_DIR=$RUNNER_TEMP/secrets" >> "$GITHUB_ENV"
+          echo "ANDROID_OUT_DIR=$RUNNER_TEMP/apk" >> "$GITHUB_ENV"
       - name: No JavaScript bridge or file access in the wrapper
         run: "! grep -rnE 'addJavascriptInterface|setAllowFileAccess\\(true|allowFileAccess = true|onReceivedSslError.*proceed|handler\\.proceed' android/"
       - name: Throwaway club root in a caddy_data volume, box-like .env
@@ -227,7 +228,7 @@ jobs:
           scripts/build-android.sh
           scripts/build-android.sh
           ls -l "$ANDROID_OUT_DIR" "$ANDROID_KEY_DIR"
-          test "$(ls "$ANDROID_OUT_DIR" | wc -l)" = 2
+          test "$(find "$ANDROID_OUT_DIR" -name '*.apk' | wc -l)" = 2
           test "$(stat -c %a "$ANDROID_KEY_DIR/stabilimento-android.p12")" = 600
           test "$(stat -c %a "$ANDROID_KEY_DIR/stabilimento-android.pass")" = 600
       - name: Same signer, growing version, minimum Android 7.0, INTERNET only, club root bundled
