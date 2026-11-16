@@ -52,7 +52,7 @@ export interface Clash {
 
 export type CreateResult =
   | { ok: true; bookingId: number }
-  | { ok: false; error: "invalid" | "sunbeds" }
+  | { ok: false; error: "invalid" | "sunbeds" | "past" }
   | { ok: false; error: "taken"; clashes: Clash[] };
 
 export type CancelResult = { ok: true } | { ok: false; error: "invalid" | "notFound" | "ended" };
@@ -219,14 +219,16 @@ export async function bookSpots(
   }
 }
 
-/** A day or multi-day booking. Season passes go through `createSeasonPass`. */
+/** A day or multi-day booking from today on. Season passes go through `createSeasonPass`. */
 export async function createBooking(
   db: Kysely<DB>,
   userId: string,
   input: unknown,
+  today: string = venueToday(),
 ): Promise<CreateResult> {
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
+  if (parsed.data.startDate < today) return { ok: false, error: "past" };
   return bookSpots(db, userId, parsed.data);
 }
 

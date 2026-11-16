@@ -272,6 +272,32 @@ describe("createBooking", () => {
     expect(await spotDayCount()).toBe(0);
   });
 
+  it("refuses a booking that starts before today and writes nothing", async () => {
+    const result = await createBooking(db, USER, booking({ endDate: "2027-07-10" }), "2027-07-11");
+    expect(result).toEqual({ ok: false, error: "past" });
+    expect(await spotDayCount()).toBe(0);
+  });
+
+  it("refuses a multi-day booking that started yesterday, even though it runs past today", async () => {
+    const result = await createBooking(db, USER, booking(), "2027-07-11");
+    expect(result).toEqual({ ok: false, error: "past" });
+    expect(await spotDayCount()).toBe(0);
+  });
+
+  it("allows a booking that starts today", async () => {
+    expect(await createBooking(db, USER, booking(), "2027-07-10")).toMatchObject({ ok: true });
+    expect(await spotDayCount()).toBe(3);
+  });
+
+  it("uses the venue's today when none is given", async () => {
+    const result = await createBooking(
+      db,
+      USER,
+      booking({ startDate: "2020-07-10", endDate: "2020-07-10" }),
+    );
+    expect(result).toEqual({ ok: false, error: "past" });
+  });
+
   it(`allows up to ${MAX_BOOKING_DAYS} days`, async () => {
     const result = await createBooking(
       db,

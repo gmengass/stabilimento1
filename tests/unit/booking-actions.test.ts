@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, bookingsModule, passesModule } = vi.hoisted(() => ({
+const { actor, bookingsModule, passesModule, quickBookModule, cache } = vi.hoisted(() => ({
   actor: { current: null as CurrentUser | null },
   bookingsModule: {
     createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
@@ -13,13 +13,18 @@ const { actor, bookingsModule, passesModule } = vi.hoisted(() => ({
     restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
     endSeasonPass: vi.fn(async () => ({ ok: true as const })),
   },
+  quickBookModule: {
+    suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
+  },
+  cache: { revalidatePath: vi.fn() },
 }));
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
 vi.mock("@/lib/booking/passes", () => passesModule);
+vi.mock("@/lib/booking/quick-book", () => quickBookModule);
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => cache);
 
 const {
   createBookingAction,
@@ -28,6 +33,7 @@ const {
   releaseDaysAction,
   restoreDaysAction,
   endSeasonPassAction,
+  suggestQuickBookAction,
 } = await import("@/app/(app)/booking-actions");
 
 const staff: CurrentUser = {
@@ -77,5 +83,23 @@ describe.each(dayActions)("%s", (_name, action, operation) => {
     actor.current = staff;
     await expect(action({ x: 1 })).resolves.toMatchObject({ ok: true });
     expect(operation).toHaveBeenCalledWith({}, { x: 1 });
+  });
+});
+
+describe("suggestQuickBookAction", () => {
+  it("is forbidden when logged out", async () => {
+    actor.current = null;
+    await expect(suggestQuickBookAction({})).resolves.toEqual({ ok: false, error: "forbidden" });
+    expect(quickBookModule.suggestQuickBook).not.toHaveBeenCalled();
+  });
+
+  it("suggests for staff without touching the cache", async () => {
+    actor.current = staff;
+    await expect(suggestQuickBookAction({ x: 1 })).resolves.toEqual({
+      ok: true,
+      suggestions: [],
+    });
+    expect(quickBookModule.suggestQuickBook).toHaveBeenCalledWith({}, { x: 1 });
+    expect(cache.revalidatePath).not.toHaveBeenCalled();
   });
 });

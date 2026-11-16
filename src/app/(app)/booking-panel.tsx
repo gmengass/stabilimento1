@@ -8,6 +8,7 @@ import type { MapSpot } from "@/lib/beach/layout";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
 import { addDays } from "@/i18n/format";
 import type { OpenSeason } from "@/lib/booking/seasons";
+import type { QuickBookDraft } from "./quick-book";
 import {
   cancelBookingAction,
   createBookingAction,
@@ -30,6 +31,7 @@ type ErrorKey =
   | "ended"
   | "notSeason"
   | "past"
+  | "pastBooking"
   | "generic";
 interface Failure {
   key: ErrorKey;
@@ -82,6 +84,8 @@ interface NewProps {
   today: string;
   /** The season a pass can be sold for; with none, only day bookings are offered. */
   openSeason: OpenSeason | null;
+  /** Filled in by quick book: who, when, and the sunbeds it spread over the umbrellas. */
+  initial?: { draft: QuickBookDraft; sunbeds: Record<number, number> };
   onRemove: (spotId: number) => void;
   onDone: () => void;
 }
@@ -103,13 +107,14 @@ function firstPassDay(season: OpenSeason, today: string): string {
 }
 
 export function NewBookingForm(props: NewProps) {
-  const { areaName, date, today, spots, openSeason, onRemove, onDone } = props;
+  const { areaName, date, today, spots, openSeason, initial, onRemove, onDone } = props;
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
-  const [startDate, setStartDate] = useState(date);
-  const [endDate, setEndDate] = useState(date);
-  const [asPass, setAsPass] = useState(false);
+  const draft = initial?.draft;
+  const [asPass, setAsPass] = useState(!!openSeason && !!draft?.asPass);
+  const [startDate, setStartDate] = useState(draft?.startDate ?? date);
+  const [endDate, setEndDate] = useState(draft && !draft.asPass ? draft.endDate : date);
   const season = asPass ? openSeason : null;
   const formatDate = useDate();
 
@@ -143,6 +148,7 @@ export function NewBookingForm(props: NewProps) {
           ? await createSeasonPassAction({ ...booking, seasonId: season.id })
           : await createBookingAction(booking);
         if (result.ok) onDone();
+        else if (result.error === "past") setFailure({ key: season ? "past" : "pastBooking" });
         else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
       } catch {
         setFailure({ key: "generic" });
@@ -161,7 +167,7 @@ export function NewBookingForm(props: NewProps) {
               {t("sunbeds")}
               <select
                 name={`sunbeds-${spot.id}`}
-                defaultValue={spot.includedSunbeds}
+                defaultValue={initial?.sunbeds[spot.id] ?? spot.includedSunbeds}
                 className={field}
               >
                 {Array.from({ length: spot.maxSunbeds + 1 }, (_, n) => (
@@ -184,11 +190,24 @@ export function NewBookingForm(props: NewProps) {
       </ul>
       <label className="flex flex-col gap-1 text-sm">
         {t("customerName")}
-        <input name="customerName" required maxLength={100} className={field} />
+        <input
+          name="customerName"
+          required
+          maxLength={100}
+          defaultValue={draft?.customerName}
+          className={field}
+        />
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("customerPhone")}
-        <input name="customerPhone" type="tel" inputMode="tel" maxLength={30} className={field} />
+        <input
+          name="customerPhone"
+          type="tel"
+          inputMode="tel"
+          maxLength={30}
+          defaultValue={draft?.customerPhone}
+          className={field}
+        />
       </label>
       {openSeason && (
         <label className="flex items-center gap-2 text-sm">
@@ -239,6 +258,7 @@ export function NewBookingForm(props: NewProps) {
               name="startDate"
               type="date"
               required
+              min={today}
               value={startDate}
               onChange={(e) => changeStart(e.target.value)}
               className={field}

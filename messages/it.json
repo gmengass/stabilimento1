@@ -191,7 +191,8 @@
       "invalidDays": "Controlla le date: l'ultimo giorno non può precedere il primo.",
       "notSeason": "Solo gli abbonamenti stagionali possono liberare dei giorni.",
       "past": "I giorni passati non si possono modificare.",
-      "invalidLastDay": "Scegli un ultimo giorno compreso nell'abbonamento. Un abbonamento si può solo accorciare."
+      "invalidLastDay": "Scegli un ultimo giorno compreso nell'abbonamento. Un abbonamento si può solo accorciare.",
+      "pastBooking": "Non si possono prenotare giorni passati."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -259,5 +260,32 @@
     },
     "defaultName": "Stagione {year}",
     "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date})."
+  },
+  "quickBook": {
+    "open": "Prenotazione rapida",
+    "title": "Prenotazione rapida · {area}",
+    "umbrellas": "Ombrelloni",
+    "sunbeds": "Lettini (in totale)",
+    "suggest": "Suggerisci ombrelloni",
+    "searching": "Ricerca…",
+    "suggestion": "Proposta {index} di {total}: {spots}",
+    "summary": "{layout} · {dates}",
+    "layout": {
+      "adjacent": "Vicini",
+      "sameLine": "Stessa fila, non vicini",
+      "split": "Su più file"
+    },
+    "editHint": "Tocca gli ombrelloni sulla mappa per cambiare la scelta, poi conferma qui sotto.",
+    "another": "Altra proposta",
+    "change": "Modifica richiesta",
+    "errors": {
+      "noFit": "{free, plural, =0 {Nessun ombrellone è libero in quei giorni.} one {Solo # ombrellone è libero in quei giorni.} other {Solo # ombrelloni sono liberi in quei giorni.}}",
+      "tooManySunbeds": "Nessun gruppo di ombrelloni liberi può contenere così tanti lettini.",
+      "past": "Non si possono prenotare giorni passati.",
+      "invalid": "Controlla i campi: da 1 a 20 ombrelloni, 0 o più lettini e una data di fine uguale o successiva all'inizio.",
+      "forbidden": "La sessione è scaduta. Accedi di nuovo.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    },
+    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
   }
 }
