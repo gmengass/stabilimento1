@@ -3,8 +3,8 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.3.2` is deployed on the box. PR #37 (`feat/quick-book`) is open with CI green; it
-  supersedes the docs-only PR #36, which can be closed. Nothing is unreleased on `main` yet.
+- `v0.3.2` is deployed on the box (#36). PR #37 (`feat/quick-book`) is open.
+  Nothing is unreleased on `main` yet.
 
 ## Done this session
 - Quick book (#37, ADR 0012), passes included; day/multi-day bookings now refuse past dates.
