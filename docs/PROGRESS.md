@@ -3,7 +3,7 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.4.0` deployed. PR #40 (Android app, ADR 0010/0011) open; not on any tablet yet.
+- `v0.4.0` deployed. Open: #40 (Android, ADR 0010/0011; on no tablet yet), #39 (AuditLog + undo).
 
 ## Done this session
 - Android wrapper app (`android/`), box build script (`scripts/build-android.sh`), CI job
