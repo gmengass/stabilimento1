@@ -14,12 +14,13 @@
 1. Backups: nightly encrypted dumps to USB + OneDrive, before the first real season. Ask the
    owner: OneDrive approval from whoever runs Microsoft 365, and a USB drive left in the box.
 2. Quick book: name, phone, umbrellas, sunbeds → suggested spots, one-tap confirm.
-3. Android app for club tablets (ADR 0010, proposed): accept the ADR first. Replaces the trusted
-   certificate as the fix for Android Chrome; Let's Encrypt is deferred.
+3. Android app for club tablets (ADR 0010; Tailscale fallback, ADR 0011). Replaces the
+   trusted certificate as the fix for Android Chrome; Let's Encrypt is deferred.
 
 ## Open questions
 - ADR 0010: which Android versions the club tablets run (minimum is 7.0), and whether staff
   personal phones need the app or Chrome.
+- ADR 0011: Tailscale terms for company use; who gets remote access (owner, which staff).
 - GDPR: retention period for customer name/phone/notes, and a redaction path (needs an ADR).
 - No AuditLog yet (ADR 0004): bookings and pass changes write no entry. Needed before payments.
 - Day and multi-day bookings can still be created for past days (pre-existing; passes can't).

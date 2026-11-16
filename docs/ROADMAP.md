@@ -16,8 +16,9 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Auth (log in, roles, staff accounts) (ADR 0007)
 - [x] Umbrella numbering: line × 100 + position, position 1 = leftmost facing the sea (ADR 0004)
 - [ ] Android app for club tablets: WebView wrapper that bundles the club's root certificate,
-      built on the box by `scripts/build-android.sh`, screen pinning (ADR 0010, proposed)
-- [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones and remote access):
+      built on the box by `scripts/build-android.sh`, screen pinning (ADR 0010);
+      falls back to the box's Tailscale address off the club network (ADR 0011)
+- [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones in a plain browser):
       Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
 ## Milestone 1 — Core booking (MVP, PROJECT_BRIEF.md and ADR 0004)
@@ -38,7 +39,7 @@ Each item ships something staff can use on the box.
   end, once the holder knows their last day (owner, 2026-11-14)
 - [ ] Regular-customer history (who had which spot last season)
 - [ ] Reports for the admin
-- [ ] Remote access via Tailscale (ADR 0003)
+- [ ] Remote access via Tailscale: box setup, `.env` addresses, RUNBOOK steps (ADR 0003, ADR 0011)
 
 ## Milestone 3 — Release v1.0
 - [ ] Security review (security agent) and fixes
