@@ -1,6 +1,6 @@
 # 0010. Android app for club tablets
 
-- Status: Proposed
+- Status: Accepted (merged in #34)
 - Date: 2026-11-16 (owner request)
 - Amends: [ADR 0008](0008-deploy-details.md), the "Each staff device trusts Caddy's root
   certificate once" bullet; [ADR 0003](0003-hosting.md), "Staff use a browser on phones/tablets"
