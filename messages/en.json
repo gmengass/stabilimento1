@@ -285,6 +285,7 @@
       "invalid": "Check the fields: 1 to 20 umbrellas, 0 or more sunbeds, and an end date on or after the start.",
       "forbidden": "Your session has ended. Log in again.",
       "generic": "Something went wrong. Try again."
-    }
+    },
+    "edited": "Your own choice: the umbrellas differ from the suggestion."
   }
 }

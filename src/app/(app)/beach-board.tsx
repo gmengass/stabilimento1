@@ -58,6 +58,7 @@ export function BeachBoard({
 
   function openQuickBook() {
     setSelected([]);
+    setPick(null);
     setOpenBooking(null);
     setQuickForm(true);
   }
@@ -79,11 +80,16 @@ export function BeachBoard({
     }
     setOpenBooking(null);
     setQuickForm(false);
-    setSelected((current) =>
-      current.some((s) => s.id === spot.id)
-        ? current.filter((s) => s.id !== spot.id)
-        : [...current, spot],
-    );
+    const next = selected.some((s) => s.id === spot.id)
+      ? selected.filter((s) => s.id !== spot.id)
+      : [...selected, spot];
+    changeSelection(next);
+  }
+
+  /** An emptied selection ends quick book: the next tap starts a new, blank booking. */
+  function changeSelection(next: MapSpot[]) {
+    setSelected(next);
+    if (next.length === 0) setPick(null);
   }
 
   function viewOf(spot: MapSpot): SpotView {
@@ -105,6 +111,10 @@ export function BeachBoard({
 
   const suggestion = pick?.suggestions[pickIndex];
   const sunbedsOf = Object.fromEntries(suggestion?.spots.map((s) => [s.spotId, s.sunbeds]) ?? []);
+  const asSuggested =
+    !!suggestion &&
+    suggestion.spots.length === freeSelected.length &&
+    suggestion.spots.every((s) => freeSelected.some((f) => f.id === s.spotId));
 
   const panel = open ? (
     <BookingDetails
@@ -120,6 +130,7 @@ export function BeachBoard({
         <SuggestionBar
           pick={pick}
           index={pickIndex}
+          edited={!asSuggested}
           onAnother={() => showSuggestion(pick, (pickIndex + 1) % pick.suggestions.length)}
           onChange={() => {
             setSelected([]);
@@ -138,12 +149,13 @@ export function BeachBoard({
         spots={freeSelected}
         openSeason={openSeason}
         initial={pick ? { draft: pick.draft, sunbeds: sunbedsOf } : undefined}
-        onRemove={(id) => setSelected((current) => current.filter((s) => s.id !== id))}
+        onRemove={(id) => changeSelection(selected.filter((s) => s.id !== id))}
         onDone={reset}
       />
     </div>
   ) : quickForm ? (
     <QuickBookForm
+      key={pick ? "change" : date}
       areaId={areaId}
       areaName={areaName}
       date={date}

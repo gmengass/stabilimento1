@@ -285,6 +285,7 @@
       "invalid": "Controlla i campi: da 1 a 20 ombrelloni, 0 o più lettini e una data di fine uguale o successiva all'inizio.",
       "forbidden": "La sessione è scaduta. Accedi di nuovo.",
       "generic": "Qualcosa è andato storto. Riprova."
-    }
+    },
+    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
   }
 }

@@ -41,6 +41,10 @@ interface FormProps {
   onClose: () => void;
 }
 
+/**
+ * Quick book starts today at the earliest, also for a pass: it never sells days already over,
+ * unlike the map's pass form, which allows a holder who arrived yesterday.
+ */
 function firstQuickDay(date: string, today: string, season: OpenSeason | null): string {
   const first = season && season.startDate > today ? season.startDate : today;
   return date < first ? first : date;
@@ -229,12 +233,14 @@ export function QuickBookForm(props: FormProps) {
 interface BarProps {
   pick: QuickBookPick;
   index: number;
+  /** Staff changed the umbrellas on the map, or one was booked elsewhere meanwhile. */
+  edited: boolean;
   onAnother: () => void;
   onChange: () => void;
 }
 
 /** Which suggestion is on the map, how it is laid out, and the way to the next one. */
-export function SuggestionBar({ pick, index, onAnother, onChange }: BarProps) {
+export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarProps) {
   const t = useTranslations("quickBook");
   const tb = useTranslations("booking");
   const locale = useLocale();
@@ -243,13 +249,19 @@ export function SuggestionBar({ pick, index, onAnother, onChange }: BarProps) {
   const format = (d: string) => formatBookingDate(d, isLocale(locale) ? locale : defaultLocale);
   return (
     <div className="flex flex-col gap-2 rounded bg-blue-50 p-3 text-sm">
-      <p data-testid="quick-book-suggestion" className="font-semibold">
-        {t("suggestion", {
-          index: index + 1,
-          total: pick.suggestions.length,
-          spots: suggestion.spots.map((s) => s.number).join(", "),
-        })}
-      </p>
+      {edited ? (
+        <p data-testid="quick-book-edited" className="font-semibold">
+          {t("edited")}
+        </p>
+      ) : (
+        <p data-testid="quick-book-suggestion" className="font-semibold">
+          {t("suggestion", {
+            index: index + 1,
+            total: pick.suggestions.length,
+            spots: suggestion.spots.map((s) => s.number).join(", "),
+          })}
+        </p>
+      )}
       <p>
         {t("summary", {
           layout: t(`layout.${suggestion.layout}`),
