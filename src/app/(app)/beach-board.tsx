@@ -1,13 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { BeachMap, type SpotView } from "@/components/beach-map";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import { BookingDetails, NewBookingForm, ReleasedDay } from "./booking-panel";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
+
+/** Below Tailwind's `md`: where the panel is a bottom sheet. */
+const PHONE = "(max-width: 47.99rem)";
 
 interface Props {
   /** The venue's today: past days can't be released, restored or sold as a pass. */
@@ -23,7 +26,10 @@ interface Props {
   openSeason: OpenSeason | null;
 }
 
-/** The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it. */
+/**
+ * The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it.
+ * On phones the panel is a bottom sheet over the map, so umbrellas stay tappable.
+ */
 export function BeachBoard({
   today,
   areaId,
@@ -41,6 +47,12 @@ export function BeachBoard({
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);
   const [pickIndex, setPickIndex] = useState(0);
+  /** Phones: the panel content the sheet was folded down on (see `panelKey`). */
+  const [collapsedFor, setCollapsedFor] = useState<string | null>(null);
+  const quickBookButton = useRef<HTMLButtonElement>(null);
+  const mapArea = useRef<HTMLDivElement>(null);
+  const contentId = useId();
+  const ts = useTranslations("sheet");
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
   // A booking made or cancelled elsewhere can make the selection stale: drop booked spots.
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
@@ -167,11 +179,40 @@ export function BeachBoard({
     />
   ) : null;
 
+  /** What the panel shows: new content opens a collapsed sheet again, toggling umbrellas doesn't. */
+  const panelKey = open
+    ? `booking-${open.bookingId}`
+    : freeSelected.length > 0
+      ? `new-${pick ? pickIndex : "map"}`
+      : quickForm
+        ? "quick"
+        : null;
+  const collapsed = panelKey !== null && collapsedFor === panelKey;
+  const sheetOpen = panelKey !== null;
+
+  // Phones: the header above the map is taller than the room the sheet leaves, so bring the map up.
+  useEffect(() => {
+    if (sheetOpen && window.matchMedia(PHONE).matches) mapArea.current?.scrollIntoView();
+  }, [sheetOpen]);
+
+  function closePanel() {
+    setOpenBooking(null);
+    reset();
+    quickBookButton.current?.focus();
+  }
+
+  function onPanelKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closePanel();
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-      <div className="flex min-w-0 flex-col gap-2">
+      <div ref={mapArea} className="flex min-w-0 scroll-mt-2 flex-col gap-2">
         <button
           type="button"
+          ref={quickBookButton}
           onClick={openQuickBook}
           data-testid="quick-book-open"
           className="min-h-11 self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white"
@@ -186,7 +227,38 @@ export function BeachBoard({
           onSpotClick={onSpotClick}
         />
       </div>
-      {panel && <aside className="rounded border p-4 lg:sticky lg:top-4">{panel}</aside>}
+      {panel && (
+        <aside
+          aria-label={ts("label")}
+          data-sheet={collapsed ? "collapsed" : "open"}
+          onKeyDown={onPanelKeyDown}
+          className="rounded border bg-background p-4 lg:sticky lg:top-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:pt-0 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_16px_rgb(0_0_0/0.2)]"
+        >
+          <div className="sticky top-0 z-10 -mx-4 flex justify-end gap-2 bg-background px-4 py-2 md:hidden">
+            <button
+              type="button"
+              data-sheet-toggle
+              aria-expanded={!collapsed}
+              aria-controls={contentId}
+              onClick={() => setCollapsedFor(collapsed ? null : panelKey)}
+              className="min-h-11 rounded border px-3 py-2"
+            >
+              {collapsed ? ts("expand") : ts("collapse")}
+            </button>
+            <button
+              type="button"
+              data-sheet-close
+              onClick={closePanel}
+              className="min-h-11 rounded border px-3 py-2"
+            >
+              {ts("close")}
+            </button>
+          </div>
+          <div id={contentId} className={collapsed ? "max-md:hidden" : undefined}>
+            {panel}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

@@ -59,7 +59,7 @@ export default async function Home(props: PageProps<"/">) {
   const freeReleased = Object.keys(released).filter((id) => !occupancy[Number(id)]).length;
 
   return (
-    <main className="flex w-full flex-col gap-4 p-4">
+    <main className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <AreaTabs
           areas={areas}

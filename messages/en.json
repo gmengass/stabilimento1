@@ -288,6 +288,12 @@
     },
     "edited": "Your own choice: the umbrellas differ from the suggestion."
   },
+  "sheet": {
+    "label": "Booking panel",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "close": "Close"
+  },
   "activity": {
     "title": "Recent activity",
     "empty": "Nothing yet. Bookings and changes will show here.",
