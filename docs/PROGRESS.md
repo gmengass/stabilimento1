@@ -3,16 +3,15 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.6.0` released and deployed (phone layout #45, RUNBOOK #44; no migrations).
-- Draft PR #48 (move a booking, ADR 0014, migration 0008): reviewed, CI green, not merged.
+- `v0.7.0` released and deployed: move a booking (#48, ADR 0014, migration 0008).
 
 ## Done this session
 - Move a booking (`docs/plans/move-booking.md`): umbrellas and/or dates, one `move` entry, undo.
 
 ## Next up
-1. Merge PR #48 (mark ready), release `v0.7.0` (has migration 0008: back up first), deploy.
-2. Try the sheet + keyboard on a phone and the oldest tablet; check `/health` in the tablet's
-   Chrome; back up the Android signing key; backups (USB + OneDrive; owner: M365, USB in box).
+1. Try a move on the oldest tablet and a phone (sheet + keyboard too); check `/health` in the
+   tablet's Chrome; back up the Android signing key.
+2. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 3. Check-in and the 11:00 hold rule (no-shows flagged on the map, restore).
 
 ## Open questions
