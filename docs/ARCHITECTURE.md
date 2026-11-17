@@ -72,3 +72,8 @@ screens within seconds. Customers never use the app. They are contact details on
 ## Rendering
 - The root layout reads the `locale` cookie, so it sets `export const instant = false` (ADR 0006) and every
   route renders per request. Fine for a staff-only LAN app; revisit if a static page is ever needed.
+
+## UI conventions
+- Tap targets are at least 44×44 CSS px (`min-h-11`); `e2e/phone.spec.ts` measures the map page.
+- Below Tailwind's `md` (768px) the map's booking panel is a bottom sheet (`beach-board.tsx`);
+  wider screens keep it beside or under the map. Phone-width e2e runs in the `phone` project.

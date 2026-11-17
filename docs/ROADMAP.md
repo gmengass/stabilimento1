@@ -34,7 +34,7 @@ Each item ships something staff can use on the box.
 - [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
 - [ ] Live map: changes show on every device within seconds
-- [ ] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger
+- [x] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger
       tap targets, phone-width e2e tests for booking and quick book (owner, 2026-11-16)
 
 ## Milestone 2 — Business features
