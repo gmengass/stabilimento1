@@ -38,7 +38,7 @@ interface Failure {
   clashes?: Clash[];
 }
 
-const field = "rounded border px-2 py-2";
+const field = "min-h-11 rounded border px-2 py-2";
 
 function useDate(): (date: string) => string {
   const locale = useLocale();
@@ -180,7 +180,7 @@ export function NewBookingForm(props: NewProps) {
             <button
               type="button"
               onClick={() => onRemove(spot.id)}
-              className="ml-auto rounded border px-2 py-1"
+              className="ml-auto min-h-11 rounded border px-3 py-2"
               aria-label={t("removeSpot", { number: spot.number })}
             >
               {t("remove")}
@@ -210,7 +210,7 @@ export function NewBookingForm(props: NewProps) {
         />
       </label>
       {openSeason && (
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex min-h-11 items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={asPass}
@@ -326,7 +326,7 @@ export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }
           type="button"
           onClick={restore}
           disabled={pending}
-          className="rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
+          className="min-h-11 rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
         >
           {pending ? t("saving") : t("restore", { name: pass.customerName })}
         </button>
@@ -397,7 +397,7 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
           />
         </label>
       </div>
-      <button type="submit" disabled={pending} className="rounded border px-3 py-2">
+      <button type="submit" disabled={pending} className="min-h-11 rounded border px-3 py-2">
         {pending ? t("saving") : t("release")}
       </button>
       {released !== null && (
@@ -450,7 +450,7 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
           className={field}
         />
       </label>
-      <button type="submit" disabled={pending} className="rounded border px-3 py-2">
+      <button type="submit" disabled={pending} className="min-h-11 rounded border px-3 py-2">
         {pending ? t("saving") : t("setLastDay")}
       </button>
       {saved && (
@@ -493,7 +493,11 @@ export function BookingDetails({ occupant, date, today, onClose }: DetailsProps)
     <div className="flex flex-col gap-3">
       <div className="flex items-start">
         <h2 className="text-lg font-semibold">{occupant.customerName}</h2>
-        <button type="button" onClick={onClose} className="ml-auto rounded border px-2 py-1">
+        <button
+          type="button"
+          onClick={onClose}
+          className="ml-auto min-h-11 rounded border px-3 py-2"
+        >
           {t("close")}
         </button>
       </div>
@@ -533,14 +537,14 @@ export function BookingDetails({ occupant, date, today, onClose }: DetailsProps)
               type="button"
               onClick={cancel}
               disabled={pending}
-              className="flex-1 rounded bg-red-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
+              className="min-h-11 flex-1 rounded bg-red-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
             >
               {pending ? t("saving") : t("cancelYes")}
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="flex-1 rounded border px-3 py-2"
+              className="min-h-11 flex-1 rounded border px-3 py-2"
             >
               {t("cancelNo")}
             </button>
@@ -550,7 +554,7 @@ export function BookingDetails({ occupant, date, today, onClose }: DetailsProps)
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="rounded border border-red-700 px-3 py-2 text-red-700"
+          className="min-h-11 rounded border border-red-700 px-3 py-2 text-red-700"
         >
           {t("cancel")}
         </button>

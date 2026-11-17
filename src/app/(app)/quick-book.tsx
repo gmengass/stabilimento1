@@ -26,7 +26,7 @@ export interface QuickBookPick {
 
 type ErrorKey = "noFit" | "tooManySunbeds" | "past" | "invalid" | "forbidden" | "generic";
 
-const field = "rounded border px-2 py-2";
+const field = "min-h-11 rounded border px-2 py-2";
 
 interface FormProps {
   areaId: number;
@@ -158,7 +158,7 @@ export function QuickBookForm(props: FormProps) {
         </label>
       </div>
       {openSeason && (
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex min-h-11 items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={asPass}
@@ -278,12 +278,16 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
             type="button"
             onClick={onAnother}
             data-testid="quick-book-another"
-            className="rounded border bg-white px-3 py-2"
+            className="min-h-11 rounded border bg-white px-3 py-2"
           >
             {t("another")}
           </button>
         )}
-        <button type="button" onClick={onChange} className="rounded border bg-white px-3 py-2">
+        <button
+          type="button"
+          onClick={onChange}
+          className="min-h-11 rounded border bg-white px-3 py-2"
+        >
           {t("change")}
         </button>
       </div>

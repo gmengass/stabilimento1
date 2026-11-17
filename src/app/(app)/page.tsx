@@ -75,23 +75,29 @@ export default async function Home(props: PageProps<"/">) {
           data-testid="date-nav"
           className="flex max-w-full shrink-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap"
         >
-          <Link href={at(addDays(date, -1))} className="rounded border px-3 py-2">
+          <Link
+            href={at(addDays(date, -1))}
+            className="flex min-h-11 items-center rounded border px-3"
+          >
             {t("previousDay")}
           </Link>
           {date === today ? (
-            <Link href={at()} className="rounded border px-3 py-2">
+            <Link href={at()} className="flex min-h-11 items-center rounded border px-3">
               {t("today")}
             </Link>
           ) : (
             <Link
               href={at()}
               data-testid="go-to-today"
-              className="rounded border-2 border-amber-600 bg-amber-300 px-3 py-2 font-semibold text-amber-950"
+              className="flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950"
             >
               {t("goToToday")}
             </Link>
           )}
-          <Link href={at(addDays(date, 1))} className="rounded border px-3 py-2">
+          <Link
+            href={at(addDays(date, 1))}
+            className="flex min-h-11 items-center rounded border px-3"
+          >
             {t("nextDay")}
           </Link>
           <DateJump key={date} date={date} areaId={beach.areaId} />

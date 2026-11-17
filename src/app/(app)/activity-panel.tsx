@@ -54,7 +54,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
     // Native disclosure: works without client code, and a re-render after an undo keeps the
     // state the staff member chose, because React only sets `open` when the prop changes.
     <details open data-testid="activity" className="rounded border p-3">
-      <summary className="cursor-pointer py-1 text-lg font-semibold">{t("title")}</summary>
+      <summary className="min-h-11 cursor-pointer py-2 text-lg font-semibold">{t("title")}</summary>
       {entries.length === 0 ? (
         <p className="mt-2 text-sm text-gray-700">{t("empty")}</p>
       ) : (

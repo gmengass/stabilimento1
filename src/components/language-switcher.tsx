@@ -27,7 +27,7 @@ export function LanguageSwitcher() {
         value={locale}
         onChange={onChange}
         disabled={pending}
-        className="rounded border px-2 py-1"
+        className="min-h-11 rounded border px-3 py-2"
       >
         {locales.map((value) => (
           <option key={value} value={value}>

@@ -174,7 +174,7 @@ export function BeachBoard({
           type="button"
           onClick={openQuickBook}
           data-testid="quick-book-open"
-          className="self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white"
+          className="min-h-11 self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white"
         >
           {t("open")}
         </button>

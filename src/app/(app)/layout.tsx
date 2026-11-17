@@ -11,20 +11,28 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const t = await getTranslations("appShell");
   return (
     <>
-      <nav className="flex items-center gap-4 border-b px-4 py-2 text-sm">
-        <Link href="/">{t("map")}</Link>
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm">
+        <Link href="/" className="flex min-h-11 items-center">
+          {t("map")}
+        </Link>
         {user.role === "admin" && (
           <>
-            <Link href="/admin/beach">{t("beach")}</Link>
-            <Link href="/admin/seasons">{t("seasons")}</Link>
-            <Link href="/admin/staff">{t("staff")}</Link>
+            <Link href="/admin/beach" className="flex min-h-11 items-center">
+              {t("beach")}
+            </Link>
+            <Link href="/admin/seasons" className="flex min-h-11 items-center">
+              {t("seasons")}
+            </Link>
+            <Link href="/admin/staff" className="flex min-h-11 items-center">
+              {t("staff")}
+            </Link>
           </>
         )}
         <UserMenu label={t("signedInAs", { name: user.name })}>
           <LanguageSwitcher />
         </UserMenu>
         <form action={logout}>
-          <button type="submit" className="rounded border px-2 py-1">
+          <button type="submit" className="min-h-11 rounded border px-3 py-2">
             {t("logout")}
           </button>
         </form>
