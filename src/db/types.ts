@@ -98,6 +98,7 @@ export interface Booking {
 export interface BookingSpot {
   booking_id: number;
   created_at: Generated<Timestamp>;
+  current: Generated<boolean>;
   id: Generated<number>;
   spot_id: number;
   sunbeds: number;
