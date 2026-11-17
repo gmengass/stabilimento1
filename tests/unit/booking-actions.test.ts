@@ -1,29 +1,44 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, bookingsModule, moveModule, passesModule, quickBookModule, undoModule, cache } =
-  vi.hoisted(() => ({
-    actor: { current: null as CurrentUser | null },
-    bookingsModule: {
-      createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
-      cancelBooking: vi.fn(async () => ({ ok: true as const })),
-    },
-    moveModule: { moveBooking: vi.fn(async () => ({ ok: true as const })) },
-    passesModule: {
-      createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
-      releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
-      restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
-      endSeasonPass: vi.fn(async () => ({ ok: true as const })),
-    },
-    quickBookModule: {
-      suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
-    },
-    undoModule: { undoEntry: vi.fn(async () => ({ ok: true as const })) },
-    cache: { revalidatePath: vi.fn() },
-  }));
+const {
+  actor,
+  bookingsModule,
+  checkInModule,
+  moveModule,
+  passesModule,
+  quickBookModule,
+  undoModule,
+  cache,
+} = vi.hoisted(() => ({
+  actor: { current: null as CurrentUser | null },
+  bookingsModule: {
+    createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
+    cancelBooking: vi.fn(async () => ({ ok: true as const })),
+  },
+  checkInModule: {
+    checkIn: vi.fn(async () => ({ ok: true as const })),
+    uncheck: vi.fn(async () => ({ ok: true as const })),
+    restoreNoShow: vi.fn(async () => ({ ok: true as const })),
+    setHold: vi.fn(async () => ({ ok: true as const })),
+  },
+  moveModule: { moveBooking: vi.fn(async () => ({ ok: true as const })) },
+  passesModule: {
+    createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
+    releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
+    restoreDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
+    endSeasonPass: vi.fn(async () => ({ ok: true as const })),
+  },
+  quickBookModule: {
+    suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
+  },
+  undoModule: { undoEntry: vi.fn(async () => ({ ok: true as const })) },
+  cache: { revalidatePath: vi.fn() },
+}));
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
+vi.mock("@/lib/booking/check-in", () => checkInModule);
 vi.mock("@/lib/booking/move", () => moveModule);
 vi.mock("@/lib/booking/passes", () => passesModule);
 vi.mock("@/lib/booking/quick-book", () => quickBookModule);
@@ -39,6 +54,10 @@ const {
   releaseDaysAction,
   restoreDaysAction,
   endSeasonPassAction,
+  checkInAction,
+  uncheckAction,
+  restoreNoShowAction,
+  setHoldAction,
   suggestQuickBookAction,
   undoAction,
 } = await import("@/app/(app)/booking-actions");
@@ -62,6 +81,10 @@ const dayActions = [
   ["releaseDaysAction", releaseDaysAction, passesModule.releaseDays],
   ["restoreDaysAction", restoreDaysAction, passesModule.restoreDays],
   ["endSeasonPassAction", endSeasonPassAction, passesModule.endSeasonPass],
+  ["checkInAction", checkInAction, checkInModule.checkIn],
+  ["uncheckAction", uncheckAction, checkInModule.uncheck],
+  ["restoreNoShowAction", restoreNoShowAction, checkInModule.restoreNoShow],
+  ["setHoldAction", setHoldAction, checkInModule.setHold],
 ] as const;
 
 beforeEach(() => vi.clearAllMocks());

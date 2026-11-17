@@ -1,6 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import { z } from "zod";
-import type { BookingKind, DB } from "@/db/types";
+import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
 import { writeEntry, type DayRow } from "./audit";
 
@@ -323,24 +323,32 @@ export interface Occupant {
   releasedDays: number;
   /** Every umbrella in the booking with its sunbeds, so staff see the whole group. */
   spots: { spotId: number; number: number; sunbeds: number }[];
+  /** Checked in on the day loaded (ADR 0015). */
+  checkedIn: boolean;
+  /** The booking's own hold time ("HH:MM"), or null for the venue's. */
+  holdUntil: string | null;
+  /** The hold time that applies: its own or the venue's ("HH:MM"). */
+  holdTime: string;
 }
 
 /**
  * Who has each spot on one day, keyed by spot id. `booked` rows are the occupants; `released`
- * rows are season-pass holders who gave the day back (the spot is free unless someone else
- * booked it).
+ * rows are season-pass holders who gave the day back and `no_show` rows customers who missed
+ * the hold time (the spot is free unless someone else booked it).
  */
 async function loadSpotDays(
   db: Kysely<DB>,
   areaId: number,
   date: string,
-  state: "booked" | "released",
+  state: SpotDayState,
 ): Promise<Record<number, Occupant>> {
   const rows = await db
     .selectFrom("spot_day")
     .innerJoin("booking_spot", "booking_spot.id", "spot_day.booking_spot_id")
     .innerJoin("booking", "booking.id", "booking_spot.booking_id")
     .innerJoin("spot", "spot.id", "spot_day.spot_id")
+    .innerJoin("area", "area.id", "spot.area_id")
+    .innerJoin("venue", "venue.id", "area.venue_id")
     .select((eb) => [
       "spot_day.spot_id as spotId",
       "booking.id as bookingId",
@@ -350,6 +358,19 @@ async function loadSpotDays(
       "booking.start_date as startDate",
       "booking.end_date as endDate",
       "booking.notes",
+      sql<string | null>`to_char(booking.hold_until, 'HH24:MI')`.as("holdUntil"),
+      sql<string>`to_char(coalesce(booking.hold_until, venue.default_hold_until), 'HH24:MI')`.as(
+        "holdTime",
+      ),
+      eb
+        .exists(
+          eb
+            .selectFrom("check_in")
+            .select("check_in.booking_id")
+            .whereRef("check_in.booking_id", "=", "booking.id")
+            .where("check_in.date", "=", date),
+        )
+        .as("checkedIn"),
       eb
         .selectFrom("spot_day as sd")
         .innerJoin("booking_spot as bs", "bs.id", "sd.booking_spot_id")
@@ -376,9 +397,14 @@ async function loadSpotDays(
     .orderBy("booking.id")
     .execute();
   return Object.fromEntries(
-    rows.map(({ spotId, spots, releasedDays, ...occupant }) => [
+    rows.map(({ spotId, spots, releasedDays, checkedIn, ...occupant }) => [
       spotId,
-      { ...occupant, releasedDays: releasedDays ?? 0, spots: spots ?? [] },
+      {
+        ...occupant,
+        checkedIn: Boolean(checkedIn),
+        releasedDays: releasedDays ?? 0,
+        spots: spots ?? [],
+      },
     ]),
   );
 }
@@ -391,4 +417,9 @@ export function loadOccupancy(db: Kysely<DB>, areaId: number, date: string) {
 /** Season passes that released this day, keyed by spot id (the latest pass if several did). */
 export function loadReleased(db: Kysely<DB>, areaId: number, date: string) {
   return loadSpotDays(db, areaId, date, "released");
+}
+
+/** Bookings flagged as no-shows that day, keyed by spot id (ADR 0004 hold rule). */
+export function loadNoShows(db: Kysely<DB>, areaId: number, date: string) {
+  return loadSpotDays(db, areaId, date, "no_show");
 }

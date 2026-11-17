@@ -20,7 +20,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
     from === to ? day(from) : t("range", { from: day(from), to: day(to) });
 
   function describe(entry: ActivityEntry): string {
-    const user = entry.userName;
+    const user = entry.userName ?? t("system");
     const name = entry.customerName ?? "";
     const spots = t("spots", { count: entry.spots.length, numbers: entry.spots.join(", ") });
     const { detail } = entry;
@@ -33,8 +33,17 @@ export async function ActivityPanel({ entries, viewer }: Props) {
         return t("cancel", { user, name, spots });
       case "set_last_day":
         return t("setLastDay", { user, name, date: day(detail.lastDay) });
-      case "release":
       case "restore":
+        if (detail.from === "no_show") {
+          return t("restoreNoShow", { user, name, spots });
+        }
+        return t("restore", {
+          user,
+          name,
+          days: Number(detail.days),
+          dates: range(detail.startDate, detail.endDate),
+        });
+      case "release":
         return t(entry.action, {
           user,
           name,
@@ -56,6 +65,18 @@ export async function ActivityPanel({ entries, viewer }: Props) {
               : range(detail.toStart, detail.toEnd),
         });
       }
+      case "check_in":
+      case "uncheck":
+        return t(entry.action === "check_in" ? "checkIn" : "uncheck", { user, name, spots });
+      case "hold":
+        return detail.holdUntil
+          ? t("hold", { user, name, time: String(detail.holdUntil) })
+          : t("holdCleared", { user, name });
+      case "no_show":
+        return t("noShow", {
+          bookings: Number(detail.bookings),
+          umbrellas: Number(detail.umbrellas),
+        });
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":

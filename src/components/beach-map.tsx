@@ -3,13 +3,16 @@
 import { useTranslations } from "next-intl";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 
-export type SpotView = "free" | "released" | "selected" | "booked" | "season" | "open";
+export type SpotView =
+  "free" | "released" | "noShow" | "selected" | "booked" | "checkedIn" | "season" | "open";
 
 const viewClass: Record<SpotView, string> = {
   free: "border-green-600 bg-green-50 text-green-900",
   released: "border-dashed border-violet-700 bg-green-50 text-green-900",
+  noShow: "border-dashed border-amber-600 bg-amber-50 text-amber-950",
   selected: "border-blue-700 bg-blue-600 text-white",
   booked: "border-red-700 bg-red-100 text-red-950",
+  checkedIn: "border-teal-800 bg-teal-100 text-teal-950",
   season: "border-violet-700 bg-violet-100 text-violet-950",
   open: "border-red-900 bg-red-700 text-white",
 };
@@ -18,8 +21,10 @@ const viewClass: Record<SpotView, string> = {
 const labelKey = {
   free: "spotFree",
   released: "spotReleased",
+  noShow: "spotNoShow",
   selected: "spotFree",
   booked: "spotBooked",
+  checkedIn: "spotCheckedIn",
   season: "spotSeason",
   open: "spotBooked",
 } as const satisfies Record<SpotView, string>;
@@ -31,6 +36,8 @@ interface Props {
   viewOf: (spot: MapSpot) => SpotView;
   /** Short text under the number, e.g. the customer's name. */
   captionOf: (spot: MapSpot) => string | undefined;
+  /** A short mark in the corner: a tick, a late-arrival time, a no-show marker. */
+  badgeOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
   onSpotClick: (spot: MapSpot) => void;
 }
 
@@ -39,7 +46,7 @@ interface Props {
  * it, position 1 on the left. Each spot sits in the grid column of its position, so gaps on the
  * real beach stay visible.
  */
-export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Props) {
+export function BeachMap({ areaName, lines, viewOf, captionOf, badgeOf, onSpotClick }: Props) {
   const t = useTranslations("map");
   const columns = Math.max(1, ...lines.flatMap((line) => line.spots.map((s) => s.position)));
   return (
@@ -60,6 +67,7 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Pr
               {line.spots.map((spot) => {
                 const view = viewOf(spot);
                 const caption = captionOf(spot);
+                const badge = badgeOf?.(spot);
                 return (
                   <li key={spot.id} style={{ gridColumn: spot.position }}>
                     <button
@@ -77,8 +85,17 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, onSpotClick }: Pr
                           {caption}
                         </span>
                       )}
+                      {badge && (
+                        <span
+                          aria-hidden
+                          className="absolute top-0 right-0.5 text-[10px] leading-tight font-normal"
+                        >
+                          {badge.text}
+                        </span>
+                      )}
                       <span className="sr-only">
                         {t(labelKey[view], { number: spot.number, name: caption ?? "" })}
+                        {badge && <span> {badge.label}</span>}
                       </span>
                     </button>
                   </li>

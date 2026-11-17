@@ -104,7 +104,13 @@
     "spotSeason": "Umbrella {number}, season pass of {name}",
     "spotReleased": "Umbrella {number}, free: released by {name}",
     "legendSeason": "Season passes: {count}",
-    "legendReleased": "Released by pass holders: {count}"
+    "legendReleased": "Released by pass holders: {count}",
+    "spotCheckedIn": "Umbrella {number}, {name}, checked in",
+    "spotNoShow": "Umbrella {number}, free: {name} is a no-show",
+    "legendCheckedIn": "Checked in: {count}",
+    "legendNoShow": "No-shows: {count}",
+    "badgeHold": "hold {time}",
+    "badgeNoShow": "Also a no-show here"
   },
   "beachSetup": {
     "title": "Beach settings",
@@ -196,7 +202,12 @@
       "unchanged": "Nothing to move: pick another umbrella or other dates.",
       "started": "This booking has started: only its umbrellas can move, from a day you choose.",
       "invalidMove": "Pick a free umbrella in this beach space for each umbrella, and dates from today on (at most 60 days).",
-      "split": "Some of these days are still on an earlier umbrella. Move from the day of the earlier move, or undo it first."
+      "split": "Some of these days are still on an earlier umbrella. Move from the day of the earlier move, or undo it first.",
+      "notToday": "Check-ins are for today only.",
+      "noShow": "This booking is already a no-show. Give the umbrellas back instead.",
+      "released": "The holder released today: give the day back first.",
+      "season": "Season passes are never freed at the hold time.",
+      "invalidHold": "Enter a time like 13:30."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -226,7 +237,19 @@
     "moveArrow": "{from} → {to}",
     "moveKeep": "Keep",
     "moveConfirm": "Confirm move",
-    "moveBack": "Back"
+    "moveBack": "Back",
+    "checkIn": "Check in",
+    "uncheck": "Remove check-in",
+    "uncheckHint": "Past the hold time, a booking that isn't checked in becomes a no-show within a minute.",
+    "checkedIn": "Checked in",
+    "noShowBy": "No-show: {name}, not here by {time}",
+    "restoreNoShow": "{name} is here: give the umbrellas back",
+    "holdTitle": "Late arrival",
+    "holdHint": "The umbrellas are kept until this time, then freed if the customer isn't checked in. Usual time: {time}.",
+    "holdLabel": "Keep until",
+    "holdSave": "Save time",
+    "holdClear": "Use the usual time",
+    "holdSaved": "Time saved."
   },
   "areas": {
     "tabsLabel": "Beach spaces",
@@ -317,7 +340,7 @@
     "setLastDay": "{user} set the last day of {name}'s pass to {date}",
     "release": "{user} released {days, plural, one {# day} other {# days}} of {name}'s pass, {dates}",
     "restore": "{user} gave {name} back {days, plural, one {# day} other {# days}}, {dates}",
-    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} other {an undo}} of {name} ({spots})",
+    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} other {an undo}} of {name} ({spots})",
     "beach": "{user} changed the beach settings",
     "season": "{what, select, create {{user} added a season} remove {{user} removed a season} other {{user} changed a season}}",
     "undoButton": "Undo",
@@ -336,6 +359,13 @@
       "ended": "This booking has already ended: there is nothing left to undo.",
       "started": "The dates of this booking have started, so the move can no longer be undone."
     },
-    "move": "{user} moved the booking of {name}: {fromSpots} → {toSpots}, {dates}"
+    "move": "{user} moved the booking of {name}: {fromSpots} → {toSpots}, {dates}",
+    "system": "System",
+    "restoreNoShow": "{user} gave {name} back {spots} after a no-show",
+    "checkIn": "{user} checked in {name} ({spots})",
+    "uncheck": "{user} removed the check-in of {name} ({spots})",
+    "hold": "{user} set a late arrival for {name}: kept until {time}",
+    "holdCleared": "{user} set the usual hold time for {name}",
+    "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed"
   }
 }

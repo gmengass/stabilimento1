@@ -11,11 +11,15 @@ import type { OpenSeason } from "@/lib/booking/seasons";
 import type { QuickBookDraft } from "./quick-book";
 import {
   cancelBookingAction,
+  checkInAction,
   createBookingAction,
   createSeasonPassAction,
   endSeasonPassAction,
   releaseDaysAction,
   restoreDaysAction,
+  restoreNoShowAction,
+  setHoldAction,
+  uncheckAction,
 } from "./booking-actions";
 
 export type ErrorKey =
@@ -36,6 +40,11 @@ export type ErrorKey =
   | "notSeason"
   | "past"
   | "pastBooking"
+  | "notToday"
+  | "noShow"
+  | "released"
+  | "season"
+  | "invalidHold"
   | "generic";
 export interface Failure {
   key: ErrorKey;
@@ -73,8 +82,13 @@ type CreateFailure = Exclude<Awaited<ReturnType<typeof createBookingAction>>, { 
 
 type DaysFailure = Exclude<Awaited<ReturnType<typeof releaseDaysAction>>, { ok: true }>;
 
+type NoShowFailure = Exclude<Awaited<ReturnType<typeof restoreNoShowAction>>, { ok: true }>;
+
 /** A lost race whose winner is already gone has no clash to name: ask to try again. */
-function toFailure(result: CreateFailure | DaysFailure, invalid: ErrorKey = "invalid"): Failure {
+function toFailure(
+  result: CreateFailure | DaysFailure | NoShowFailure,
+  invalid: ErrorKey = "invalid",
+): Failure {
   if (result.error === "invalid") return { key: invalid };
   if (result.error !== "taken") return { key: result.error };
   if (result.clashes.length === 0) return { key: "takenNow" };
@@ -340,6 +354,162 @@ export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }
   );
 }
 
+/**
+ * A booking that missed the hold time on this umbrella (ADR 0004): who it was and, today, a way
+ * to give the umbrellas back if they are all still free.
+ */
+export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+
+  function restore() {
+    startTransition(async () => {
+      try {
+        const result = await restoreNoShowAction({ bookingId: noShow.bookingId, date });
+        if (!result.ok) setFailure(toFailure(result));
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  return (
+    <div
+      data-testid="no-show"
+      className="flex flex-col gap-2 rounded border border-amber-400 bg-amber-50 p-3 text-sm"
+    >
+      <p>{t("noShowBy", { name: noShow.customerName, time: noShow.holdTime })}</p>
+      {noShow.customerPhone && (
+        <a href={`tel:${noShow.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
+          {noShow.customerPhone}
+        </a>
+      )}
+      {date === today && (
+        <button
+          type="button"
+          onClick={restore}
+          disabled={pending}
+          className="min-h-11 rounded border border-amber-700 px-3 py-2 text-amber-950 disabled:opacity-60"
+        >
+          {pending ? t("saving") : t("restoreNoShow", { name: noShow.customerName })}
+        </button>
+      )}
+      <ErrorLine failure={failure} />
+    </div>
+  );
+}
+
+/** Today's arrival: check in, or take a mistaken check-in back. */
+function CheckInButton({ occupant, date }: { occupant: Occupant; date: string }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+
+  function toggle() {
+    startTransition(async () => {
+      try {
+        const input = { bookingId: occupant.bookingId, date };
+        const result = await (occupant.checkedIn ? uncheckAction : checkInAction)(input);
+        // Already as wanted (another tablet got there first): the refreshed map shows it.
+        if (!result.ok && result.error !== "unchanged") setFailure({ key: result.error });
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {occupant.checkedIn && (
+        <p className="text-sm font-semibold text-teal-900">{t("checkedIn")}</p>
+      )}
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={pending}
+        data-testid={occupant.checkedIn ? "uncheck" : "check-in"}
+        className={
+          occupant.checkedIn
+            ? "min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+            : "min-h-11 rounded bg-teal-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
+        }
+      >
+        {pending ? t("saving") : t(occupant.checkedIn ? "uncheck" : "checkIn")}
+      </button>
+      {occupant.checkedIn && <p className="text-xs text-gray-700">{t("uncheckHint")}</p>}
+      <ErrorLine failure={failure} />
+    </div>
+  );
+}
+
+/** A late arrival: keep the umbrellas past the usual hold time (ADR 0004). */
+function HoldForm({ occupant }: { occupant: Occupant }) {
+  const t = useTranslations("booking");
+  const [pending, startTransition] = useTransition();
+  const [failure, setFailure] = useState<Failure | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  function save(holdUntil: string | null) {
+    setSaved(false);
+    startTransition(async () => {
+      try {
+        const result = await setHoldAction({ bookingId: occupant.bookingId, holdUntil });
+        if (result.ok || result.error === "unchanged") setSaved(true);
+        else setFailure({ key: result.error === "invalid" ? "invalidHold" : result.error });
+      } catch {
+        setFailure({ key: "generic" });
+      }
+    });
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFailure(null);
+    const value = String(new FormData(event.currentTarget).get("holdUntil") ?? "");
+    save(value.slice(0, 5));
+  }
+
+  const usual = occupant.holdUntil === null;
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
+      <h3 className="font-semibold">{t("holdTitle")}</h3>
+      <p className="text-xs text-gray-700">{t("holdHint", { time: occupant.holdTime })}</p>
+      <label className="flex flex-col gap-1 text-sm">
+        {t("holdLabel")}
+        <input
+          type="time"
+          name="holdUntil"
+          required
+          defaultValue={occupant.holdTime}
+          className={field}
+        />
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={pending}
+          className="min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+        >
+          {pending ? t("saving") : t("holdSave")}
+        </button>
+        {!usual && (
+          <button
+            type="button"
+            onClick={() => save(null)}
+            disabled={pending}
+            className="min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+          >
+            {t("holdClear")}
+          </button>
+        )}
+      </div>
+      {saved && <p className="text-sm text-green-800">{t("holdSaved")}</p>}
+      <ErrorLine failure={failure} />
+    </form>
+  );
+}
+
 /** Release days of a season pass from today on, starting from the day shown on the map. */
 function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant }) {
   const t = useTranslations("booking");
@@ -529,6 +699,10 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         ))}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
+      {date === today && <CheckInButton occupant={occupant} date={date} />}
+      {!isPass && occupant.endDate >= today && date >= today && !occupant.checkedIn && (
+        <HoldForm key={occupant.holdTime} occupant={occupant} />
+      )}
       {occupant.endDate >= today && (
         <button
           type="button"

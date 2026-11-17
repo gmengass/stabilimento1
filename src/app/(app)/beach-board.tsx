@@ -6,7 +6,7 @@ import { BeachMap, type SpotView } from "@/components/beach-map";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
-import { BookingDetails, NewBookingForm, ReleasedDay } from "./booking-panel";
+import { BookingDetails, NewBookingForm, NoShowDay, ReleasedDay } from "./booking-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
@@ -23,6 +23,8 @@ interface Props {
   occupancy: Record<number, Occupant>;
   /** Season passes that gave this day back, by spot: free to book, or to give back. */
   released: Record<number, Occupant>;
+  /** Bookings that missed the hold time this day, by spot: free to book, or to restore. */
+  noShows: Record<number, Occupant>;
   /** The season a pass can be sold for, if one is open. */
   openSeason: OpenSeason | null;
 }
@@ -39,6 +41,7 @@ export function BeachBoard({
   lines,
   occupancy,
   released,
+  noShows,
   openSeason,
 }: Props) {
   const t = useTranslations("quickBook");
@@ -60,6 +63,7 @@ export function BeachBoard({
   const contentId = useId();
   const ts = useTranslations("sheet");
   const tb = useTranslations("booking");
+  const tm = useTranslations("map");
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
   // A booking made or cancelled elsewhere can make the selection stale: drop booked spots.
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
@@ -166,9 +170,33 @@ export function BeachBoard({
       return "selected";
     const occupant = occupancy[spot.id];
     if (occupant?.bookingId === openBooking) return "open";
+    if (occupant?.checkedIn) return "checkedIn";
     if (occupant) return occupant.kind === "season" ? "season" : "booked";
     if (freeSelected.some((s) => s.id === spot.id)) return "selected";
+    if (noShows[spot.id]) return "noShow";
     return released[spot.id] ? "released" : "free";
+  }
+
+  function badgeOf(spot: MapSpot) {
+    const occupant = occupancy[spot.id];
+    if (!occupant) return undefined;
+    if (noShows[spot.id]) return { text: "!", label: tm("badgeNoShow") };
+    if (occupant.checkedIn) return { text: "✓", label: tb("checkedIn") };
+    if (occupant.holdUntil && occupant.kind !== "season" && date >= today) {
+      const label = tm("badgeHold", { time: occupant.holdUntil });
+      return { text: occupant.holdUntil, label };
+    }
+    return undefined;
+  }
+
+  /** One box per no-show booking on these umbrellas. */
+  function noShowsOn(spotIds: number[]) {
+    const bookings = new Map(
+      spotIds.flatMap((id) => (noShows[id] ? [noShows[id]] : [])).map((o) => [o.bookingId, o]),
+    );
+    return [...bookings.values()].map((noShow) => (
+      <NoShowDay key={noShow.bookingId} noShow={noShow} date={date} today={today} />
+    ));
   }
 
   // One line per pass, even when several of its umbrellas are selected.
@@ -202,14 +230,17 @@ export function BeachBoard({
         onDone={closePanel}
       />
     ) : open ? (
-      <BookingDetails
-        key={open.bookingId}
-        occupant={open}
-        date={date}
-        today={today}
-        onClose={closePanel}
-        onMove={startMove}
-      />
+      <div className="flex flex-col gap-4">
+        <BookingDetails
+          key={open.bookingId}
+          occupant={open}
+          date={date}
+          today={today}
+          onClose={closePanel}
+          onMove={startMove}
+        />
+        {noShowsOn(open.spots.map((s) => s.spotId))}
+      </div>
     ) : freeSelected.length > 0 ? (
       <div className="flex flex-col gap-4">
         {pick && (
@@ -224,6 +255,7 @@ export function BeachBoard({
             }}
           />
         )}
+        {noShowsOn(freeSelected.map((s) => s.id))}
         {releasedSelected.map((pass) => (
           <ReleasedDay key={pass.bookingId} pass={pass} date={date} today={today} />
         ))}
@@ -301,7 +333,10 @@ export function BeachBoard({
           areaName={areaName}
           lines={lines}
           viewOf={viewOf}
-          captionOf={(spot) => (occupancy[spot.id] ?? released[spot.id])?.customerName}
+          captionOf={(spot) =>
+            (occupancy[spot.id] ?? noShows[spot.id] ?? released[spot.id])?.customerName
+          }
+          badgeOf={badgeOf}
           onSpotClick={onSpotClick}
         />
       </div>
