@@ -1,7 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import { ADMIN_STATE } from "./helpers";
-
 // Runs in the `phone` project (390×844, touch). A year no other spec books in (they use 2090
 // and 2091), and one day per test so the tests never take each other's umbrellas.
 const DAYS = {
@@ -12,12 +10,11 @@ const DAYS = {
   tapClosed: "2092-07-05",
   tapOpen: "2092-07-06",
   wide: "2092-07-07",
+  recollapse: "2092-07-08",
 };
 
 // Selectors avoid translated text: another test switches the shared admin's language. Spot
 // buttons are looked up inside the map: the activity panel below it is a list of buttons too.
-
-test.use({ storageState: ADMIN_STATE });
 
 /** Apple's and Google's minimum comfortable tap target, in CSS px. */
 const MIN_TAP = 44;
@@ -198,6 +195,35 @@ test("sheet header collapses, expands and closes; Escape closes and focuses quic
     })
     .toBe("");
   await expect(page.getByTestId("quick-book-open")).toBeFocused();
+});
+
+test("a collapsed sheet stays collapsed while umbrellas are toggled, and opens expanded next time", async ({
+  page,
+}) => {
+  await page.goto(`/?date=${DAYS.recollapse}`);
+  const panel = page.locator("aside");
+  const toggle = panel.locator("[data-sheet-toggle]");
+  const [first, second] = [freeSpots(page).nth(0), freeSpots(page).nth(1)];
+  const [firstNumber, secondNumber] = [await numberOf(first), await numberOf(second)];
+
+  await first.tap();
+  await toggle.tap();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await spotButton(page, secondNumber).tap();
+  await expect(toggle, "adding an umbrella keeps the sheet folded").toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+
+  await panel.locator("[data-sheet-close]").tap();
+  await expect(panel).toHaveCount(0);
+  await spotButton(page, firstNumber).tap();
+  await expect(toggle, "a new booking opens expanded").toHaveAttribute("aria-expanded", "true");
+
+  await toggle.tap();
+  await panel.locator("[data-sheet-close]").tap();
+  await page.getByTestId("quick-book-open").tap();
+  await expect(toggle, "quick book opens expanded").toHaveAttribute("aria-expanded", "true");
 });
 
 test("every control on the map page is at least 44×44 with the sheet closed", async ({ page }) => {
