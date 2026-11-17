@@ -38,7 +38,7 @@ async function numberOf(spot: Locator): Promise<string> {
   return (await spot.locator("span[aria-hidden]").first().innerText()).trim();
 }
 
-/** The panel is a sheet fixed to the bottom of the viewport, at most 70% of its height. */
+/** The panel is a sheet fixed to the bottom of the viewport, at most 60% of its height. */
 async function expectBottomSheet(page: Page, panel: Locator): Promise<void> {
   await expect(panel).toBeVisible();
   const position = await panel.evaluate((el) => getComputedStyle(el).position);
@@ -49,7 +49,7 @@ async function expectBottomSheet(page: Page, panel: Locator): Promise<void> {
   expect(Math.abs(box.y + box.height - viewport.height), "sheet bottom edge").toBeLessThanOrEqual(
     1,
   );
-  expect(box.height, "sheet height").toBeLessThanOrEqual(viewport.height * 0.7);
+  expect(box.height, "sheet height").toBeLessThanOrEqual(viewport.height * 0.6);
 }
 
 /** Every visible control smaller than MIN_TAP×MIN_TAP, described for the assertion message. */
