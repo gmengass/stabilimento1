@@ -255,6 +255,7 @@ script stops with the app down and prints the rollback command.
   mirrored networking setting and both firewall rules, then `wsl --shutdown` and restart the task.
 - **`https://<box IP>` fails with "tlsv1 alert internal error"** (curl) or "can't provide a
   secure connection" (browser), while the name works: `.env` lacks `DEFAULT_SNI=<box IP>`.
-  Add it, then `docker compose up -d caddy`. Check with
+  Add it, then restart Caddy alone (it reads `.env` only at start):
+  `APP_VERSION=$(cat .deploy/current) docker compose up -d --no-deps caddy`. Check with
   `curl --cacert ~/stabilimento-root.crt https://<box IP>/health`.
 - **Logs**: `docker compose logs --tail 200 app caddy db`.
