@@ -5,6 +5,7 @@ import { getDb } from "@/db/client";
 import { readCurrentUser } from "@/lib/auth/session";
 import * as bookings from "@/lib/booking/bookings";
 import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
+import { moveBooking, type MoveResult } from "@/lib/booking/move";
 import * as passes from "@/lib/booking/passes";
 import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
 import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-book";
@@ -25,6 +26,15 @@ export async function cancelBookingAction(input: unknown): Promise<CancelResult 
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await bookings.cancelBooking(getDb(), user.id, input);
+  if (result.ok) revalidatePath("/");
+  return result;
+}
+
+/** Any staff member may move a booking, like cancelling it; the move can be undone. */
+export async function moveBookingAction(input: unknown): Promise<MoveResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await moveBooking(getDb(), user.id, input);
   if (result.ok) revalidatePath("/");
   return result;
 }

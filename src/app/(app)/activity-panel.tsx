@@ -41,6 +41,21 @@ export async function ActivityPanel({ entries, viewer }: Props) {
           days: Number(detail.days),
           dates: range(detail.startDate, detail.endDate),
         });
+      case "move": {
+        const list = (numbers: unknown) =>
+          t("spots", { count: String(numbers).split(",").length, numbers: String(numbers) });
+        return t("move", {
+          user,
+          name,
+          fromSpots: list(detail.fromSpots),
+          toSpots: list(detail.toSpots),
+          // Same dates: only the umbrellas moved, from `fromDay` on.
+          dates:
+            detail.fromStart === detail.toStart && detail.fromEnd === detail.toEnd
+              ? range(detail.fromDay, detail.toEnd)
+              : range(detail.toStart, detail.toEnd),
+        });
+      }
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":

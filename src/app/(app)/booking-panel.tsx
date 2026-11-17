@@ -18,8 +18,12 @@ import {
   restoreDaysAction,
 } from "./booking-actions";
 
-type ErrorKey =
+export type ErrorKey =
   | "invalid"
+  | "invalidMove"
+  | "unchanged"
+  | "split"
+  | "started"
   | "invalidPass"
   | "invalidDays"
   | "invalidLastDay"
@@ -33,19 +37,19 @@ type ErrorKey =
   | "past"
   | "pastBooking"
   | "generic";
-interface Failure {
+export interface Failure {
   key: ErrorKey;
   clashes?: Clash[];
 }
 
-const field = "min-h-11 rounded border px-2 py-2";
+export const field = "min-h-11 rounded border px-2 py-2";
 
-function useDate(): (date: string) => string {
+export function useDate(): (date: string) => string {
   const locale = useLocale();
   return (date) => formatBookingDate(date, isLocale(locale) ? locale : defaultLocale);
 }
 
-function ErrorLine({ failure }: { failure: Failure | null }) {
+export function ErrorLine({ failure }: { failure: Failure | null }) {
   const t = useTranslations("booking.errors");
   const formatDate = useDate();
   if (!failure) return null;
@@ -91,7 +95,7 @@ interface NewProps {
 }
 
 /** The later of two local dates. */
-function later(a: string, b: string): string {
+export function later(a: string, b: string): string {
   return a > b ? a : b;
 }
 
@@ -466,9 +470,11 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
 interface DetailsProps extends DayProps {
   occupant: Occupant;
   onClose: () => void;
+  /** Starts moving the booking: taps on the map then pick its new umbrellas. */
+  onMove: () => void;
 }
 
-export function BookingDetails({ occupant, date, today, onClose }: DetailsProps) {
+export function BookingDetails({ occupant, date, today, onClose, onMove }: DetailsProps) {
   const t = useTranslations("booking");
   const formatDate = useDate();
   const [pending, startTransition] = useTransition();
@@ -523,6 +529,16 @@ export function BookingDetails({ occupant, date, today, onClose }: DetailsProps)
         ))}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
+      {occupant.endDate >= today && (
+        <button
+          type="button"
+          onClick={onMove}
+          data-testid="move-open"
+          className="min-h-11 rounded border px-3 py-2"
+        >
+          {t("move")}
+        </button>
+      )}
       {isPass && occupant.endDate >= today && (
         <ReleaseForm occupant={occupant} date={date} today={today} />
       )}

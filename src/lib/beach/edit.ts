@@ -285,6 +285,7 @@ export async function updateSpot(
       .where("booking_spot.spot_id", "=", spotId)
       .where("booking.status", "=", "active")
       .where("booking.end_date", ">=", today)
+      .where("booking_spot.current", "=", true)
       .where("booking_spot.sunbeds", ">", maxSunbeds)
       .executeTakeFirst();
     if (overLimit) return fail("sunbedsInUse");

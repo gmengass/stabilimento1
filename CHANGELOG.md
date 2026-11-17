@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Move a booking: open it on the map, tap Move, then tap the new umbrella for each of its
+  umbrellas. A booking that hasn't started can also get new dates; a started booking or a season
+  pass moves from a day you choose, and earlier days stay where they were. The move shows in
+  Recent activity and can be undone.
+### Database
+- Migration `0008` (booking umbrellas can be "former", and the activity log stores moves). Rolling
+  it back is refused once a booking has been moved: restore the backup taken before the update.
 
 ## [0.6.0] - 2026-11-17
 ### Added

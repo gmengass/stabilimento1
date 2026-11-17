@@ -1,7 +1,7 @@
 import { sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, getDb } from "@/db/client";
-import { runMigrations } from "@/db/migrator";
+import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { setupBeach, loadBeach } from "@/lib/beach/layout";
 import { cancelBooking, createBooking, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
@@ -654,9 +654,8 @@ describe("migration 0006 rollback", () => {
       endDate: "2027-07-01",
       spots: [{ spotId: spot[102], sunbeds: 2 }],
     });
-    // Down to 0006 first: 0007 (audit log) sits on top of it.
-    expect((await runMigrations(db, "down")).error).toBeUndefined();
-    expect((await runMigrations(db, "down")).error).toBeUndefined();
+    // Later migrations sit on top of 0006, so roll back to the one before it.
+    expect((await createMigrator(db).migrateTo("0005_optional_phone")).error).toBeUndefined();
     const kinds = await sql<{ id: number; kind: string }>`
       select id, kind from booking order by id
     `.execute(db);

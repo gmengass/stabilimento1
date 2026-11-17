@@ -1,7 +1,7 @@
 import { sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, getDb } from "@/db/client";
-import { runMigrations } from "@/db/migrator";
+import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { addDays } from "@/i18n/format";
 import { loadBeach, setupBeach } from "@/lib/beach/layout";
@@ -377,7 +377,7 @@ describe("who may undo", () => {
 describe("migration 0007 rollback", () => {
   it("drops the log, keeps the bookings, and migrates up again", async () => {
     const id = await book();
-    expect((await runMigrations(db, "down")).error).toBeUndefined();
+    expect((await createMigrator(db).migrateTo("0006_seasons")).error).toBeUndefined();
     const tables = await sql<{ n: number }>`
       select count(*)::int as n from information_schema.tables where table_name = 'audit_log'`.execute(
       db,

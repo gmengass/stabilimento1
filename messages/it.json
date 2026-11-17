@@ -192,7 +192,11 @@
       "notSeason": "Solo gli abbonamenti stagionali possono liberare dei giorni.",
       "past": "I giorni passati non si possono modificare.",
       "invalidLastDay": "Scegli un ultimo giorno compreso nell'abbonamento. Un abbonamento si può solo accorciare.",
-      "pastBooking": "Non si possono prenotare giorni passati."
+      "pastBooking": "Non si possono prenotare giorni passati.",
+      "unchanged": "Niente da spostare: scegli un altro ombrellone o altre date.",
+      "started": "Questa prenotazione è già iniziata: si possono spostare solo gli ombrelloni, da un giorno a scelta.",
+      "invalidMove": "Scegli un ombrellone libero di questa zona per ogni ombrellone, e date da oggi in poi (massimo 60 giorni).",
+      "split": "Alcuni di questi giorni sono ancora su un ombrellone precedente. Sposta dal giorno dello spostamento precedente, oppure ripristinalo prima."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -213,7 +217,16 @@
     "lastDayHelp": "Quando il cliente sa qual è il suo ultimo giorno, impostalo qui: gli ombrelloni tornano liberi dal giorno dopo.",
     "lastDay": "Ultimo giorno",
     "setLastDay": "Termina l'abbonamento quel giorno",
-    "lastDaySaved": "Ultimo giorno salvato."
+    "lastDaySaved": "Ultimo giorno salvato.",
+    "move": "Sposta",
+    "moveTitle": "Sposta prenotazione",
+    "moveHint": "Tocca sulla mappa un ombrellone libero per ogni ombrellone da spostare. Tocca Mantieni per lasciarne uno dov'è.",
+    "moveTapFor": "Tocca il nuovo ombrellone per il {number}",
+    "moveFromDay": "Sposta da questo giorno",
+    "moveArrow": "{from} → {to}",
+    "moveKeep": "Mantieni",
+    "moveConfirm": "Conferma spostamento",
+    "moveBack": "Indietro"
   },
   "areas": {
     "tabsLabel": "Spazi spiaggia",
@@ -304,7 +317,7 @@
     "setLastDay": "{user} ha fissato l'ultimo giorno dell'abbonamento di {name} al {date}",
     "release": "{user} ha liberato {days, plural, one {# giorno} other {# giorni}} dell'abbonamento di {name}, {dates}",
     "restore": "{user} ha restituito a {name} {days, plural, one {# giorno} other {# giorni}}, {dates}",
-    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} other {questo ripristino}}: {name} ({spots})",
+    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} other {questo ripristino}}: {name} ({spots})",
     "beach": "{user} ha modificato le impostazioni della spiaggia",
     "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} other {{user} ha modificato una stagione}}",
     "undoButton": "Ripristina",
@@ -320,7 +333,9 @@
       "taken": "Impossibile ripristinare: questi ombrelloni ora sono prenotati da altri:",
       "takenNow": "Qualcuno ha appena prenotato uno di questi ombrelloni. Controlla la mappa.",
       "generic": "Qualcosa è andato storto. Riprova.",
-      "ended": "Questa prenotazione è già finita: non c'è più niente da ripristinare."
-    }
+      "ended": "Questa prenotazione è già finita: non c'è più niente da ripristinare.",
+      "started": "Le date di questa prenotazione sono già iniziate: lo spostamento non si può più ripristinare."
+    },
+    "move": "{user} ha spostato la prenotazione di {name}: {fromSpots} → {toSpots}, {dates}"
   }
 }

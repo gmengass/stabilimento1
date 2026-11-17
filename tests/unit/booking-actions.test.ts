@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, bookingsModule, passesModule, quickBookModule, undoModule, cache } = vi.hoisted(
-  () => ({
+const { actor, bookingsModule, moveModule, passesModule, quickBookModule, undoModule, cache } =
+  vi.hoisted(() => ({
     actor: { current: null as CurrentUser | null },
     bookingsModule: {
       createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
       cancelBooking: vi.fn(async () => ({ ok: true as const })),
     },
+    moveModule: { moveBooking: vi.fn(async () => ({ ok: true as const })) },
     passesModule: {
       createSeasonPass: vi.fn(async () => ({ ok: true as const, bookingId: 2 })),
       releaseDays: vi.fn(async () => ({ ok: true as const, days: 1 })),
@@ -19,11 +20,11 @@ const { actor, bookingsModule, passesModule, quickBookModule, undoModule, cache 
     },
     undoModule: { undoEntry: vi.fn(async () => ({ ok: true as const })) },
     cache: { revalidatePath: vi.fn() },
-  }),
-);
+  }));
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
+vi.mock("@/lib/booking/move", () => moveModule);
 vi.mock("@/lib/booking/passes", () => passesModule);
 vi.mock("@/lib/booking/quick-book", () => quickBookModule);
 vi.mock("@/lib/booking/undo", () => undoModule);
@@ -33,6 +34,7 @@ vi.mock("next/cache", () => cache);
 const {
   createBookingAction,
   cancelBookingAction,
+  moveBookingAction,
   createSeasonPassAction,
   releaseDaysAction,
   restoreDaysAction,
@@ -52,6 +54,7 @@ const staff: CurrentUser = {
 const actions = [
   ["createBookingAction", createBookingAction, bookingsModule.createBooking],
   ["cancelBookingAction", cancelBookingAction, bookingsModule.cancelBooking],
+  ["moveBookingAction", moveBookingAction, moveModule.moveBooking],
   ["createSeasonPassAction", createSeasonPassAction, passesModule.createSeasonPass],
 ] as const;
 

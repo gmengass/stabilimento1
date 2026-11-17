@@ -7,6 +7,7 @@ import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import { BookingDetails, NewBookingForm, ReleasedDay } from "./booking-panel";
+import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
 /** Below Tailwind's `md`: where the panel is a bottom sheet. */
@@ -47,6 +48,9 @@ export function BeachBoard({
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);
   const [pickIndex, setPickIndex] = useState(0);
+  /** Moving the open booking: its umbrellas' new ones, and which one the next tap is for. */
+  const [targets, setTargets] = useState<MoveTargets | null>(null);
+  const [moveFor, setMoveFor] = useState<number | null>(null);
   /** Phones: the sheet is folded down to its header. */
   const [collapsed, setCollapsed] = useState(false);
   /** The panel content the sheet last showed (see `panelKey`). */
@@ -78,13 +82,63 @@ export function BeachBoard({
     setQuickForm(true);
   }
 
+  function startMove() {
+    setTargets({});
+    setMoveFor(open?.spots[0]?.spotId ?? null);
+  }
+
+  function endMove() {
+    setTargets(null);
+    setMoveFor(null);
+  }
+
+  /** The next umbrella still without a new one, after this one. */
+  function nextWithout(next: MoveTargets, after: number): number | null {
+    const spots = open?.spots ?? [];
+    const start = spots.findIndex((s) => s.spotId === after);
+    const order = [...spots.slice(start + 1), ...spots.slice(0, start + 1)];
+    return order.find((s) => !next[s.spotId])?.spotId ?? null;
+  }
+
+  /** In move mode a tap gives the active umbrella a new one: a free umbrella or its own. */
+  function onMoveTap(spot: MapSpot) {
+    if (!open || !targets || moveFor === null) return;
+    const occupant = occupancy[spot.id];
+    if (occupant && occupant.bookingId !== open.bookingId) return;
+    const next = Object.fromEntries(
+      Object.entries(targets).filter(([, target]) => target.spotId !== spot.id),
+    ) as MoveTargets;
+    if (spot.id === moveFor) delete next[moveFor];
+    else next[moveFor] = { spotId: spot.id, number: spot.number };
+    // Another umbrella of the booking that stays put would be shared: it takes this one (a swap).
+    const sibling = open.spots.find((s) => s.spotId === spot.id && s.spotId !== moveFor);
+    const mine = open.spots.find((s) => s.spotId === moveFor);
+    if (sibling && mine && !next[sibling.spotId]) {
+      for (const [from, target] of Object.entries(next))
+        if (target.spotId === mine.spotId) delete next[Number(from)];
+      next[sibling.spotId] = { spotId: mine.spotId, number: mine.number };
+    }
+    setTargets(next);
+    setMoveFor(nextWithout(next, moveFor));
+  }
+
+  function keep(spotId: number) {
+    if (!targets) return;
+    const next = { ...targets };
+    delete next[spotId];
+    setTargets(next);
+    setMoveFor(spotId);
+  }
+
   function reset() {
+    endMove();
     setSelected([]);
     setPick(null);
     setQuickForm(false);
   }
 
   function onSpotClick(spot: MapSpot) {
+    if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
     if (occupant) {
       setSelected([]);
@@ -108,6 +162,8 @@ export function BeachBoard({
   }
 
   function viewOf(spot: MapSpot): SpotView {
+    if (targets && Object.values(targets).some((target) => target.spotId === spot.id))
+      return "selected";
     const occupant = occupancy[spot.id];
     if (occupant?.bookingId === openBooking) return "open";
     if (occupant) return occupant.kind === "season" ? "season" : "booked";
@@ -131,56 +187,71 @@ export function BeachBoard({
     suggestion.spots.length === freeSelected.length &&
     suggestion.spots.every((s) => freeSelected.some((f) => f.id === s.spotId));
 
-  const panel = open ? (
-    <BookingDetails
-      key={open.bookingId}
-      occupant={open}
-      date={date}
-      today={today}
-      onClose={closePanel}
-    />
-  ) : freeSelected.length > 0 ? (
-    <div className="flex flex-col gap-4">
-      {pick && (
-        <SuggestionBar
-          pick={pick}
-          index={pickIndex}
-          edited={!asSuggested}
-          onAnother={() => showSuggestion(pick, (pickIndex + 1) % pick.suggestions.length)}
-          onChange={() => {
-            setSelected([]);
-            setQuickForm(true);
-          }}
+  const panel =
+    open && targets ? (
+      <MoveForm
+        key={`move-${open.bookingId}`}
+        occupant={open}
+        date={date}
+        today={today}
+        targets={targets}
+        activeSpotId={moveFor}
+        onPickFor={setMoveFor}
+        onKeep={keep}
+        onBack={endMove}
+        onDone={closePanel}
+      />
+    ) : open ? (
+      <BookingDetails
+        key={open.bookingId}
+        occupant={open}
+        date={date}
+        today={today}
+        onClose={closePanel}
+        onMove={startMove}
+      />
+    ) : freeSelected.length > 0 ? (
+      <div className="flex flex-col gap-4">
+        {pick && (
+          <SuggestionBar
+            pick={pick}
+            index={pickIndex}
+            edited={!asSuggested}
+            onAnother={() => showSuggestion(pick, (pickIndex + 1) % pick.suggestions.length)}
+            onChange={() => {
+              setSelected([]);
+              setQuickForm(true);
+            }}
+          />
+        )}
+        {releasedSelected.map((pass) => (
+          <ReleasedDay key={pass.bookingId} pass={pass} date={date} today={today} />
+        ))}
+        <NewBookingForm
+          key={pick ? `${date}-quick-${pickIndex}` : date}
+          areaName={areaName}
+          date={date}
+          today={today}
+          spots={freeSelected}
+          openSeason={openSeason}
+          initial={pick ? { draft: pick.draft, sunbeds: sunbedsOf } : undefined}
+          onRemove={(id) => changeSelection(selected.filter((s) => s.id !== id))}
+          onDone={reset}
         />
-      )}
-      {releasedSelected.map((pass) => (
-        <ReleasedDay key={pass.bookingId} pass={pass} date={date} today={today} />
-      ))}
-      <NewBookingForm
-        key={pick ? `${date}-quick-${pickIndex}` : date}
+      </div>
+    ) : quickForm ? (
+      <QuickBookForm
+        key={pick ? "change" : date}
+        areaId={areaId}
         areaName={areaName}
         date={date}
         today={today}
-        spots={freeSelected}
         openSeason={openSeason}
-        initial={pick ? { draft: pick.draft, sunbeds: sunbedsOf } : undefined}
-        onRemove={(id) => changeSelection(selected.filter((s) => s.id !== id))}
-        onDone={reset}
+        initial={pick?.draft ?? null}
+        onSuggested={(next) => showSuggestion(next, 0)}
+        onClose={closePanel}
       />
-    </div>
-  ) : quickForm ? (
-    <QuickBookForm
-      key={pick ? "change" : date}
-      areaId={areaId}
-      areaName={areaName}
-      date={date}
-      today={today}
-      openSeason={openSeason}
-      initial={pick?.draft ?? null}
-      onSuggested={(next) => showSuggestion(next, 0)}
-      onClose={closePanel}
-    />
-  ) : null;
+    ) : null;
 
   /** What the panel shows: new content opens a collapsed sheet again, toggling umbrellas doesn't. */
   const panelKey = open

@@ -13,12 +13,16 @@ import {
   type Viewer,
 } from "./audit";
 import { isConflict, type Clash } from "./bookings";
+import { applyFlags } from "./move";
 
 const undoSchema = z.object({ entryId: z.number().int().positive() });
 
 export type UndoResult =
   | { ok: true }
-  | { ok: false; error: "invalid" | "notFound" | "forbidden" | "undone" | "changed" | "ended" }
+  | {
+      ok: false;
+      error: "invalid" | "notFound" | "forbidden" | "undone" | "changed" | "ended" | "started";
+    }
   | { ok: false; error: "taken"; clashes: Clash[] };
 
 type Day = Pick<DayRow, "bookingSpotId" | "date">;
@@ -43,7 +47,52 @@ function reversed(change: RecordedChange): RecordedChange {
     added: change.removed,
     removed: change.added,
     moved: change.moved.map((day) => ({ ...day, from: day.to, to: day.from })),
+    spots: change.spots?.map((flag) => ({ ...flag, before: flag.after, after: flag.before })),
   };
+}
+
+/**
+ * True when the booking was moved after this entry and that move still stands. Undoing an older
+ * entry would then put days back on umbrellas the booking has left: undo the move first.
+ */
+async function movedSince(tx: Kysely<DB>, bookingId: number, entryId: number): Promise<boolean> {
+  const later = await tx
+    .selectFrom("audit_log")
+    .select("id")
+    .where("booking_id", "=", bookingId)
+    .where("action", "=", "move")
+    .where("id", ">", entryId)
+    .where("undone_by_id", "is", null)
+    .executeTakeFirst();
+  return later !== undefined;
+}
+
+/** A move that changed the dates can only be undone while neither range has started. */
+function datesStarted(change: RecordedChange, today: string): boolean {
+  const { before, after } = change;
+  if (before.startDate === undefined || after.startDate === undefined) return false;
+  const moved = before.startDate !== after.startDate || before.endDate !== after.endDate;
+  return moved && (before.startDate < today || after.startDate < today);
+}
+
+/** True while the booking's umbrellas are as the change left them. */
+async function spotsAsLeft(tx: Kysely<DB>, change: RecordedChange): Promise<boolean> {
+  const flags = change.spots ?? [];
+  if (flags.length === 0) return true;
+  const rows = await tx
+    .selectFrom("booking_spot")
+    .select(["id", "current", "sunbeds"])
+    .where(
+      "id",
+      "in",
+      flags.map((f) => f.bookingSpotId),
+    )
+    .execute();
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return flags.every((f) => {
+    const row = byId.get(f.bookingSpotId);
+    return row?.current === f.after.current && row.sunbeds === f.after.sunbeds;
+  });
 }
 
 /** True while the booking's days from today on are exactly as the change left them. */
@@ -129,6 +178,8 @@ async function setBooking(tx: Kysely<DB>, bookingId: number, state: BookingState
     .set({
       status: state.status,
       end_date: state.endDate,
+      ...(state.startDate !== undefined && { start_date: state.startDate }),
+      ...(state.kind !== undefined && { kind: state.kind }),
       cancelled_at: cancelled ? new Date() : null,
       cancelled_by: cancelled ? userId : null,
     })
@@ -139,6 +190,7 @@ async function setBooking(tx: Kysely<DB>, bookingId: number, state: BookingState
 /** Applies a change (already reversed) to the booking and its days. */
 async function apply(tx: Kysely<DB>, bookingId: number, change: RecordedChange, userId: string) {
   await deleteDays(tx, change.removed);
+  await applyFlags(tx, change.spots ?? []);
   await setState(
     tx,
     change.moved.filter((day) => day.to === "released"),
@@ -183,19 +235,25 @@ async function undoIn(
   const bookingId = entry.booking_id;
   const booking = await tx
     .selectFrom("booking")
-    .select(["status", "end_date"])
+    .select(["status", "start_date", "end_date", "kind"])
     .where("id", "=", bookingId)
     .forUpdate()
     .executeTakeFirstOrThrow();
   // Nothing from today on to change: undo would only flip the status of a finished booking.
   const lastDay = [booking.end_date, change.before.endDate, change.after.endDate].sort().at(-1);
   if (lastDay !== undefined && lastDay < today) return { ok: false, error: "ended" };
+  if (datesStarted(change, today)) return { ok: false, error: "started" };
   const current = fromToday(change, today);
+  const { after } = change;
   const unchanged =
-    booking.status === change.after.status &&
-    booking.end_date === change.after.endDate &&
+    booking.status === after.status &&
+    booking.end_date === after.endDate &&
+    (after.startDate === undefined || booking.start_date === after.startDate) &&
+    (after.kind === undefined || booking.kind === after.kind) &&
+    (await spotsAsLeft(tx, change)) &&
     (await daysAsLeft(tx, bookingId, current, today));
-  if (!unchanged) return { ok: false, error: "changed" };
+  if (!unchanged || (await movedSince(tx, bookingId, entryId)))
+    return { ok: false, error: "changed" };
 
   const reverse = reversed(current);
   const clashes = await takenSince(tx, reverse);

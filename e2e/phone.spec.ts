@@ -11,6 +11,7 @@ const DAYS = {
   tapOpen: "2092-07-06",
   wide: "2092-07-07",
   recollapse: "2092-07-08",
+  move: "2092-07-09",
 };
 
 // Selectors avoid translated text: another test switches the shared admin's language. Spot
@@ -262,3 +263,31 @@ for (const size of [
     await expect(panel.locator("[data-sheet-close]")).toBeHidden();
   });
 }
+
+test("moving a booking at phone width: tap the new umbrella with the sheet open", async ({
+  page,
+}) => {
+  const customer = `Phone move ${Date.now()}`;
+  await page.goto(`/?date=${DAYS.move}`);
+  const from = await numberOf(freeSpots(page).nth(0));
+  const to = await numberOf(freeSpots(page).nth(1));
+  const panel = page.locator("aside");
+  await spotButton(page, from).tap();
+  await panel.locator('input[name="customerName"]').fill(customer);
+  await panel.locator('form button[type="submit"]').tap();
+  await expect(panel).toHaveCount(0);
+
+  await spotButton(page, from).tap();
+  await panel.getByTestId("move-open").tap();
+  await expectBottomSheet(page, panel);
+  // A plain tap: it fails if the sheet covers the umbrella and swallows the touch.
+  await spotButton(page, to).tap();
+  await expect(spotButton(page, to)).toHaveAttribute("aria-pressed", "true");
+  expect(await smallTapTargets(page)).toEqual([]);
+  await panel.locator('[data-testid="move-form"] button[type="submit"]').tap();
+  await expect(panel).toHaveCount(0);
+
+  await page.goto(`/?date=${DAYS.move}`);
+  await expect(spotButton(page, to)).toContainText(customer);
+  await expect(spotButton(page, from)).not.toContainText(customer);
+});

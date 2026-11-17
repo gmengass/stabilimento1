@@ -10,6 +10,7 @@ import { undoAction } from "./booking-actions";
 type ErrorKey =
   | "changed"
   | "ended"
+  | "started"
   | "undone"
   | "forbidden"
   | "notFound"
