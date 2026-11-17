@@ -52,7 +52,7 @@ export function UserMenu({ label, children }: Props) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="rounded border px-2 py-1"
+        className="min-h-11 rounded border px-3 py-2"
       >
         {label}
       </button>

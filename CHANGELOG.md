@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Phones: the booking panel slides up over the map as a sheet, so umbrellas can still be tapped
+  while booking. Collapse it to its header to look at the map, or close it (Escape works too).
+### Changed
+- Buttons, links and fields on the map page are at least 44px tall, easier to tap on tablets
+  and phones. The top bar wraps on narrow screens.
+
+## [0.5.1] - 2026-11-16
 ### Fixed
 - Opening the app by the box's IP (`https://192.168.x.x`) failed with a TLS error, in browsers
   and in the Android app's IP fallback. Set `DEFAULT_SNI` to the box's IP in `.env` (RUNBOOK).

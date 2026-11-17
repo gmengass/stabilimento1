@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { ADMIN_STATE } from "./e2e/helpers";
+
+const PHONE = { width: 390, height: 844 };
+
 export default defineConfig({
   testDir: "e2e",
   forbidOnly: !!process.env.CI,
@@ -10,7 +14,23 @@ export default defineConfig({
   },
   projects: [
     { name: "setup", testMatch: /\.setup\.ts$/ },
-    { name: "chromium", use: { ...devices["Desktop Chrome"] }, dependencies: ["setup"] },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+      testIgnore: /phone\.spec\.ts/,
+    },
+    {
+      name: "phone",
+      use: {
+        ...devices["Pixel 7"],
+        viewport: PHONE,
+        screen: PHONE,
+        storageState: ADMIN_STATE,
+      },
+      dependencies: ["setup"],
+      testMatch: /phone\.spec\.ts/,
+    },
   ],
   webServer: {
     command: "npm run build && npm run start",

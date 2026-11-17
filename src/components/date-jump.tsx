@@ -39,7 +39,7 @@ export function DateJump({ date, areaId }: Props) {
   };
 
   return (
-    <label className="relative inline-flex cursor-pointer items-center gap-2 rounded border px-3 py-2 focus-within:ring-2 focus-within:ring-sky-700">
+    <label className="relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded border px-3 focus-within:ring-2 focus-within:ring-sky-700">
       <CalendarIcon />
       <span>{t("calendar")}</span>
       <input

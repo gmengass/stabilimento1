@@ -288,6 +288,11 @@
     },
     "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
   },
+  "sheet": {
+    "label": "Pannello prenotazione",
+    "collapse": "Riduci",
+    "expand": "Espandi"
+  },
   "activity": {
     "title": "Attività recenti",
     "empty": "Ancora niente. Qui compariranno prenotazioni e modifiche.",

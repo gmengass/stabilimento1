@@ -24,8 +24,8 @@ export function AreaTabs({ areas, currentId, hrefOf }: Props) {
             aria-current={current ? "page" : undefined}
             className={
               current
-                ? "rounded-full bg-sky-800 px-4 py-2 font-semibold text-white"
-                : "rounded-full border border-sky-800 px-4 py-2 text-sky-900"
+                ? "flex min-h-11 items-center rounded-full bg-sky-800 px-4 font-semibold text-white"
+                : "flex min-h-11 items-center rounded-full border border-sky-800 px-4 text-sky-900"
             }
           >
             {area.name}
