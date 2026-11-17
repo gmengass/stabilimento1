@@ -3,7 +3,7 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.5.1` deployed; `v0.6.0` (phone layout) tagged, deploy not confirmed (PR #47 open).
+- `v0.6.0` released and deployed (phone layout #45, RUNBOOK #44; no migrations).
 - Draft PR #48 (move a booking, ADR 0014, migration 0008): reviewed, CI green, not merged.
 
 ## Done this session
@@ -11,8 +11,8 @@
 
 ## Next up
 1. Merge PR #48 (mark ready), release `v0.7.0` (has migration 0008: back up first), deploy.
-2. On the box: deploy `v0.6.0`/`v0.7.0`, check `/health` in the tablet's Chrome, back up the
-   Android signing key; backups (USB + OneDrive; owner: M365 approval, USB in the box).
+2. Try the sheet + keyboard on a phone and the oldest tablet; check `/health` in the tablet's
+   Chrome; back up the Android signing key; backups (USB + OneDrive; owner: M365, USB in box).
 3. Check-in and the 11:00 hold rule (no-shows flagged on the map, restore).
 
 ## Open questions
