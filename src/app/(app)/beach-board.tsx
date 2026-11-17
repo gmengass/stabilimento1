@@ -47,12 +47,15 @@ export function BeachBoard({
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);
   const [pickIndex, setPickIndex] = useState(0);
-  /** Phones: the panel content the sheet was folded down on (see `panelKey`). */
-  const [collapsedFor, setCollapsedFor] = useState<string | null>(null);
+  /** Phones: the sheet is folded down to its header. */
+  const [collapsed, setCollapsed] = useState(false);
+  /** The panel content the sheet last showed (see `panelKey`). */
+  const [shownKey, setShownKey] = useState<string | null>(null);
   const quickBookButton = useRef<HTMLButtonElement>(null);
   const mapArea = useRef<HTMLDivElement>(null);
   const contentId = useId();
   const ts = useTranslations("sheet");
+  const tb = useTranslations("booking");
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
   // A booking made or cancelled elsewhere can make the selection stale: drop booked spots.
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
@@ -134,7 +137,7 @@ export function BeachBoard({
       occupant={open}
       date={date}
       today={today}
-      onClose={() => setOpenBooking(null)}
+      onClose={closePanel}
     />
   ) : freeSelected.length > 0 ? (
     <div className="flex flex-col gap-4">
@@ -175,7 +178,7 @@ export function BeachBoard({
       openSeason={openSeason}
       initial={pick?.draft ?? null}
       onSuggested={(next) => showSuggestion(next, 0)}
-      onClose={reset}
+      onClose={closePanel}
     />
   ) : null;
 
@@ -187,7 +190,10 @@ export function BeachBoard({
       : quickForm
         ? "quick"
         : null;
-  const collapsed = panelKey !== null && collapsedFor === panelKey;
+  if (panelKey !== shownKey) {
+    setShownKey(panelKey);
+    setCollapsed(false);
+  }
   const sheetOpen = panelKey !== null;
 
   // Phones: the header above the map is taller than the room the sheet leaves, so bring the map up.
@@ -202,7 +208,8 @@ export function BeachBoard({
   }
 
   function onPanelKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.key !== "Escape") return;
+    // Wider screens show the panel beside the map: there a stray Escape would lose a draft.
+    if (event.key !== "Escape" || !window.matchMedia(PHONE).matches) return;
     event.preventDefault();
     closePanel();
   }
@@ -240,7 +247,7 @@ export function BeachBoard({
               data-sheet-toggle
               aria-expanded={!collapsed}
               aria-controls={contentId}
-              onClick={() => setCollapsedFor(collapsed ? null : panelKey)}
+              onClick={() => setCollapsed(!collapsed)}
               className="min-h-11 rounded border px-3 py-2"
             >
               {collapsed ? ts("expand") : ts("collapse")}
@@ -251,7 +258,7 @@ export function BeachBoard({
               onClick={closePanel}
               className="min-h-11 rounded border px-3 py-2"
             >
-              {ts("close")}
+              {tb("close")}
             </button>
           </div>
           <div id={contentId} className={collapsed ? "max-md:hidden" : undefined}>

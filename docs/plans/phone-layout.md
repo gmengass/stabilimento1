@@ -19,11 +19,11 @@ phone width.
 ## Design
 - Breakpoint `max-md:` (Tailwind v4, no config). The existing `<aside>` becomes the sheet:
   `fixed inset-x-0 bottom-0 z-20 max-h-[60dvh] overflow-y-auto rounded-t-xl`, safe-area padding.
-- Not a modal: no focus trap, focus isn't moved on open (the map stays usable). `role="region"`
-  with an `aria-label`. No new dependency.
+- Not a modal: no focus trap, focus isn't moved on open (the map stays usable). A named
+  `<aside>` (a landmark). No new dependency.
 - Collapsed state lives in BeachBoard; it expands again when the panel content changes (new
   booking opened, quick book, suggestion), not when umbrellas are toggled.
-- Sheet header is `md:hidden`. i18n keys `sheet.collapse`, `sheet.expand`; reuse `close`.
+- Sheet header is `md:hidden`. i18n keys `sheet.collapse`, `sheet.expand`; reuse `booking.close`. Escape closes the panel on phones only.
 - Scroll spacer on the page while a panel is open (`max-md:pb-[60dvh]`, header height collapsed).
 - Tap targets: `min-h-11` on fields, small buttons, Undo, nav links, checkbox labels, `<summary>`.
   Umbrellas are already 56px tall and ≥ 52px wide. The app nav wraps at 390.

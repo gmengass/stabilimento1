@@ -291,8 +291,7 @@
   "sheet": {
     "label": "Booking panel",
     "collapse": "Collapse",
-    "expand": "Expand",
-    "close": "Close"
+    "expand": "Expand"
   },
   "activity": {
     "title": "Recent activity",

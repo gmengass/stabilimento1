@@ -291,8 +291,7 @@
   "sheet": {
     "label": "Pannello prenotazione",
     "collapse": "Riduci",
-    "expand": "Espandi",
-    "close": "Chiudi"
+    "expand": "Espandi"
   },
   "activity": {
     "title": "Attività recenti",
