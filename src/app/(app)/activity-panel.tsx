@@ -41,6 +41,17 @@ export async function ActivityPanel({ entries, viewer }: Props) {
           days: Number(detail.days),
           dates: range(detail.startDate, detail.endDate),
         });
+      case "move": {
+        const list = (numbers: unknown) =>
+          t("spots", { count: String(numbers).split(",").length, numbers: String(numbers) });
+        return t("move", {
+          user,
+          name,
+          fromSpots: list(detail.fromSpots),
+          toSpots: list(detail.toSpots),
+          dates: range(detail.toStart, detail.toEnd),
+        });
+      }
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":
