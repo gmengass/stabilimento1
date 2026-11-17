@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.7.0] - 2026-11-17
 ### Added
 - Move a booking: open it on the map, tap Move, then tap the new umbrella for each of its
   umbrellas. A booking that hasn't started can also get new dates; a started booking or a season
