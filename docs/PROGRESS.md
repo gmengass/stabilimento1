@@ -3,15 +3,14 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.5.1` released and deployed (activity + undo, Android app, `DEFAULT_SNI` fix #43).
-  On `main`: #44 (RUNBOOK) and #45 (phone layout), released as `v0.6.0` (no migrations).
+- `v0.6.0` released and deployed (phone layout #45, RUNBOOK #44; no migrations).
 
 ## Done this session
 - Phone layout (`docs/plans/phone-layout.md`): bottom sheet below 768px, tap targets ≥ 44px,
   keyboard resizes the layout; Playwright `phone` project (390×844).
 
 ## Next up
-1. Deploy `v0.6.0` (`scripts/update.sh v0.6.0`). Try sheet + keyboard: phone, oldest tablet.
+1. Try the sheet + keyboard on a phone and the oldest tablet.
 2. Check `https://stabilimento.local/health` in the tablet's Chrome; back up the Android signing
    key; backups (USB + OneDrive; owner: M365 approval, USB in the box).
 3. Move a booking to another spot or dates (log it for undo, ADR 0013).
