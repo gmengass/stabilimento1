@@ -22,6 +22,7 @@ export type ErrorKey =
   | "invalid"
   | "invalidMove"
   | "unchanged"
+  | "split"
   | "started"
   | "invalidPass"
   | "invalidDays"

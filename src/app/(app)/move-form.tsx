@@ -73,6 +73,9 @@ export function MoveForm(props: Props) {
   }
 
   const active = occupant.spots.find((s) => s.spotId === activeSpotId);
+  // Two umbrellas can't go to the same one: pick another before confirming.
+  const chosen = occupant.spots.map((s) => targets[s.spotId]?.spotId ?? s.spotId);
+  const distinct = new Set(chosen).size === chosen.length;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3" data-testid="move-form">
@@ -150,7 +153,7 @@ export function MoveForm(props: Props) {
       <div className="flex gap-2">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !distinct}
           className="min-h-11 flex-1 rounded bg-blue-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
         >
           {pending ? t("saving") : t("moveConfirm")}

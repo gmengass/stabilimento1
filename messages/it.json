@@ -195,7 +195,8 @@
       "pastBooking": "Non si possono prenotare giorni passati.",
       "unchanged": "Niente da spostare: scegli un altro ombrellone o altre date.",
       "started": "Questa prenotazione è già iniziata: si possono spostare solo gli ombrelloni, da un giorno a scelta.",
-      "invalidMove": "Scegli un ombrellone libero di questa zona per ogni ombrellone, e date da oggi in poi (massimo 60 giorni)."
+      "invalidMove": "Scegli un ombrellone libero di questa zona per ogni ombrellone, e date da oggi in poi (massimo 60 giorni).",
+      "split": "Alcuni di questi giorni sono ancora su un ombrellone precedente. Sposta dal giorno dello spostamento precedente, oppure ripristinalo prima."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",

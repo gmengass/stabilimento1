@@ -49,7 +49,11 @@ export async function ActivityPanel({ entries, viewer }: Props) {
           name,
           fromSpots: list(detail.fromSpots),
           toSpots: list(detail.toSpots),
-          dates: range(detail.toStart, detail.toEnd),
+          // Same dates: only the umbrellas moved, from `fromDay` on.
+          dates:
+            detail.fromStart === detail.toStart && detail.fromEnd === detail.toEnd
+              ? range(detail.fromDay, detail.toEnd)
+              : range(detail.toStart, detail.toEnd),
         });
       }
       case "undo":

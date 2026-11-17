@@ -195,7 +195,8 @@
       "pastBooking": "Past days can't be booked.",
       "unchanged": "Nothing to move: pick another umbrella or other dates.",
       "started": "This booking has started: only its umbrellas can move, from a day you choose.",
-      "invalidMove": "Pick a free umbrella in this beach space for each umbrella, and dates from today on (at most 60 days)."
+      "invalidMove": "Pick a free umbrella in this beach space for each umbrella, and dates from today on (at most 60 days).",
+      "split": "Some of these days are still on an earlier umbrella. Move from the day of the earlier move, or undo it first."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",

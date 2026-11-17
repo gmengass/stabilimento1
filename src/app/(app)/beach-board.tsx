@@ -108,7 +108,16 @@ export function BeachBoard({
     const next = Object.fromEntries(
       Object.entries(targets).filter(([, target]) => target.spotId !== spot.id),
     ) as MoveTargets;
-    if (spot.id !== moveFor) next[moveFor] = { spotId: spot.id, number: spot.number };
+    if (spot.id === moveFor) delete next[moveFor];
+    else next[moveFor] = { spotId: spot.id, number: spot.number };
+    // Another umbrella of the booking that stays put would be shared: it takes this one (a swap).
+    const sibling = open.spots.find((s) => s.spotId === spot.id && s.spotId !== moveFor);
+    const mine = open.spots.find((s) => s.spotId === moveFor);
+    if (sibling && mine && !next[sibling.spotId]) {
+      for (const [from, target] of Object.entries(next))
+        if (target.spotId === mine.spotId) delete next[Number(from)];
+      next[sibling.spotId] = { spotId: mine.spotId, number: mine.number };
+    }
     setTargets(next);
     setMoveFor(nextWithout(next, moveFor));
   }
