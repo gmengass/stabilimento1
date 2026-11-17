@@ -4,14 +4,14 @@
 
 ## Current state
 - `v0.5.1` released and deployed (activity + undo, Android app, `DEFAULT_SNI` fix #43).
-  Open: #44 (RUNBOOK Caddy restart, progress after v0.5.1); `feat/phone-layout` (PR, below).
+  #44 merged (RUNBOOK: restart Caddy after `DEFAULT_SNI`). Open: #45 phone layout (below).
 
 ## Done this session
 - Phone layout (`docs/plans/phone-layout.md`): bottom sheet below 768px, tap targets ≥ 44px,
   keyboard resizes the layout; Playwright `phone` project (390×844).
 
 ## Next up
-1. Merge #44, then the phone PR (keep its PROGRESS.md). Try sheet + keyboard: phone, old tablet.
+1. Merge the phone PR (#45). Try the sheet + keyboard on a phone and the oldest tablet.
 2. Check `https://stabilimento.local/health` in the tablet's Chrome; back up the Android signing
    key; backups (USB + OneDrive; owner: M365 approval, USB in the box).
 3. Move a booking to another spot or dates (log it for undo, ADR 0013).
