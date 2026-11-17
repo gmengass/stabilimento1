@@ -109,7 +109,7 @@
     "spotNoShow": "Ombrellone {number}, libero: {name} non si è presentato",
     "legendCheckedIn": "Arrivati: {count}",
     "legendNoShow": "Non presentati: {count}",
-    "badgeHold": "fino {time}",
+    "badgeHold": "fino alle {time}",
     "badgeNoShow": "Qui c'è anche un non presentato"
   },
   "beachSetup": {

@@ -119,9 +119,9 @@ export function checkIn(
   return onToday(db, input, today, async (tx, { bookingId, date }, booking) => {
     const days = await daysOn(tx, bookingId, date);
     if (days.length === 0) return { ok: false, error: "notFound" };
-    if (!days.some((d) => d.state === "booked")) {
-      return { ok: false, error: days.some((d) => d.state === "no_show") ? "noShow" : "released" };
-    }
+    // A no-show umbrella can't be checked in: restore gives the booking its umbrellas back first.
+    if (days.some((d) => d.state === "no_show")) return { ok: false, error: "noShow" };
+    if (!days.some((d) => d.state === "booked")) return { ok: false, error: "released" };
     if (await isCheckedIn(tx, bookingId, date)) return { ok: false, error: "unchanged" };
     await insertCheckIn(tx, bookingId, date, userId);
     await writeEntry(tx, {
@@ -257,12 +257,20 @@ export async function setHold(
 ): Promise<HoldResult> {
   const parsed = holdSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { bookingId, holdUntil } = parsed.data;
+  const { bookingId } = parsed.data;
+  let { holdUntil } = parsed.data;
   return db.transaction().execute(async (tx) => {
     const booking = await lockBooking(tx, bookingId);
     if (!booking) return { ok: false, error: "notFound" } as const;
     if (booking.kind === "season") return { ok: false, error: "season" } as const;
     if (booking.state.endDate < today) return { ok: false, error: "ended" } as const;
+    // The venue's usual time is stored as "none", so a later change of the default applies.
+    const venue = await tx
+      .selectFrom("venue")
+      .select("default_hold_until")
+      .orderBy("id")
+      .executeTakeFirst();
+    if (venue && shortTime(venue.default_hold_until) === holdUntil) holdUntil = null;
     if (booking.holdUntil === holdUntil) return { ok: false, error: "unchanged" } as const;
     await tx
       .updateTable("booking")

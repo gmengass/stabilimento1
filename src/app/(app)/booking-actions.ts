@@ -79,12 +79,17 @@ export async function endSeasonPassAction(input: unknown): Promise<EndPassResult
   return result;
 }
 
+/** Refused because another tablet or the hold job got there first: show the map as it is now. */
+function refreshes(error: string): boolean {
+  return ["unchanged", "noShow", "released", "taken"].includes(error);
+}
+
 /** Any staff member checks arrivals in, for today only (ADR 0015). */
 export async function checkInAction(input: unknown): Promise<CheckInResult | Forbidden> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await checkIns.checkIn(getDb(), user.id, input);
-  if (result.ok) revalidatePath("/");
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }
 
@@ -92,7 +97,7 @@ export async function uncheckAction(input: unknown): Promise<UncheckResult | For
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await checkIns.uncheck(getDb(), user.id, input);
-  if (result.ok) revalidatePath("/");
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }
 
@@ -102,7 +107,7 @@ export async function restoreNoShowAction(
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await checkIns.restoreNoShow(getDb(), user.id, input);
-  if (result.ok) revalidatePath("/");
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }
 
@@ -110,7 +115,7 @@ export async function setHoldAction(input: unknown): Promise<HoldResult | Forbid
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
   const result = await checkIns.setHold(getDb(), user.id, input);
-  if (result.ok) revalidatePath("/");
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }
 

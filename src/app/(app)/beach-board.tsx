@@ -170,7 +170,7 @@ export function BeachBoard({
       return "selected";
     const occupant = occupancy[spot.id];
     if (occupant?.bookingId === openBooking) return "open";
-    if (occupant?.checkedIn) return "checkedIn";
+    if (occupant?.checkedIn && occupant.kind !== "season") return "checkedIn";
     if (occupant) return occupant.kind === "season" ? "season" : "booked";
     if (freeSelected.some((s) => s.id === spot.id)) return "selected";
     if (noShows[spot.id]) return "noShow";

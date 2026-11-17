@@ -57,17 +57,6 @@ export interface HoldRun {
   umbrellas: number;
 }
 
-/** Today's hold instant of booking `b` (alias), in SQL, from its own time or the venue's. */
-function holdOf(today: string) {
-  return sql<Date>`((${today}::date + coalesce(b.hold_until, (
-      select v.default_hold_until from booking_spot bs0
-      join spot s0 on s0.id = bs0.spot_id
-      join area a0 on a0.id = s0.area_id
-      join venue v on v.id = a0.venue_id
-      where bs0.booking_id = b.id limit 1
-    ))) at time zone ${timeZone})`;
-}
-
 async function runIn(tx: Kysely<DB>, today: string, now: Date): Promise<HoldRun> {
   const { rows: lock } = await sql<{ got: boolean }>`
     select pg_try_advisory_xact_lock(${HOLD_LOCK}) as got`.execute(tx);
@@ -75,8 +64,19 @@ async function runIn(tx: Kysely<DB>, today: string, now: Date): Promise<HoldRun>
   // Lock the due bookings first; one being checked in right now is skipped until the next run.
   const { rows: due } = await sql<{ id: number }>`
     select b.id from booking b
+    cross join lateral (
+      select ((${today}::date + coalesce(b.hold_until, v.default_hold_until))
+        at time zone ${timeZone}) as at
+      from booking_spot bs0
+      join spot s0 on s0.id = bs0.spot_id
+      join area a0 on a0.id = s0.area_id
+      join venue v on v.id = a0.venue_id
+      where bs0.booking_id = b.id
+      order by bs0.id limit 1
+    ) hold
     where b.status = 'active' and b.kind <> 'season'
-      and ${now} >= ${holdOf(today)} and b.created_at < ${holdOf(today)}
+      and b.start_date <= ${today} and b.end_date >= ${today}
+      and ${now} >= hold.at and b.created_at < hold.at
       and exists (select 1 from spot_day sd join booking_spot bs on bs.id = sd.booking_spot_id
         where bs.booking_id = b.id and sd.date = ${today} and sd.state = 'booked')
     order by b.id

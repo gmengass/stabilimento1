@@ -2,8 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { ADMIN_STATE } from "./helpers";
 
-// Check-in is for today only, so this spec books today (other specs use far-off years). A booking
-// made after the hold time is never flagged, so the job can't turn it into a no-show mid-test.
+// Check-in is for today only, so this spec books today (other specs use far-off years). The job
+// never flags a booking made after the hold time, and one made before it only at 11:00 Rome, so
+// only a run crossing 11:00 within these few seconds could see it flagged.
 // Selectors avoid translated text: another test switches the shared admin's language.
 
 test.use({ storageState: ADMIN_STATE });

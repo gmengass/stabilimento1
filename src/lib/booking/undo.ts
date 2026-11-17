@@ -142,6 +142,40 @@ async function checkInsAsLeft(
   return flags.every((f) => checkedIn.has(f.date) === f.after);
 }
 
+/**
+ * A check-in may only come back while the booking still holds its umbrellas that day: once the
+ * hold job flagged it, restoring the no-show is the way back (ADR 0015).
+ */
+async function flaggedSince(
+  tx: Kysely<DB>,
+  bookingId: number,
+  flags: CheckInFlag[],
+): Promise<boolean> {
+  const dates = flags.filter((f) => f.after && !f.before).map((f) => f.date);
+  if (dates.length === 0) return false;
+  const row = await tx
+    .selectFrom("spot_day")
+    .innerJoin("booking_spot", "booking_spot.id", "spot_day.booking_spot_id")
+    .select("spot_day.id")
+    .where("booking_spot.booking_id", "=", bookingId)
+    .where("spot_day.date", "in", dates)
+    .where("spot_day.state", "<>", "booked")
+    .executeTakeFirst();
+  return row !== undefined;
+}
+
+/** Nothing from today on would change: the days, check-ins and booking are all left alone. */
+function changesNothing(change: RecordedChange): boolean {
+  return (
+    change.added.length === 0 &&
+    change.removed.length === 0 &&
+    change.moved.length === 0 &&
+    (change.spots ?? []).length === 0 &&
+    (change.checkIns ?? []).length === 0 &&
+    JSON.stringify(change.before) === JSON.stringify(change.after)
+  );
+}
+
 async function applyCheckIns(
   tx: Kysely<DB>,
   bookingId: number,
@@ -306,6 +340,9 @@ async function undoIn(
     return { ok: false, error: "changed" };
 
   const reverse = reversed(current);
+  if (changesNothing(reverse)) return { ok: false, error: "ended" };
+  if (await flaggedSince(tx, bookingId, reverse.checkIns ?? []))
+    return { ok: false, error: "changed" };
   const clashes = await takenSince(tx, reverse);
   if (clashes.length > 0) return { ok: false, error: "taken", clashes };
   await apply(tx, bookingId, reverse, viewer.id);

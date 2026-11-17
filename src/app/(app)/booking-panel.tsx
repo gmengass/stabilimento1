@@ -367,7 +367,8 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
     startTransition(async () => {
       try {
         const result = await restoreNoShowAction({ bookingId: noShow.bookingId, date });
-        if (!result.ok) setFailure(toFailure(result));
+        // Already restored (another tablet got there first): the refreshed map shows it.
+        if (!result.ok && result.error !== "unchanged") setFailure(toFailure(result));
       } catch {
         setFailure({ key: "generic" });
       }
@@ -380,7 +381,7 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
       className="flex flex-col gap-2 rounded border border-amber-400 bg-amber-50 p-3 text-sm"
     >
       <p>{t("noShowBy", { name: noShow.customerName, time: noShow.holdTime })}</p>
-      {noShow.customerPhone && (
+      {date === today && noShow.customerPhone && (
         <a href={`tel:${noShow.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
           {noShow.customerPhone}
         </a>
@@ -452,6 +453,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
 
   function save(holdUntil: string | null) {
     setSaved(false);
+    setFailure(null);
     startTransition(async () => {
       try {
         const result = await setHoldAction({ bookingId: occupant.bookingId, holdUntil });
@@ -465,7 +467,6 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setFailure(null);
     const value = String(new FormData(event.currentTarget).get("holdUntil") ?? "");
     save(value.slice(0, 5));
   }

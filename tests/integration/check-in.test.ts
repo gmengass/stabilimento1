@@ -244,6 +244,19 @@ describe("applyHoldRule: the 11:00 boundary (AC 1)", () => {
     expect((await actions()).filter((a) => a === "no_show")).toHaveLength(1);
   });
 
+  it("flags at 11:00 local on both daylight-saving Sundays (AC 3, in SQL)", async () => {
+    for (const [day, utc] of [
+      ["2027-03-28", "09:00:00Z"],
+      ["2027-10-31", "10:00:00Z"],
+    ] as const) {
+      const id = await book({ startDate: day, endDate: day }, ANNA, day);
+      const at = new Date(`${day}T${utc}`);
+      expect(await hold(new Date(at.getTime() - 1000))).toEqual(NONE);
+      expect(await hold(at)).toEqual({ bookings: 1, umbrellas: 1 });
+      expect(await daysOf(id)).toEqual([[101, day, "no_show"]]);
+    }
+  });
+
   it("uses the venue's default hold time", async () => {
     const id = await book();
     await sql`update venue set default_hold_until = '10:00'`.execute(db);
@@ -632,6 +645,15 @@ describe("setHold", () => {
     expect(await holdUntilOf(id)).toBeNull();
   });
 
+  it("stores the venue's usual time as no hold of its own", async () => {
+    const id = await book();
+    await setHold(db, ANNA.id, { bookingId: id, holdUntil: "13:30" }, TODAY);
+    expect(await setHold(db, ANNA.id, { bookingId: id, holdUntil: "11:00" }, TODAY)).toEqual({
+      ok: true,
+    });
+    expect(await holdUntilOf(id)).toBeNull();
+  });
+
   it("answers unchanged for the same time and logs nothing", async () => {
     const id = await book();
     await setHold(db, ANNA.id, { bookingId: id, holdUntil: "13:30" }, TODAY);
@@ -701,6 +723,37 @@ describe("undo (AC 7)", () => {
       [102, TODAY, "no_show"],
     ]);
     expect(await checkIns()).toEqual([]);
+  });
+
+  it("refuses to bring a check-in back once the job flagged the booking", async () => {
+    const id = await book();
+    await checkIn(db, ANNA.id, today(id), TODAY);
+    await uncheck(db, ANNA.id, today(id), TODAY);
+    const uncheckId = await latestId();
+    await hold(rome("11:01:00"));
+    expect(await undo(uncheckId)).toEqual({ ok: false, error: "changed" });
+    expect(await checkIns()).toEqual([]);
+    expect(await daysOf(id)).toEqual([[101, TODAY, "no_show"]]);
+  });
+
+  it("answers ended for yesterday's check-in of a booking still running", async () => {
+    const id = await threeDays();
+    await checkIn(db, ANNA.id, { bookingId: id, date: YESTERDAY }, YESTERDAY);
+    const entryId = await latestId();
+    expect(await undoEntry(db, ADMIN, { entryId }, TODAY, new Date())).toEqual({
+      ok: false,
+      error: "ended",
+    });
+    expect(await checkIns()).toEqual([{ bookingId: id, date: YESTERDAY, by: ANNA.id }]);
+  });
+
+  it("refuses to undo a hold change after a later one", async () => {
+    const id = await book();
+    await setHold(db, ANNA.id, { bookingId: id, holdUntil: "13:30" }, TODAY);
+    const first = await latestId();
+    await setHold(db, ANNA.id, { bookingId: id, holdUntil: "15:00" }, TODAY);
+    expect(await undo(first)).toEqual({ ok: false, error: "changed" });
+    expect(await holdUntilOf(id)).toBe("15:00:00");
   });
 
   it("undoes a hold change back to the previous time", async () => {
