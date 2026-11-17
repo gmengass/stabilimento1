@@ -969,3 +969,26 @@ describe("moves after earlier moves, and older entries undone after a move", () 
     expect(await daysOf(id)).toEqual(range(105, jul(10), jul(12)));
   });
 });
+
+describe("undo after a move from a later day", () => {
+  it("undoes a second move that took over days the first one left behind", async () => {
+    const pass = await sellPass();
+    const first = { bookingId: pass, spots: [to(201, 205)], fromDate: addDays(TODAY, 3) };
+    expect(await move(first)).toEqual({ ok: true });
+    const before = await daysOf(pass);
+    expect(await move({ bookingId: pass, spots: [to(205, 204)] })).toEqual({ ok: true });
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await daysOf(pass)).toEqual(before);
+    expect(await currentSpots(pass)).toEqual([{ number: 205, sunbeds: 2 }]);
+  });
+
+  it("undoes a cancel of a pass moved from a later day", async () => {
+    const pass = await sellPass();
+    const first = { bookingId: pass, spots: [to(201, 205)], fromDate: addDays(TODAY, 3) };
+    expect(await move(first)).toEqual({ ok: true });
+    const before = await daysOf(pass);
+    expect(await cancelBooking(db, ANNA.id, { bookingId: pass }, TODAY)).toEqual({ ok: true });
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await daysOf(pass)).toEqual(before);
+  });
+});
