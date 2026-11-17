@@ -14,7 +14,7 @@ import {
   type CreateBookingInput,
 } from "@/lib/booking/bookings";
 import { moveBooking } from "@/lib/booking/move";
-import { createSeasonPass, releaseDays } from "@/lib/booking/passes";
+import { createSeasonPass, endSeasonPass, releaseDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
 import { undoEntry } from "@/lib/booking/undo";
 import { testDatabaseUrl } from "./test-database";
@@ -906,5 +906,66 @@ describe("migration 0008_booking_move", () => {
       const up = await runMigrations(db, "up");
       if (up.error) throw up.error;
     }
+  });
+});
+
+describe("moves after earlier moves, and older entries undone after a move", () => {
+  it("refuses with changed to undo a pass's last day once the pass has moved", async () => {
+    const pass = await sellPass();
+    const lastDay = addDays(TODAY, 10);
+    expect(await endSeasonPass(db, ANNA.id, { bookingId: pass, lastDay }, TODAY)).toEqual({
+      ok: true,
+    });
+    const lastDayEntry = await latestId();
+    expect(await move({ bookingId: pass, spots: [to(201, 205)] })).toEqual({ ok: true });
+    const before = await snapshot();
+    expect(await undo(lastDayEntry, ADMIN)).toEqual({ ok: false, error: "changed" });
+    expect(await snapshot()).toEqual(before);
+  });
+
+  it("moves days an earlier move left on the former umbrella", async () => {
+    const pass = await sellPass();
+    const later = addDays(TODAY, 3);
+    expect(await move({ bookingId: pass, spots: [to(201, 205)], fromDate: later })).toEqual({
+      ok: true,
+    });
+    expect(await move({ bookingId: pass, spots: [to(205, 204)] })).toEqual({ ok: true });
+    expect((await daysOf(pass)).filter(([number]) => number !== 204)).toEqual([]);
+    expect(await currentSpots(pass)).toEqual([{ number: 204, sunbeds: 2 }]);
+  });
+
+  it("refuses with split when several umbrellas left days behind", async () => {
+    const id = await book(
+      {
+        startDate: addDays(TODAY, -2),
+        endDate: addDays(TODAY, 5),
+        spots: [
+          { spotId: spot[101], sunbeds: 2 },
+          { spotId: spot[102], sunbeds: 1 },
+        ],
+      },
+      ANNA,
+      addDays(TODAY, -2),
+    );
+    const spots = [to(101, 103), to(102, 104)];
+    expect(await move({ bookingId: id, spots, fromDate: addDays(TODAY, 2) })).toEqual({ ok: true });
+    const before = await snapshot();
+    expect(await move({ bookingId: id, spots: [to(103, 105), to(104, 201)] })).toEqual({
+      ok: false,
+      error: "split",
+    });
+    expect(await snapshot()).toEqual(before);
+  });
+
+  it("refuses a from day inside a day booking that hasn't started", async () => {
+    const id = await book();
+    expect(await move({ bookingId: id, spots: [to(101, 105)], fromDate: jul(11) })).toEqual({
+      ok: false,
+      error: "invalid",
+    });
+    expect(await move({ bookingId: id, spots: [to(101, 105)], fromDate: jul(10) })).toEqual({
+      ok: true,
+    });
+    expect(await daysOf(id)).toEqual(range(105, jul(10), jul(12)));
   });
 });

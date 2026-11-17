@@ -49,7 +49,8 @@ export type MoveResult =
   | { ok: true }
   | {
       ok: false;
-      error: "invalid" | "notFound" | "ended" | "started" | "past" | "sunbeds" | "unchanged";
+      error:
+        "invalid" | "notFound" | "ended" | "started" | "past" | "sunbeds" | "unchanged" | "split";
     }
   | { ok: false; error: "taken"; clashes: Clash[] };
 
@@ -151,6 +152,10 @@ function firstDay(move: Move, booking: LockedBooking, today: string): string {
   const from = move.fromDate ?? today;
   if (from < today) refuse({ ok: false, error: "past" });
   if (from > booking.endDate) refuse({ ok: false, error: "invalid" });
+  // A day booking that hasn't started moves whole: part of it left behind would sit outside
+  // its dates once they change.
+  const notStarted = booking.kind !== "season" && booking.startDate >= today;
+  if (notStarted && from > booking.startDate) refuse({ ok: false, error: "invalid" });
   return from > booking.startDate ? from : booking.startDate;
 }
 
@@ -173,6 +178,8 @@ async function checkTargets(
     .execute();
   const byId = new Map(spots.map((s) => [s.id, s]));
   const area = byId.get(current[0].spotId)?.area_id;
+  if (current.some((b) => byId.get(b.spotId)?.area_id !== area))
+    refuse({ ok: false, error: "invalid" });
   const sunbedsOf = new Map(current.map((b) => [b.spotId, b.sunbeds]));
   for (const m of moves) {
     const spot = byId.get(m.toSpotId);
@@ -286,6 +293,25 @@ async function spotNumbers(tx: Kysely<DB>, ids: number[]): Promise<Map<number, n
   return new Map(rows.map((r) => [r.id, r.number]));
 }
 
+/**
+ * Where days still on a former umbrella go: an earlier move from a later day left them there.
+ * With one umbrella they follow it; with several it isn't clear which, so the move is refused.
+ * New dates replace every day, so they need nothing.
+ */
+function formerUmbrellas(
+  moves: SpotMove[],
+  current: BookingSpotRow[],
+  rows: BookingSpotRow[],
+  days: DayRow[],
+  newDates: boolean,
+): SpotMove[] {
+  if (newDates) return [];
+  const former = rows.filter((r) => !r.current && days.some((day) => day.bookingSpotId === r.id));
+  if (former.length === 0) return [];
+  if (current.length !== 1) refuse({ ok: false, error: "split" });
+  return former.map((r) => ({ fromSpotId: r.spotId, toSpotId: moves[0].toSpotId }));
+}
+
 /** True when every umbrella keeps the sunbeds it has: a swap can move them between umbrellas. */
 function sameSunbeds(moves: SpotMove[], current: BookingSpotRow[]): boolean {
   const sunbedsOf = new Map(current.map((r) => [r.spotId, r.sunbeds]));
@@ -311,19 +337,20 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
   if (!covers) refuse({ ok: false, error: "invalid" });
   await checkTargets(tx, move.spots, current);
 
+  // Every row's days, so days an earlier move left on a former umbrella move too.
   const days = await tx
     .selectFrom("spot_day")
     .select(DAY_COLUMNS)
     .where(
       "booking_spot_id",
       "in",
-      current.map((r) => r.id),
+      rows.map((r) => r.id),
     )
     .where("date", ">=", from)
     .execute();
   const plan = planMove(
     days,
-    move.spots,
+    [...move.spots, ...formerUmbrellas(move.spots, current, rows, days, !!dates)],
     dates ? datesBetween(dates.startDate, dates.endDate) : undefined,
   );
   if (plan.removed.length === 0 && plan.added.length === 0 && sameSunbeds(move.spots, current))

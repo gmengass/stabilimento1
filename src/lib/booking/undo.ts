@@ -51,6 +51,25 @@ function reversed(change: RecordedChange): RecordedChange {
   };
 }
 
+/**
+ * True when every day the (reversed) change would book or keep is on one of the booking's
+ * umbrellas once it is applied. An older entry undone after a move would otherwise put days
+ * back on an umbrella the booking has left.
+ */
+async function onCurrentUmbrellas(tx: Kysely<DB>, change: RecordedChange): Promise<boolean> {
+  const days = [...change.added, ...change.moved];
+  if (days.length === 0) return true;
+  const ids = [...new Set(days.map((day) => day.bookingSpotId))];
+  const rows = await tx
+    .selectFrom("booking_spot")
+    .select(["id", "current"])
+    .where("id", "in", ids)
+    .execute();
+  const current = new Map(rows.map((row) => [row.id, row.current]));
+  for (const flag of change.spots ?? []) current.set(flag.bookingSpotId, flag.after.current);
+  return ids.every((id) => current.get(id) === true);
+}
+
 /** A move that changed the dates can only be undone while neither range has started. */
 function datesStarted(change: RecordedChange, today: string): boolean {
   const { before, after } = change;
@@ -239,6 +258,7 @@ async function undoIn(
   if (!unchanged) return { ok: false, error: "changed" };
 
   const reverse = reversed(current);
+  if (!(await onCurrentUmbrellas(tx, reverse))) return { ok: false, error: "changed" };
   const clashes = await takenSince(tx, reverse);
   if (clashes.length > 0) return { ok: false, error: "taken", clashes };
   await apply(tx, bookingId, reverse, viewer.id);
