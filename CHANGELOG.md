@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.6.0] - 2026-11-17
 ### Added
 - Phones: the booking panel slides up over the map as a sheet, so umbrellas can still be tapped
   while booking. Collapse it to its header to look at the map, or close it (Escape works too).
