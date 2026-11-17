@@ -8,7 +8,7 @@ export const ACTIVITY_SIZE = 10;
 export const UNDO_WINDOW_MS = 30 * 60_000;
 
 export type AuditAction =
-  "book" | "cancel" | "set_last_day" | "release" | "restore" | "undo" | "beach" | "season";
+  "book" | "cancel" | "set_last_day" | "release" | "restore" | "move" | "undo" | "beach" | "season";
 
 export interface DayRow {
   bookingSpotId: number;
@@ -28,6 +28,16 @@ export interface MovedDay {
 export interface BookingState {
   status: "active" | "cancelled";
   endDate: string;
+  /** Recorded by a move, which may change the dates; older entries leave them out. */
+  startDate?: string;
+  kind?: BookingKind;
+}
+
+/** A booking_spot's flags before and after a move: whether it is one of the booking's umbrellas. */
+export interface SpotFlag {
+  bookingSpotId: number;
+  before: { current: boolean; sunbeds: number };
+  after: { current: boolean; sunbeds: number };
 }
 
 /**
@@ -40,6 +50,8 @@ export interface RecordedChange {
   added: DayRow[];
   removed: DayRow[];
   moved: MovedDay[];
+  /** Umbrellas a move took on or gave up. */
+  spots?: SpotFlag[];
 }
 
 export type Detail = Record<string, string | number>;
@@ -124,6 +136,7 @@ export async function listActivity(
         .innerJoin("spot as s", "s.id", "bs.spot_id")
         .select(sql<number[]>`array_agg(s.number order by s.number)`.as("n"))
         .whereRef("bs.booking_id", "=", "a.booking_id")
+        .where("bs.current", "=", true)
         .as("spots"),
     ])
     .orderBy("a.id", "desc")

@@ -322,7 +322,7 @@ export interface Occupant {
   /** Days the holder gave back, counted from spot_day so it can't drift (ADR 0004). */
   releasedDays: number;
   /** Every umbrella in the booking with its sunbeds, so staff see the whole group. */
-  spots: { number: number; sunbeds: number }[];
+  spots: { spotId: number; number: number; sunbeds: number }[];
 }
 
 /**
@@ -362,10 +362,12 @@ async function loadSpotDays(
         .innerJoin("spot as s", "s.id", "other.spot_id")
         .select(
           sql<Occupant["spots"]>`json_agg(
-            json_build_object('number', s.number, 'sunbeds', other.sunbeds) order by s.number
+            json_build_object('spotId', s.id, 'number', s.number, 'sunbeds', other.sunbeds)
+              order by s.number
           )`.as("spots"),
         )
         .whereRef("other.booking_id", "=", "booking.id")
+        .where("other.current", "=", true)
         .as("spots"),
     ])
     .where("spot.area_id", "=", areaId)
