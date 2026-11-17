@@ -3,6 +3,18 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Check-in: open a booking on today's map and tap Check in (or Remove check-in). Checked-in
+  umbrellas show a ✓ and their own colour.
+- The 11:00 hold rule: day and multi-day bookings not checked in by 11:00 become no-shows
+  within a minute. Their umbrellas are free to book again, but stay marked with the customer's
+  name. If the customer turns up, give the umbrellas back with one tap, if they are still free.
+- Late arrival: keep a booking's umbrellas until a later time (e.g. 13:30), shown on the map.
+- Check-ins, late arrivals and restored no-shows show in Recent activity and can be undone;
+  automatic no-shows show as "System". Season passes are never freed.
+### Database
+- Migration `0009` (check-ins, the venue's hold time, activity entries without a user). Rolling
+  it back is refused once anyone was checked in or flagged: restore the backup taken before the update.
 
 ## [0.7.0] - 2026-11-17
 ### Added
