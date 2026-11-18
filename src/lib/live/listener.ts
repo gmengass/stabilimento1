@@ -16,6 +16,8 @@ interface ListenerState {
   retry?: ReturnType<typeof setTimeout>;
   failures: number;
   running: boolean;
+  /** Bumped by every start and stop, so a connect that finishes late knows it is stale. */
+  generation: number;
 }
 
 const globalKey = Symbol.for("stabilimento.liveListener");
@@ -24,6 +26,7 @@ const state: ListenerState = (store[globalKey] ??= {
   subscribers: new Set(),
   failures: 0,
   running: false,
+  generation: 0,
 });
 
 function publish(event: LiveEvent): void {
@@ -48,16 +51,25 @@ export function subscriberCount(): number {
   return state.subscribers.size;
 }
 
+async function discard(client: pg.Client): Promise<void> {
+  client.removeAllListeners();
+  client.on("error", () => undefined);
+  await client.end().catch(() => undefined);
+}
+
 async function connect(isReconnect: boolean): Promise<void> {
+  const generation = state.generation;
   const client = new pg.Client({
     connectionString: state.connectionString,
     application_name: "live-listener",
+    // An idle LISTEN socket that went half-open would otherwise never report an error.
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 30_000,
   });
   const lost = () => {
     if (state.client !== client) return;
     state.client = undefined;
-    client.removeAllListeners();
-    client.end().catch(() => undefined);
+    void discard(client);
     scheduleReconnect();
   };
   client.on("error", lost);
@@ -69,14 +81,11 @@ async function connect(isReconnect: boolean): Promise<void> {
     await client.connect();
     await client.query(`LISTEN ${CHANNEL}`);
   } catch (error) {
-    client.removeAllListeners();
-    client.on("error", () => undefined);
-    await client.end().catch(() => undefined);
+    await discard(client);
     throw error;
   }
-  if (!state.running) {
-    client.removeAllListeners();
-    await client.end().catch(() => undefined);
+  if (!state.running || generation !== state.generation) {
+    await discard(client);
     return;
   }
   state.client = client;
@@ -102,6 +111,7 @@ function scheduleReconnect(): void {
 export async function startListener(connectionString: string): Promise<void> {
   if (state.running) return state.starting;
   state.running = true;
+  state.generation += 1;
   state.connectionString = connectionString;
   state.failures = 0;
   state.starting = connect(false).catch((error: unknown) => {
@@ -114,13 +124,11 @@ export async function startListener(connectionString: string): Promise<void> {
 
 export async function stopListener(): Promise<void> {
   state.running = false;
+  state.generation += 1;
   state.starting = undefined;
   clearTimeout(state.retry);
   state.retry = undefined;
   const client = state.client;
   state.client = undefined;
-  if (!client) return;
-  client.removeAllListeners();
-  client.on("error", () => undefined);
-  await client.end().catch(() => undefined);
+  if (client) await discard(client);
 }

@@ -128,6 +128,23 @@ describe("startListener", () => {
   }, 20_000);
 });
 
+describe("start and stop racing", () => {
+  it("keeps one connection when a stop and a start land during the first connect", async () => {
+    const first = startListener(testDatabaseUrl());
+    await stopListener();
+    await startListener(testDatabaseUrl());
+    await first.catch(() => undefined);
+    // The stale first connect must not stay behind as a second LISTEN.
+    await new Promise((r) => setTimeout(r, 300));
+    expect(await listenerBackends()).toBe(1);
+    const events = record();
+    await notify();
+    expect(await eventually(() => events.length > 0)).toBe(true);
+    await new Promise((r) => setTimeout(r, 300));
+    expect(events).toEqual(["changed"]);
+  });
+});
+
 describe("stopListener", () => {
   it("closes the LISTEN connection, and the listener can start again", async () => {
     await startListener(testDatabaseUrl());
