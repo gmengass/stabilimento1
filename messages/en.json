@@ -4,6 +4,12 @@
       "label": "Language",
       "it": "Italiano",
       "en": "English"
+    },
+    "themeSwitcher": {
+      "label": "Theme",
+      "system": "Automatic",
+      "light": "Light",
+      "dark": "Dark"
     }
   },
   "meta": {

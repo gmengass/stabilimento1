@@ -1,14 +1,18 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { UserMenu } from "@/components/user-menu";
 import { logout } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/session";
+import { THEME_COOKIE, resolveTheme } from "@/theme/config";
 
 /** Everything in this group needs a logged-in user. Pages and actions check again themselves. */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations("appShell");
+  const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
     <>
       <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm">
@@ -29,7 +33,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </>
         )}
         <UserMenu label={t("signedInAs", { name: user.name })}>
-          <LanguageSwitcher />
+          <div className="flex flex-col gap-3">
+            <LanguageSwitcher />
+            <ThemeSwitcher current={theme} />
+          </div>
         </UserMenu>
         <form action={logout}>
           <button type="submit" className="min-h-11 rounded border px-3 py-2">
