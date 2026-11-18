@@ -3,6 +3,9 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Light and dark theme: tap your name, then pick Theme: Automatic (follows the device), Light or
+  Dark. The choice is saved on that device. Every screen now has dark colours (ADR 0016).
 
 ## [0.8.0] - 2026-11-18
 ### Added
