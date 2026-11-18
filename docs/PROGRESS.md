@@ -2,7 +2,7 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.10.0` released and deployed. `feat/live-map` (ADR 0019): PR not yet opened, not on the box.
+- `v0.10.0` released and deployed. `feat/live-map` (ADR 0019): PR #59 open, not on the box.
 
 ## Done this session
 - Live map (ADR 0019), reviewed and fixed: 1007 tests, 43 e2e pass; checked through Caddy 2.10.
