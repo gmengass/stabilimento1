@@ -36,6 +36,16 @@ describe("formatBookingDate", () => {
   );
 });
 
+describe("formatBookingDate with the weekday", () => {
+  it.each([
+    ["2026-11-18", "it", "mer 18 novembre 2026"],
+    ["2026-11-18", "en", "Wed, 18 November 2026"],
+    ["2026-03-29", "it", "dom 29 marzo 2026"],
+  ] as const)("formats %s in %s as %s", (date, locale, expected) => {
+    expect(normalizeSpaces(formatBookingDate(date, locale, true))).toBe(expected);
+  });
+});
+
 describe("formatShortBookingDate", () => {
   it.each([
     ["2026-03-29", "it", "dom 29 mar"],

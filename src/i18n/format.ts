@@ -45,9 +45,13 @@ export function venueToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
 }
 
-/** Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. */
-export function formatBookingDate(date: string, locale: Locale): string {
+/**
+ * Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. With
+ * `withWeekday`, the short weekday comes first (e.g. "mer 18 novembre 2026").
+ */
+export function formatBookingDate(date: string, locale: Locale, withWeekday = false): string {
   return new Intl.DateTimeFormat(intlTag[locale], {
+    weekday: withWeekday ? "short" : undefined,
     day: "numeric",
     month: "long",
     year: "numeric",

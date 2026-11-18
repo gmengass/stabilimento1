@@ -46,7 +46,9 @@ test("picking a calendar day opens it at once, and Today stands out until you go
   const goToToday = page.getByTestId("go-to-today");
   await expect(goToToday).toHaveCount(0);
   const nav = page.getByTestId("date-nav");
-  await expect(nav.getByRole("link", { name: /^Oggi: \d{1,2} \p{L}+ \d{4}$/u })).toBeVisible();
+  await expect(
+    nav.getByRole("link", { name: /^Oggi: \p{L}{3} \d{1,2} \p{L}+ \d{4}$/u }),
+  ).toBeVisible();
   await expect(nav.locator("label")).toHaveText("Calendario");
 
   const day = "2090-07-10";
@@ -54,7 +56,7 @@ test("picking a calendar day opens it at once, and Today stands out until you go
   await page.waitForURL(new RegExp(`date=${day}`));
   await expect(goToToday).toBeVisible();
   // The day being viewed is never hidden: the calendar button names it.
-  await expect(nav.locator("label").getByText("10 luglio 2090", { exact: true })).toBeVisible();
+  await expect(nav.locator("label").getByText("lun 10 luglio 2090", { exact: true })).toBeVisible();
 
   await goToToday.click();
   await page.waitForURL((url) => !url.searchParams.has("date"));

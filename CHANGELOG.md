@@ -5,7 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 ## [Unreleased]
 ### Changed
 - Map header: the space name and the date above the map are gone; the space tabs stay. The Today
-  button now shows the date ("Oggi: 18 novembre 2026"; on phones "Oggi: mer 18 nov"). On another day, the calendar button shows
+  button now shows the day and date ("Oggi: mer 18 novembre 2026"; on phones "Oggi: mer 18 nov"). On another day, the calendar button shows
   the day being viewed instead of "Calendario".
 
 ## [0.9.0] - 2026-11-18

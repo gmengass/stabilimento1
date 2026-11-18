@@ -66,7 +66,10 @@ export default async function Home(props: PageProps<"/">) {
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
-  const dayLabel = { full: day, short: formatShortBookingDate(date, dayLocale) };
+  const dayLabel = {
+    full: formatBookingDate(date, dayLocale, true),
+    short: formatShortBookingDate(date, dayLocale),
+  };
   const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
