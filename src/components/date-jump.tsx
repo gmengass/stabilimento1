@@ -8,10 +8,18 @@ import { isBookingDate } from "@/i18n/format";
 /** Keys that edit the field. Space, Alt+Down and the like open the picker instead. */
 const TYPING_KEYS = /^(\d|Arrow(Up|Down|Left|Right)|Backspace|Delete)$/;
 
+export interface DayLabel {
+  full: string;
+  /** Shown on narrow screens, so the date controls fit on a phone. */
+  short: string;
+}
+
 interface Props {
   /** The day being viewed (`YYYY-MM-DD`). */
   date: string;
   areaId: number;
+  /** Shown instead of "Calendar": the day being viewed when it isn't today, full and short. */
+  label?: DayLabel;
 }
 
 /**
@@ -19,7 +27,7 @@ interface Props {
  * is invisible and covers the button, so tapping anywhere on it opens the browser's own picker.
  * Typed dates go only on Enter or when leaving the field, so half-typed days never load.
  */
-export function DateJump({ date, areaId }: Props) {
+export function DateJump({ date, areaId, label }: Props) {
   const t = useTranslations("map");
   const router = useRouter();
   const typing = useRef(false);
@@ -41,9 +49,10 @@ export function DateJump({ date, areaId }: Props) {
   return (
     <label className="relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded border px-3 focus-within:ring-2 focus-within:ring-sky-700">
       <CalendarIcon />
-      <span>{t("calendar")}</span>
+      {label ? <DayText label={label} /> : <span>{t("calendar")}</span>}
       <input
         type="date"
+        aria-label={label ? t("calendarOn", { day: label.full }) : undefined}
         defaultValue={date}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         onClick={(event) => {
@@ -64,6 +73,16 @@ export function DateJump({ date, areaId }: Props) {
         }}
       />
     </label>
+  );
+}
+
+/** The full day on tablets and wider, the short one on phones. */
+export function DayText({ label }: { label: DayLabel }) {
+  return (
+    <>
+      <span className="md:hidden">{label.short}</span>
+      <span className="max-md:hidden">{label.full}</span>
+    </>
   );
 }
 

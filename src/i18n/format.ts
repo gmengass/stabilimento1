@@ -55,6 +55,26 @@ export function formatBookingDate(date: string, locale: Locale): string {
   }).format(parseBookingDate(date));
 }
 
+/** A booking day with the full weekday and short month: "mercoledì 18 nov 2026". */
+export function formatWeekdayDate(date: string, locale: Locale): string {
+  return weekdayFormat(locale, true).format(parseBookingDate(date));
+}
+
+/** The same without the year, for narrow screens: "mercoledì 18 nov". */
+export function formatShortWeekdayDate(date: string, locale: Locale): string {
+  return weekdayFormat(locale, false).format(parseBookingDate(date));
+}
+
+function weekdayFormat(locale: Locale, withYear: boolean): Intl.DateTimeFormat {
+  return new Intl.DateTimeFormat(intlTag[locale], {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: withYear ? "numeric" : undefined,
+    timeZone: "UTC",
+  });
+}
+
 /** Formats a UTC instant in the venue time zone; convert only here, at the edge (ADR 0004). */
 export function formatTimestamp(at: Date, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {
