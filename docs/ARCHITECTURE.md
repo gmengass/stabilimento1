@@ -60,7 +60,10 @@ screens within seconds. Customers never use the app. They are contact details on
 - `src/db/seed-data.ts`, `seed.ts`: idempotent demo seed (`npm run db:seed`, refused in production)
 - `src/i18n/`: next-intl setup (ADR 0005): `config.ts` (locales), `resolve-locale.ts`, `request.ts`,
   `actions.ts` (`setLocale`), `format.ts` (booking days, Rome timestamps, EUR)
-- `src/components/`: shared UI (`language-switcher.tsx` in the root layout header)
+- `src/components/`: shared UI; `user-menu.tsx` holds `language-switcher.tsx` and
+  `theme-switcher.tsx` (ADR 0009, ADR 0017)
+- `src/theme/`: theme names and the `setTheme` action (`theme` cookie, per device, ADR 0017);
+  `src/lib/preference-cookie.ts` writes both the `locale` and `theme` cookies
 - `messages/it.json`, `messages/en.json`: all UI text; a unit test enforces key parity
 - `tests/unit/`, `tests/integration/`: Vitest; integration tests only touch a `*_test` database
 - `e2e/`: Playwright specs (`npm run test:e2e`, builds and starts the app)
@@ -78,10 +81,13 @@ screens within seconds. Customers never use the app. They are contact details on
   `requireAdmin`, or `readCurrentUser` in actions). Layout guards are not a security boundary.
 
 ## Rendering
-- The root layout reads the `locale` cookie, so it sets `export const instant = false` (ADR 0006) and every
+- The root layout reads the `locale` and `theme` cookies, so it sets `export const instant = false` (ADR 0006) and every
   route renders per request. Fine for a staff-only LAN app; revisit if a static page is ever needed.
 
 ## UI conventions
+- Colours: every fixed colour class has a `dark:` partner. `dark:` follows `<html data-theme>`
+  (`light`, `dark`, or `system` = the device), set from the `theme` cookie (ADR 0017). Map tiles
+  keep the same colours in both themes.
 - Tap targets are at least 44×44 CSS px (`min-h-11`); `e2e/phone.spec.ts` measures the map page.
 - Below Tailwind's `md` (768px) the map's booking panel is a bottom sheet (`beach-board.tsx`);
   wider screens keep it beside or under the map. Phone-width e2e runs in the `phone` project.
