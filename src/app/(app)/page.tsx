@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { AreaTabs } from "@/components/area-tabs";
 import { BookingSearch } from "@/components/booking-search";
 import { DateJump, DayText } from "@/components/date-jump";
+import { LiveRefresh } from "@/components/live-refresh";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import {
@@ -138,6 +139,7 @@ export default async function Home(props: PageProps<"/">) {
         {freeNoShows > 0 && <span>{t("legendNoShow", { count: freeNoShows })}</span>}
         <span>{t("hint")}</span>
       </p>
+      <LiveRefresh />
       <BeachBoard
         today={today}
         key={`${beach.areaId}:${initialBooking ?? ""}`}

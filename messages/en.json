@@ -107,6 +107,7 @@
     "spotBooked": "Umbrella {number}, booked by {name}",
     "legendBooked": "Booked: {count}",
     "hint": "Tap free umbrellas to book them, or a booked one to see it.",
+    "liveReconnecting": "Not live, reconnecting…",
     "seaOf": "Sea · {area}",
     "spotSeason": "Umbrella {number}, season pass of {name}",
     "spotReleased": "Umbrella {number}, free: released by {name}",
