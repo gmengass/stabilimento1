@@ -2,13 +2,13 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.9.0` deployed. `main` adds, unreleased: map header (#56), check-in time (#57, ADR 0018).
+- `v0.10.0` released and deployed: map header (#56), check-in time (#57, ADR 0018).
 
 ## Done this session
 - #57 admin "Check-in by" time in Beach settings, merged. #56: lint fix, merged. 938 tests pass.
 
 ## Next up
-1. Owner tags and deploys `v0.10.0`; on the box check map header, "Check-in by", search, Theme.
+1. On the box: check the map header, "Check-in by", search and Theme on a tablet and a phone.
 2. Live map: changes show on every device within seconds.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 
