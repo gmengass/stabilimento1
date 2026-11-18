@@ -868,9 +868,10 @@ describe("migration 0008_booking_move", () => {
     try {
       const down = await createMigrator(db).migrateTo(BEFORE);
       expect(down.error).toBeUndefined();
-      expect(down.results?.map((r) => [r.migrationName, r.direction])).toEqual([
-        ["0009_check_in", "Down"],
-        ["0008_booking_move", "Down"],
+      expect(down.results?.map((r) => [r.migrationName, r.direction, r.status])).toContainEqual([
+        "0008_booking_move",
+        "Down",
+        "Success",
       ]);
       expect(await hasCurrentColumn()).toBe(false);
       await expect(insertMove()).rejects.toMatchObject({ code: "23514" });

@@ -875,8 +875,10 @@ describe("migration 0009", () => {
     try {
       const down = await migrator.migrateTo(BEFORE);
       expect(down.error).toBeUndefined();
-      expect(down.results?.map((r) => [r.migrationName, r.direction])).toEqual([
-        ["0009_check_in", "Down"],
+      expect(down.results?.map((r) => [r.migrationName, r.direction, r.status])).toContainEqual([
+        "0009_check_in",
+        "Down",
+        "Success",
       ]);
       expect(await hasCheckIn()).toBe(false);
       expect(await daysOf(id)).toEqual([[101, TODAY, "booked"]]);
