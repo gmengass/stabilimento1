@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Day counts: above the map, "Umbrellas free X / N" and "Sunbeds free Y / T" for the space and
+  day shown. No-shows and released days nobody rebooked count as free.
+- Search: type part of a customer's name or phone (spaces and +39 don't matter) to find current
+  and future bookings, at most 20. Tap one to open it on the map, on the day you were viewing
+  if it is there, otherwise its next day.
+### Changed
+- The "Free" count in the map legend is replaced by the day counts.
 
 ## [0.8.0] - 2026-11-18
 ### Added
