@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AreaBanner, AreaTabs } from "@/components/area-tabs";
+import { AreaTabs } from "@/components/area-tabs";
 import { BookingSearch } from "@/components/booking-search";
 import { DateJump } from "@/components/date-jump";
 import { getDb } from "@/db/client";
@@ -58,6 +58,7 @@ export default async function Home(props: PageProps<"/">) {
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
+  const day = formatBookingDate(date, isLocale(locale) ? locale : "it");
   const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
@@ -74,10 +75,7 @@ export default async function Home(props: PageProps<"/">) {
           currentId={beach.areaId}
           hrefOf={Object.fromEntries(areas.map((a) => [a.id, `/?area=${a.id}&date=${date}`]))}
         />
-        <AreaBanner name={beach.areaName} />
-        <h1 className="mr-auto text-xl font-semibold">
-          {formatBookingDate(date, isLocale(locale) ? locale : "it")}
-        </h1>
+        <h1 className="sr-only">{t("heading", { area: beach.areaName, date: day })}</h1>
         <nav
           aria-label={t("dateNav")}
           data-testid="date-nav"
@@ -91,7 +89,7 @@ export default async function Home(props: PageProps<"/">) {
           </Link>
           {date === today ? (
             <Link href={at()} className="flex min-h-11 items-center rounded border px-3">
-              {t("today")}
+              {t("todayOn", { date: day })}
             </Link>
           ) : (
             <Link
@@ -108,7 +106,12 @@ export default async function Home(props: PageProps<"/">) {
           >
             {t("nextDay")}
           </Link>
-          <DateJump key={date} date={date} areaId={beach.areaId} />
+          <DateJump
+            key={date}
+            date={date}
+            areaId={beach.areaId}
+            label={date === today ? undefined : day}
+          />
         </nav>
       </div>
       <BookingSearch date={date} areaId={beach.areaId} />

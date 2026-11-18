@@ -12,6 +12,8 @@ interface Props {
   /** The day being viewed (`YYYY-MM-DD`). */
   date: string;
   areaId: number;
+  /** Shown instead of "Calendar", e.g. the day being viewed when it isn't today. */
+  label?: string;
 }
 
 /**
@@ -19,7 +21,7 @@ interface Props {
  * is invisible and covers the button, so tapping anywhere on it opens the browser's own picker.
  * Typed dates go only on Enter or when leaving the field, so half-typed days never load.
  */
-export function DateJump({ date, areaId }: Props) {
+export function DateJump({ date, areaId, label }: Props) {
   const t = useTranslations("map");
   const router = useRouter();
   const typing = useRef(false);
@@ -41,7 +43,7 @@ export function DateJump({ date, areaId }: Props) {
   return (
     <label className="relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded border px-3 focus-within:ring-2 focus-within:ring-sky-700">
       <CalendarIcon />
-      <span>{t("calendar")}</span>
+      <span>{label ?? t("calendar")}</span>
       <input
         type="date"
         defaultValue={date}

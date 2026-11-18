@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Map header: the space name and the date above the map are gone; the space tabs stay. The Today
+  button now shows the date ("Oggi: 18 novembre 2026"). On another day, the calendar button shows
+  the day being viewed instead of "Calendario".
 
 ## [0.9.0] - 2026-11-18
 ### Added
