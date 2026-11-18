@@ -7,12 +7,14 @@ import {
   mayUndo,
   writeEntry,
   type BookingState,
+  type CheckInFlag,
   type DayRow,
   type MovedDay,
   type RecordedChange,
   type Viewer,
 } from "./audit";
 import { isConflict, type Clash } from "./bookings";
+import { shortTime } from "./hold";
 import { applyFlags } from "./move";
 
 const undoSchema = z.object({ entryId: z.number().int().positive() });
@@ -37,6 +39,7 @@ function fromToday(change: RecordedChange, today: string): RecordedChange {
     added: change.added.filter(keep),
     removed: change.removed.filter(keep),
     moved: change.moved.filter(keep),
+    checkIns: change.checkIns?.filter(keep),
   };
 }
 
@@ -48,6 +51,7 @@ function reversed(change: RecordedChange): RecordedChange {
     removed: change.added,
     moved: change.moved.map((day) => ({ ...day, from: day.to, to: day.from })),
     spots: change.spots?.map((flag) => ({ ...flag, before: flag.after, after: flag.before })),
+    checkIns: change.checkIns?.map((flag) => ({ ...flag, before: flag.after, after: flag.before })),
   };
 }
 
@@ -117,6 +121,84 @@ async function daysAsLeft(
   );
 }
 
+/** True while the booking's check-ins on the recorded days are as the change left them. */
+async function checkInsAsLeft(
+  tx: Kysely<DB>,
+  bookingId: number,
+  flags: CheckInFlag[],
+): Promise<boolean> {
+  if (flags.length === 0) return true;
+  const rows = await tx
+    .selectFrom("check_in")
+    .select("date")
+    .where("booking_id", "=", bookingId)
+    .where(
+      "date",
+      "in",
+      flags.map((f) => f.date),
+    )
+    .execute();
+  const checkedIn = new Set(rows.map((row) => row.date));
+  return flags.every((f) => checkedIn.has(f.date) === f.after);
+}
+
+/**
+ * A check-in may only come back while the booking still holds its umbrellas that day: once the
+ * hold job flagged it, restoring the no-show is the way back (ADR 0015).
+ */
+async function flaggedSince(
+  tx: Kysely<DB>,
+  bookingId: number,
+  flags: CheckInFlag[],
+): Promise<boolean> {
+  const dates = flags.filter((f) => f.after && !f.before).map((f) => f.date);
+  if (dates.length === 0) return false;
+  const row = await tx
+    .selectFrom("spot_day")
+    .innerJoin("booking_spot", "booking_spot.id", "spot_day.booking_spot_id")
+    .select("spot_day.id")
+    .where("booking_spot.booking_id", "=", bookingId)
+    .where("spot_day.date", "in", dates)
+    .where("spot_day.state", "<>", "booked")
+    .executeTakeFirst();
+  return row !== undefined;
+}
+
+/** Nothing from today on would change: the days, check-ins and booking are all left alone. */
+function changesNothing(change: RecordedChange): boolean {
+  return (
+    change.added.length === 0 &&
+    change.removed.length === 0 &&
+    change.moved.length === 0 &&
+    (change.spots ?? []).length === 0 &&
+    (change.checkIns ?? []).length === 0 &&
+    JSON.stringify(change.before) === JSON.stringify(change.after)
+  );
+}
+
+async function applyCheckIns(
+  tx: Kysely<DB>,
+  bookingId: number,
+  flags: CheckInFlag[],
+  userId: string,
+) {
+  const add = flags.filter((f) => f.after && !f.before).map((f) => f.date);
+  const remove = flags.filter((f) => f.before && !f.after).map((f) => f.date);
+  if (remove.length > 0) {
+    await tx
+      .deleteFrom("check_in")
+      .where("booking_id", "=", bookingId)
+      .where("date", "in", remove)
+      .execute();
+  }
+  if (add.length > 0) {
+    await tx
+      .insertInto("check_in")
+      .values(add.map((date) => ({ booking_id: bookingId, date, checked_in_by: userId })))
+      .execute();
+  }
+}
+
 /** Umbrellas a (reversed) change would book again that someone else has booked since. */
 async function takenSince(tx: Kysely<DB>, change: RecordedChange): Promise<Clash[]> {
   const rebooked = [
@@ -180,6 +262,7 @@ async function setBooking(tx: Kysely<DB>, bookingId: number, state: BookingState
       end_date: state.endDate,
       ...(state.startDate !== undefined && { start_date: state.startDate }),
       ...(state.kind !== undefined && { kind: state.kind }),
+      ...(state.holdUntil !== undefined && { hold_until: state.holdUntil }),
       cancelled_at: cancelled ? new Date() : null,
       cancelled_by: cancelled ? userId : null,
     })
@@ -191,16 +274,14 @@ async function setBooking(tx: Kysely<DB>, bookingId: number, state: BookingState
 async function apply(tx: Kysely<DB>, bookingId: number, change: RecordedChange, userId: string) {
   await deleteDays(tx, change.removed);
   await applyFlags(tx, change.spots ?? []);
-  await setState(
-    tx,
-    change.moved.filter((day) => day.to === "released"),
-    "released",
-  );
-  await setState(
-    tx,
-    change.moved.filter((day) => day.to === "booked"),
-    "booked",
-  );
+  for (const state of ["released", "no_show", "booked"] as const) {
+    await setState(
+      tx,
+      change.moved.filter((day) => day.to === state),
+      state,
+    );
+  }
+  await applyCheckIns(tx, bookingId, change.checkIns ?? [], userId);
   await insertDays(tx, change.added);
   await setBooking(tx, bookingId, change.after, userId);
 }
@@ -235,7 +316,7 @@ async function undoIn(
   const bookingId = entry.booking_id;
   const booking = await tx
     .selectFrom("booking")
-    .select(["status", "start_date", "end_date", "kind"])
+    .select(["status", "start_date", "end_date", "kind", "hold_until"])
     .where("id", "=", bookingId)
     .forUpdate()
     .executeTakeFirstOrThrow();
@@ -250,12 +331,18 @@ async function undoIn(
     booking.end_date === after.endDate &&
     (after.startDate === undefined || booking.start_date === after.startDate) &&
     (after.kind === undefined || booking.kind === after.kind) &&
+    (after.holdUntil === undefined ||
+      (booking.hold_until === null ? null : shortTime(booking.hold_until)) === after.holdUntil) &&
+    (await checkInsAsLeft(tx, bookingId, current.checkIns ?? [])) &&
     (await spotsAsLeft(tx, change)) &&
     (await daysAsLeft(tx, bookingId, current, today));
   if (!unchanged || (await movedSince(tx, bookingId, entryId)))
     return { ok: false, error: "changed" };
 
   const reverse = reversed(current);
+  if (changesNothing(reverse)) return { ok: false, error: "ended" };
+  if (await flaggedSince(tx, bookingId, reverse.checkIns ?? []))
+    return { ok: false, error: "changed" };
   const clashes = await takenSince(tx, reverse);
   if (clashes.length > 0) return { ok: false, error: "taken", clashes };
   await apply(tx, bookingId, reverse, viewer.id);

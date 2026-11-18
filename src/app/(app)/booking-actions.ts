@@ -5,6 +5,13 @@ import { getDb } from "@/db/client";
 import { readCurrentUser } from "@/lib/auth/session";
 import * as bookings from "@/lib/booking/bookings";
 import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
+import * as checkIns from "@/lib/booking/check-in";
+import type {
+  CheckInResult,
+  HoldResult,
+  RestoreNoShowResult,
+  UncheckResult,
+} from "@/lib/booking/check-in";
 import { moveBooking, type MoveResult } from "@/lib/booking/move";
 import * as passes from "@/lib/booking/passes";
 import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
@@ -69,6 +76,46 @@ export async function endSeasonPassAction(input: unknown): Promise<EndPassResult
   if (!user) return { ok: false, error: "forbidden" };
   const result = await passes.endSeasonPass(getDb(), user.id, input);
   if (result.ok) revalidatePath("/");
+  return result;
+}
+
+/** Refused because another tablet or the hold job got there first: show the map as it is now. */
+function refreshes(error: string): boolean {
+  return ["unchanged", "noShow", "released", "taken"].includes(error);
+}
+
+/** Any staff member checks arrivals in, for today only (ADR 0015). */
+export async function checkInAction(input: unknown): Promise<CheckInResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await checkIns.checkIn(getDb(), user.id, input);
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
+  return result;
+}
+
+export async function uncheckAction(input: unknown): Promise<UncheckResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await checkIns.uncheck(getDb(), user.id, input);
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
+  return result;
+}
+
+export async function restoreNoShowAction(
+  input: unknown,
+): Promise<RestoreNoShowResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await checkIns.restoreNoShow(getDb(), user.id, input);
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
+  return result;
+}
+
+export async function setHoldAction(input: unknown): Promise<HoldResult | Forbidden> {
+  const user = await readCurrentUser();
+  if (!user) return { ok: false, error: "forbidden" };
+  const result = await checkIns.setHold(getDb(), user.id, input);
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }
 

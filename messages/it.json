@@ -104,7 +104,13 @@
     "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",
     "spotReleased": "Ombrellone {number}, libero: liberato da {name}",
     "legendSeason": "Abbonamenti stagionali: {count}",
-    "legendReleased": "Liberati dagli abbonati: {count}"
+    "legendReleased": "Liberati dagli abbonati: {count}",
+    "spotCheckedIn": "Ombrellone {number}, {name}, arrivato",
+    "spotNoShow": "Ombrellone {number}, libero: {name} non si è presentato",
+    "legendCheckedIn": "Arrivati: {count}",
+    "legendNoShow": "Non presentati: {count}",
+    "badgeHold": "fino alle {time}",
+    "badgeNoShow": "Qui c'è anche un non presentato"
   },
   "beachSetup": {
     "title": "Impostazioni spiaggia",
@@ -196,7 +202,12 @@
       "unchanged": "Niente da spostare: scegli un altro ombrellone o altre date.",
       "started": "Questa prenotazione è già iniziata: si possono spostare solo gli ombrelloni, da un giorno a scelta.",
       "invalidMove": "Scegli un ombrellone libero di questa zona per ogni ombrellone, e date da oggi in poi (massimo 60 giorni).",
-      "split": "Alcuni di questi giorni sono ancora su un ombrellone precedente. Sposta dal giorno dello spostamento precedente, oppure ripristinalo prima."
+      "split": "Alcuni di questi giorni sono ancora su un ombrellone precedente. Sposta dal giorno dello spostamento precedente, oppure ripristinalo prima.",
+      "notToday": "L'arrivo si segna solo per oggi.",
+      "noShow": "Questa prenotazione risulta già non presentata. Ridagli invece gli ombrelloni.",
+      "released": "L'abbonato ha liberato oggi: restituiscigli prima il giorno.",
+      "season": "Gli abbonamenti stagionali non vengono mai liberati all'orario di tenuta.",
+      "invalidHold": "Scrivi un orario come 13:30."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -226,7 +237,19 @@
     "moveArrow": "{from} → {to}",
     "moveKeep": "Mantieni",
     "moveConfirm": "Conferma spostamento",
-    "moveBack": "Indietro"
+    "moveBack": "Indietro",
+    "checkIn": "Segna arrivo",
+    "uncheck": "Togli arrivo",
+    "uncheckHint": "Dopo l'orario di tenuta, una prenotazione senza arrivo diventa non presentata entro un minuto.",
+    "checkedIn": "Arrivato",
+    "noShowBy": "Non presentato: {name}, non arrivato entro le {time}",
+    "restoreNoShow": "{name} è arrivato: ridagli gli ombrelloni",
+    "holdTitle": "Arrivo in ritardo",
+    "holdHint": "Gli ombrelloni sono tenuti fino a quest'ora, poi liberati se il cliente non è arrivato. Orario normale: {time}.",
+    "holdLabel": "Tieni fino alle",
+    "holdSave": "Salva orario",
+    "holdClear": "Usa l'orario normale",
+    "holdSaved": "Orario salvato."
   },
   "areas": {
     "tabsLabel": "Spazi spiaggia",
@@ -317,7 +340,7 @@
     "setLastDay": "{user} ha fissato l'ultimo giorno dell'abbonamento di {name} al {date}",
     "release": "{user} ha liberato {days, plural, one {# giorno} other {# giorni}} dell'abbonamento di {name}, {dates}",
     "restore": "{user} ha restituito a {name} {days, plural, one {# giorno} other {# giorni}}, {dates}",
-    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} other {questo ripristino}}: {name} ({spots})",
+    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} check_in {questo arrivo} uncheck {questo arrivo tolto} hold {questo arrivo in ritardo} other {questo ripristino}}: {name} ({spots})",
     "beach": "{user} ha modificato le impostazioni della spiaggia",
     "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} other {{user} ha modificato una stagione}}",
     "undoButton": "Ripristina",
@@ -336,6 +359,13 @@
       "ended": "Questa prenotazione è già finita: non c'è più niente da ripristinare.",
       "started": "Le date di questa prenotazione sono già iniziate: lo spostamento non si può più ripristinare."
     },
-    "move": "{user} ha spostato la prenotazione di {name}: {fromSpots} → {toSpots}, {dates}"
+    "move": "{user} ha spostato la prenotazione di {name}: {fromSpots} → {toSpots}, {dates}",
+    "system": "Sistema",
+    "restoreNoShow": "{user} ha ridato a {name} {spots} dopo la mancata presentazione",
+    "checkIn": "{user} ha segnato l'arrivo di {name} ({spots})",
+    "uncheck": "{user} ha tolto l'arrivo di {name} ({spots})",
+    "hold": "{user} ha segnato un arrivo in ritardo per {name}: tenuto fino alle {time}",
+    "holdCleared": "{user} ha rimesso l'orario normale per {name}",
+    "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}"
   }
 }

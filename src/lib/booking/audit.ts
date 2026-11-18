@@ -8,7 +8,19 @@ export const ACTIVITY_SIZE = 10;
 export const UNDO_WINDOW_MS = 30 * 60_000;
 
 export type AuditAction =
-  "book" | "cancel" | "set_last_day" | "release" | "restore" | "move" | "undo" | "beach" | "season";
+  | "book"
+  | "cancel"
+  | "set_last_day"
+  | "release"
+  | "restore"
+  | "move"
+  | "check_in"
+  | "uncheck"
+  | "hold"
+  | "no_show"
+  | "undo"
+  | "beach"
+  | "season";
 
 export interface DayRow {
   bookingSpotId: number;
@@ -31,6 +43,15 @@ export interface BookingState {
   /** Recorded by a move, which may change the dates; older entries leave them out. */
   startDate?: string;
   kind?: BookingKind;
+  /** Recorded by a hold change ("HH:MM" or null for the venue's time); others leave it out. */
+  holdUntil?: string | null;
+}
+
+/** Whether the booking was checked in on a day, before and after the change (ADR 0015). */
+export interface CheckInFlag {
+  date: string;
+  before: boolean;
+  after: boolean;
 }
 
 /** A booking_spot's flags before and after a move: whether it is one of the booking's umbrellas. */
@@ -52,12 +73,15 @@ export interface RecordedChange {
   moved: MovedDay[];
   /** Umbrellas a move took on or gave up. */
   spots?: SpotFlag[];
+  /** Check-ins the change added or removed. */
+  checkIns?: CheckInFlag[];
 }
 
 export type Detail = Record<string, string | number>;
 
 export interface EntryToWrite {
-  userId: string;
+  /** Null only for the automatic no-show run (ADR 0015). */
+  userId: string | null;
   action: AuditAction;
   bookingId?: number;
   detail?: Detail;
@@ -90,8 +114,9 @@ export function movedOnly(state: BookingState, moved: MovedDay[]): RecordedChang
 export interface ActivityEntry {
   id: number;
   at: Date;
-  userId: string;
-  userName: string;
+  /** Null for the automatic no-show run, shown as "System". */
+  userId: string | null;
+  userName: string | null;
   action: AuditAction;
   detail: Detail;
   bookingId: number | null;
@@ -113,7 +138,7 @@ export async function listActivity(
 ): Promise<ActivityEntry[]> {
   const rows = await db
     .selectFrom("audit_log as a")
-    .innerJoin("user as u", "u.id", "a.user_id")
+    .leftJoin("user as u", "u.id", "a.user_id")
     .leftJoin("booking as b", "b.id", "a.booking_id")
     .leftJoin("audit_log as o", "o.id", "a.undoes_id")
     .select((eb) => [

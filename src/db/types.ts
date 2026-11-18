@@ -74,7 +74,7 @@ export interface AuditLog {
   id: Generated<number>;
   undoes_id: number | null;
   undone_by_id: number | null;
-  user_id: string;
+  user_id: string | null;
 }
 
 export interface Booking {
@@ -103,6 +103,13 @@ export interface BookingSpot {
   spot_id: number;
   sunbeds: number;
   updated_at: Generated<Timestamp>;
+}
+
+export interface CheckIn {
+  booking_id: number;
+  checked_in_at: Generated<Timestamp>;
+  checked_in_by: string;
+  date: string;
 }
 
 export interface Season {
@@ -169,6 +176,7 @@ export interface User {
 
 export interface Venue {
   created_at: Generated<Timestamp>;
+  default_hold_until: Generated<string>;
   id: Generated<number>;
   name: string;
   slug: string;
@@ -191,6 +199,7 @@ export interface DB {
   audit_log: AuditLog;
   booking: Booking;
   booking_spot: BookingSpot;
+  check_in: CheckIn;
   season: Season;
   session: Session;
   spot: Spot;

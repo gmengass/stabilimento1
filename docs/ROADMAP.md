@@ -31,7 +31,7 @@ Each item ships something staff can use on the box.
 - [x] Seasons (admin) and season passes, with released days
 - [x] Activity stream: last 10 actions on the map, undo (own 30 min, admin any) (ADR 0013)
 - [x] Move a booking to another spot or dates
-- [ ] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore)
+- [x] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore) (ADR 0015)
 - [ ] Date view counts (free / total umbrellas and sunbeds), search by name or phone
 - [ ] Live map: changes show on every device within seconds
 - [x] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger

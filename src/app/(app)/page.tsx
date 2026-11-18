@@ -9,7 +9,7 @@ import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/fo
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
-import { loadOccupancy, loadReleased } from "@/lib/booking/bookings";
+import { loadNoShows, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import { loadOpenSeason } from "@/lib/booking/seasons";
 import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
@@ -41,6 +41,7 @@ export default async function Home(props: PageProps<"/">) {
 
   const occupancy = await loadOccupancy(getDb(), beach.areaId, date);
   const released = await loadReleased(getDb(), beach.areaId, date);
+  const noShows = await loadNoShows(getDb(), beach.areaId, date);
   const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
   const activity = await listActivity(getDb());
@@ -57,6 +58,8 @@ export default async function Home(props: PageProps<"/">) {
   const booked = occupants.length - passes;
   const free = total - occupants.length;
   const freeReleased = Object.keys(released).filter((id) => !occupancy[Number(id)]).length;
+  const checkedIn = occupants.filter((o) => o.checkedIn).length;
+  const freeNoShows = Object.keys(noShows).filter((id) => !occupancy[Number(id)]).length;
 
   return (
     <main className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
@@ -108,6 +111,8 @@ export default async function Home(props: PageProps<"/">) {
         <span>{t("legendBooked", { count: booked })}</span>
         {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}
         {freeReleased > 0 && <span>{t("legendReleased", { count: freeReleased })}</span>}
+        {checkedIn > 0 && <span>{t("legendCheckedIn", { count: checkedIn })}</span>}
+        {freeNoShows > 0 && <span>{t("legendNoShow", { count: freeNoShows })}</span>}
         <span>{t("hint")}</span>
       </p>
       <BeachBoard
@@ -119,6 +124,7 @@ export default async function Home(props: PageProps<"/">) {
         lines={beach.lines}
         occupancy={occupancy}
         released={released}
+        noShows={noShows}
         openSeason={openSeason}
       />
       <ActivityPanel entries={activity} viewer={{ id: user.id, role: user.role }} />

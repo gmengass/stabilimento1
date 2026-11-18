@@ -16,7 +16,7 @@ screens within seconds. Customers never use the app. They are contact details on
 - **User**: a staff login (Better Auth, ADR 0007). id, username, name, role (admin | staff),
   banned (= disabled), locale (it | en). Plus Better Auth's `session`, `account`, `verification`
 - **Customer**: name, optional phone, email and notes (no login)
-- **VenueSettings**: default_hold_until (11:00), time zone (Europe/Rome)
+- **VenueSettings**: `venue.default_hold_until` (11:00); time zone (Europe/Rome, a constant for now)
 - **SpotClosure**: spot, date range, reason (maintenance, reserved by the club)
 - **Season**: venue, name, start_date, end_date. One season per calendar year, covering every
   beach space, so a day belongs to at most one season. The next season can only be added once
@@ -27,8 +27,10 @@ screens within seconds. Customers never use the app. They are contact details on
   a move took the booking off this umbrella; its used days stay on record)
 - **SpotDay**: spot, date, booking_spot, state (booked | released | no_show). Unique per (spot, date)
   while occupied (ADR 0004)
-- **CheckIn**: booking, date, checked-in time, staff user
-- **AuditLog**: user, action, booking, before/after, timestamp
+- **CheckIn** (table `check_in`): booking, date, checked-in time, staff user; one per booking per
+  day, for all its umbrellas (ADR 0015)
+- **AuditLog**: user (null only for the automatic `no_show` run), action, booking, before/after,
+  timestamp
 - **Payment** (later): booking, amount, method (cash/card at desk), staff user
 
 ## Invariants
@@ -36,6 +38,9 @@ screens within seconds. Customers never use the app. They are contact details on
   (unique (spot, date) on SpotDay), not only in application code.
 - Booking days are local calendar dates (`Europe/Rome`); timestamps are stored in UTC (ADR 0004).
 - Status changes go through a single service function so they can be audited.
+- Only the hold job (`src/lib/booking/hold.ts`, started every minute by `src/instrumentation.ts`)
+  writes `no_show`, and only for today (ADR 0015). Check-in, restore and the job lock the booking
+  row first, so a check-in that commits first always wins.
 - On the beach map, the date controls (previous day, today, next day, calendar) stay on one
   line: they wrap below the space tabs as one group, never apart, and scroll sideways on a
   screen too narrow for them (`e2e/map-header.spec.ts`).
