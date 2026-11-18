@@ -868,10 +868,10 @@ describe("migration 0008_booking_move", () => {
     try {
       const down = await createMigrator(db).migrateTo(BEFORE);
       expect(down.error).toBeUndefined();
-      expect(down.results?.map((r) => [r.migrationName, r.direction])).toEqual([
-        ["0009_check_in", "Down"],
-        ["0008_booking_move", "Down"],
-      ]);
+      // Newest first, ending with the one under test; later migrations may come before it.
+      const results = down.results ?? [];
+      expect(results.at(-1)?.migrationName).toBe("0008_booking_move");
+      expect(results.every((r) => r.direction === "Down" && r.status === "Success")).toBe(true);
       expect(await hasCurrentColumn()).toBe(false);
       await expect(insertMove()).rejects.toMatchObject({ code: "23514" });
       expect(await daysOf(id)).toEqual(range(101, jul(10), jul(12)));

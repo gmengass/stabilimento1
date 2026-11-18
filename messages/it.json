@@ -107,6 +107,7 @@
     "spotBooked": "Ombrellone {number}, prenotato da {name}",
     "legendBooked": "Prenotati: {count}",
     "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo.",
+    "liveReconnecting": "Non aggiornato in tempo reale, riconnessione…",
     "seaOf": "Mare · {area}",
     "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",
     "spotReleased": "Ombrellone {number}, libero: liberato da {name}",

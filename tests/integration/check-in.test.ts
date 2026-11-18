@@ -875,9 +875,10 @@ describe("migration 0009", () => {
     try {
       const down = await migrator.migrateTo(BEFORE);
       expect(down.error).toBeUndefined();
-      expect(down.results?.map((r) => [r.migrationName, r.direction])).toEqual([
-        ["0009_check_in", "Down"],
-      ]);
+      // Newest first, ending with the one under test; later migrations may come before it.
+      const results = down.results ?? [];
+      expect(results.at(-1)?.migrationName).toBe("0009_check_in");
+      expect(results.every((r) => r.direction === "Down" && r.status === "Success")).toBe(true);
       expect(await hasCheckIn()).toBe(false);
       expect(await daysOf(id)).toEqual([[101, TODAY, "booked"]]);
     } finally {

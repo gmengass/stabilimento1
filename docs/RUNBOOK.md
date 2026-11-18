@@ -262,4 +262,9 @@ script stops with the app down and prints the rollback command.
   Add it, then restart Caddy alone (it reads `.env` only at start):
   `APP_VERSION=$(cat .deploy/current) docker compose up -d --no-deps caddy`. Check with
   `curl --cacert ~/stabilimento-root.crt https://<box IP>/health`.
+- **Maps don't update by themselves** (or show "Not live, reconnecting"): sign in in a browser,
+  copy the session cookie, and run `curl -kN -b '<cookie>' https://localhost/api/live`. It
+  should print `: connected` at once, `: ping` every 25 s, and `event: changed` within a
+  second of any booking. 401 means the cookie is wrong; nothing at all means something buffers
+  the stream (check `deploy/Caddyfile` still skips `encode` for `/api/live`).
 - **Logs**: `docker compose logs --tail 200 app caddy db`.

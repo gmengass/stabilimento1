@@ -10,7 +10,9 @@
 {$SITE_ADDRESS:localhost} {
 	# Caddy's own CA: works offline; each staff device trusts its root once (RUNBOOK).
 	tls internal
-	encode zstd gzip
+	# The live map's event stream (ADR 0019) must not wait in a compression buffer.
+	@compressible not path /api/live
+	encode @compressible zstd gzip
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
