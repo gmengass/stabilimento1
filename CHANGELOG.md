@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.8.0] - 2026-11-18
 ### Added
 - Check-in: open a booking on today's map and tap Check in (or Remove check-in). Checked-in
   umbrellas show a ✓ and their own colour.

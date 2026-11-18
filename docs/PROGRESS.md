@@ -2,17 +2,17 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.7.0` released and deployed. `feat/check-in` (check-in + 11:00 hold rule, ADR 0015, migration
-  0009) is pushed as PR #50: merge once CI (incl. e2e) is green, then release `v0.8.0`.
+- `v0.8.0` released and deployed: check-in and the 11:00 hold rule (#50, ADR 0015, migration 0009).
 
 ## Done this session
-- Check-in / remove check-in (today), hold job every minute (`src/instrumentation.ts`), no-shows
-  on the map, restore, late-arrival hold, undo, "System" activity entries (`docs/plans/check-in.md`).
+- Check-in, hold job every minute, no-shows on the map, restore, late-arrival hold, undo.
 
 ## Next up
-1. Merge `feat/check-in`, release v0.8.0, deploy; on the box check a no-show appears after 11:00.
-2. Try check-in and a move on the oldest tablet and a phone; back up the Android signing key.
+1. On the box today: after 11:00 an unchecked booking turns no-show ("System" in activity);
+   check in and restore on the oldest tablet and a phone; back up the Android signing key.
+2. Date view counts (free / total umbrellas and sunbeds), search by name or phone.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
+
 ## Open questions
 - Check-in: no e2e for the no-show tile (needs a pre-11:00 booking) or on `phone`; two no-shows on
   one umbrella and day show as one. Not built, owner to decide: check-in for yesterday, partial
