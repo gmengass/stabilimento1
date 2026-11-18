@@ -161,6 +161,16 @@ describe("createLiveStream", () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
+  it("holds at most 64 lines for a client that stops reading", async () => {
+    const { reader, emit, controller } = open(undefined, 1_000);
+    for (let i = 0; i < 200; i += 1) emit("changed");
+    vi.advanceTimersByTime(1_000);
+    const lines = (await readAll(reader)).split("\n\n").filter(Boolean);
+    expect(lines).toHaveLength(64);
+    expect(lines[0]).toBe(": connected");
+    controller.abort();
+  });
+
   it("leaks nothing for a request that was already aborted", async () => {
     const source = fakeSource();
     const controller = new AbortController();
