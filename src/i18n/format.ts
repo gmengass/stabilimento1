@@ -55,9 +55,10 @@ export function formatBookingDate(date: string, locale: Locale): string {
   }).format(parseBookingDate(date));
 }
 
-/** A short `YYYY-MM-DD` booking day with no year (e.g. "29 mar"), for narrow screens. */
+/** A short `YYYY-MM-DD` booking day with the weekday and no year (e.g. "dom 29 mar"). */
 export function formatShortBookingDate(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {
+    weekday: "short",
     day: "numeric",
     month: "short",
     timeZone: "UTC",

@@ -38,10 +38,10 @@ describe("formatBookingDate", () => {
 
 describe("formatShortBookingDate", () => {
   it.each([
-    ["2026-03-29", "it", "29 mar"],
-    ["2026-03-29", "en", "29 Mar"],
-    ["2026-01-01", "it", "1 gen"],
-    ["2026-12-31", "en", "31 Dec"],
+    ["2026-03-29", "it", "dom 29 mar"],
+    ["2026-03-29", "en", "Sun 29 Mar"],
+    ["2026-01-01", "it", "gio 1 gen"],
+    ["2026-12-31", "en", "Thu 31 Dec"],
   ] as const)("formats %s in %s as %s", (date, locale, expected) => {
     expect(normalizeSpaces(formatShortBookingDate(date, locale))).toBe(expected);
   });
