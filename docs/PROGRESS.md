@@ -4,8 +4,11 @@
 ## Current state
 - `v0.8.0` released and deployed: check-in and the 11:00 hold rule (#50, ADR 0015, migration 0009).
 
+- `feat/theme-toggle` (PR open): Theme select (Automatic / Light / Dark) in the user menu, saved
+  per device in a `theme` cookie; dark colours on every screen; map tiles unchanged (ADR 0016).
+
 ## Done this session
-- Check-in, hold job every minute, no-shows on the map, restore, late-arrival hold, undo.
+- Theme toggle: `<html data-theme>` from the cookie, Tailwind `dark:` follows it; unit + e2e tests.
 
 ## Next up
 1. On the box today: after 11:00 an unchecked booking turns no-show ("System" in activity);
@@ -19,6 +22,8 @@
   restore, single-day hold override, admin edit of the 11:00 default (seeded by migration).
 - Moves: change the umbrella count, a pass's first day or a started booking's end (refused now)?
 - Phones: sheet for portrait tablets (768–1023px)? Activity folded on phones (sheet covers Undo)?
+- Theme: Android app should follow the tablet's dark setting (DayNight theme) so "Automatic"
+  works there too? Login page has no theme switcher.
 - Android: tablet versions (min 7.0; `interactive-widget`?). Auto-retry? `FLAG_SECURE`? ADR 0011:
   Tailscale terms for company use; who gets remote access (owner, which staff).
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no
