@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Live map: a booking, cancellation, move, undo, check-in or no-show made on one device shows on
+  every other open map within seconds, without reloading. If the connection drops, the map
+  says "Non aggiornato in tempo reale, riconnessione…" and catches up when it is back
+  (ADR 0019).
 
 ## [0.10.0] - 2026-11-18
 ### Added

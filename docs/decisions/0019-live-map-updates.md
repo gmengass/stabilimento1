@@ -23,9 +23,11 @@ people could pick the same umbrella or miss a check-in made at the desk.
   are `event: changed`, `event: resync` or `: ping` (every 25 s). Each stream ends after 5
   minutes and the client reconnects, so a banned user is cut off within 5 minutes.
 - **Client**: on a signal it calls `router.refresh()`, debounced (400 ms), one at a time. It
-  reconnects with jittered backoff, refreshes once on reconnect, on `online` and when the page
-  becomes visible, and restarts the stream if nothing (not even a ping) arrives for 60 s. While
-  it is not connected it shows "Not live, reconnecting".
+  reconnects with jittered backoff and refreshes once on every reconnect. It restarts the
+  stream on `online` and whenever the page becomes visible (a waking tablet may hold a dead
+  socket), and if no stream has opened for 6 minutes (pings are comments, which `EventSource`
+  can't see, but the server ends every stream after 5). Offline, or down for over 2 s, it shows
+  "Not live, reconnecting".
 - **Caddy**: `/api/live` skips `encode` and uses `flush_interval -1`, so events are not buffered.
 - Scope: the map page only. Search and admin pages are not live.
 
