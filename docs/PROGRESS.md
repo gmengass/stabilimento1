@@ -2,20 +2,21 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.8.0` released and deployed: check-in and the 11:00 hold rule (#50, ADR 0015, migration 0009).
-
-- `feat/theme-toggle` PR open (ADR 0016).
+- `v0.8.0` deployed. Day counts and search merged (#53, ADR 0016), not tagged yet.
+- `feat/theme-toggle` (ADR 0017): PR #54 open, merged with main.
 
 ## Done this session
+- Day counts, search by name/phone (`/search`); Caddy drops `q` from logs. 899 + 36 e2e pass.
 - Theme select (Automatic/Light/Dark) in the user menu, per-device cookie, dark colours everywhere.
 
 ## Next up
-1. On the box today: after 11:00 an unchecked booking turns no-show ("System" in activity);
-   check in and restore on the oldest tablet and a phone; back up the Android signing key.
-2. Date view counts (free / total umbrellas and sunbeds), search by name or phone.
+1. Merge #54 once CI is green, tag `v0.9.0` (day counts, search, theme), deploy.
+2. Live map: changes show on every device within seconds.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 
 ## Open questions
+- Search: rate limit (000–999 lists all customers)? Mask phones in results? `no-store` for it;
+  `unaccent` names; no e2e for restoring a no-show from search (needs a pre-11:00 booking).
 - Check-in: no e2e for the no-show tile (needs a pre-11:00 booking) or on `phone`; two no-shows on
   one umbrella and day show as one. Not built, owner to decide: check-in for yesterday, partial
   restore, single-day hold override, admin edit of the 11:00 default (seeded by migration).
@@ -37,6 +38,5 @@
 - Ruleset `rulset1` requires `docker`, `checks`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK
   firewall says `192.168.1.0/24` (box: `.0.0/24`). E2E uses all 5 sign-ins/minute (CI retries).
 ## Known issues
-- Sessions can't pull Docker images, reach Google Maven, download Playwright browsers or push
-  tags (`checkpoint/2026-11-17-check-in` and an older checkpoint tag are local only).
+- Sessions can't pull Docker images, reach Google Maven, get Playwright browsers (e2e: system Chrome, `channel: "chrome"`) or push tags.
 - Next.js `next dev` re-creates AGENTS.md; it is committed to keep the tree clean.

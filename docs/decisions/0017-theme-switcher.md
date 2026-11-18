@@ -1,4 +1,4 @@
-# 0016. Light and dark theme, chosen per device
+# 0017. Light and dark theme, chosen per device
 
 - Status: Accepted
 - Date: 2026-11-18 (owner request)

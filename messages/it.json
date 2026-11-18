@@ -103,7 +103,6 @@
     "emptyAdmin": "Imposta file e ombrelloni",
     "emptyStaff": "Chiedi a un amministratore di impostare file e ombrelloni.",
     "spotBooked": "Ombrellone {number}, prenotato da {name}",
-    "legendFree": "Liberi: {count}",
     "legendBooked": "Prenotati: {count}",
     "hint": "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo.",
     "seaOf": "Mare · {area}",
@@ -116,7 +115,10 @@
     "legendCheckedIn": "Arrivati: {count}",
     "legendNoShow": "Non presentati: {count}",
     "badgeHold": "fino alle {time}",
-    "badgeNoShow": "Qui c'è anche un non presentato"
+    "badgeNoShow": "Qui c'è anche un non presentato",
+    "counts": "Liberi in questo giorno",
+    "countUmbrellas": "Ombrelloni liberi: {free} / {total}",
+    "countSunbeds": "Lettini liberi: {free} / {total}"
   },
   "beachSetup": {
     "title": "Impostazioni spiaggia",
@@ -373,5 +375,22 @@
     "hold": "{user} ha segnato un arrivo in ritardo per {name}: tenuto fino alle {time}",
     "holdCleared": "{user} ha rimesso l'orario normale per {name}",
     "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}"
+  },
+  "search": {
+    "label": "Cerca una prenotazione per nome o telefono",
+    "placeholder": "Nome o telefono",
+    "submit": "Cerca",
+    "title": "Cerca una prenotazione",
+    "resultsFor": "Prenotazioni per “{query}”",
+    "none": "Nessuna prenotazione attuale o futura corrisponde.",
+    "short": "Scrivi almeno 2 lettere del nome o 3 cifre del telefono.",
+    "capped": "Sono mostrate le prime {count}: scrivi di più per restringere.",
+    "when": "{kind} · {from} – {to}",
+    "where": "{area} · {umbrellas}",
+    "noDaysLeft": "Nessun giorno rimasto sulla mappa: si apre su oggi.",
+    "state": "{state, select, booked {Oggi: prenotato} checkedIn {Oggi: arrivato} noShow {Oggi: non arrivato} released {Oggi: liberato} other {}}",
+    "back": "← Torna alla mappa",
+    "kind": "{kind, select, day {Prenotazione giornaliera} multi_day {Più giorni} season {Abbonamento stagionale} other {Una prenotazione}}",
+    "umbrellas": "{count, plural, one {Ombrellone {numbers}} other {Ombrelloni {numbers}}}"
   }
 }
