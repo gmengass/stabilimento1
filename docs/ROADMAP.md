@@ -33,7 +33,7 @@ Each item ships something staff can use on the box.
 - [x] Move a booking to another spot or dates
 - [x] Check-in and the 11:00 hold rule (no-shows flagged on the map, restore) (ADR 0015)
 - [x] Date view counts (free / total umbrellas and sunbeds), search by name or phone
-- [ ] Live map: changes show on every device within seconds
+- [x] Live map: changes show on every device within seconds (ADR 0019)
 - [x] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger
       tap targets, phone-width e2e tests for booking and quick book (owner, 2026-11-16)
 - [x] Light / dark theme in the user menu, per device (owner, 2026-11-18, ADR 0017)
