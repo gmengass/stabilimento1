@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { THEME_COOKIE, resolveTheme } from "@/theme/config";
 import "./globals.css";
 
-/** `<html lang>` and `data-theme` depend on cookies, so the root shell renders per request (ADR 0005). */
+/** `<html lang>` and `data-theme` depend on cookies, so the root shell renders per request (ADR 0006). */
 export const instant = false;
 
 /** The on-screen keyboard shrinks the layout, so a focused field in the phone sheet stays visible. */

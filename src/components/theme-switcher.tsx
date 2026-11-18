@@ -16,13 +16,19 @@ export function ThemeSwitcher({ current }: Props) {
   const [pending, startTransition] = useTransition();
   const id = useId();
 
+  function show(theme: Theme) {
+    setValue(theme);
+    document.documentElement.dataset.theme = theme;
+  }
+
   function onChange(event: ChangeEvent<HTMLSelectElement>) {
+    const previous = value;
     const next = event.target.value as Theme;
-    setValue(next);
     // Repaint now; the Server Action saves the cookie and re-renders `<html data-theme>` to match.
-    document.documentElement.dataset.theme = next;
+    show(next);
     startTransition(async () => {
-      await setTheme(next);
+      const saved = await setTheme(next).catch(() => ({ ok: false }));
+      if (!saved.ok) show(previous);
     });
   }
 

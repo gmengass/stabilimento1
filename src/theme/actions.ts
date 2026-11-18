@@ -1,12 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { z } from "zod";
+import { writePreferenceCookie } from "@/lib/preference-cookie";
 import { THEME_COOKIE, themes } from "./config";
 
 const themeSchema = z.enum(themes);
-
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 export type SetThemeResult = { ok: true } | { ok: false };
 
@@ -15,13 +13,6 @@ export async function setTheme(input: unknown): Promise<SetThemeResult> {
   const parsed = themeSchema.safeParse(input);
   if (!parsed.success) return { ok: false };
 
-  const store = await cookies();
-  store.set(THEME_COOKIE, parsed.data, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-    maxAge: ONE_YEAR_SECONDS,
-    secure: process.env.NODE_ENV === "production",
-  });
+  await writePreferenceCookie(THEME_COOKIE, parsed.data);
   return { ok: true };
 }
