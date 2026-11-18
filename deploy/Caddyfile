@@ -23,5 +23,15 @@
 		# The only client-IP header the app trusts. Overwrites anything the client sent.
 		header_up X-Real-IP {remote_host}
 	}
-	log
+	# Searches carry customer names and phones in `?q=`: keep them out of the access log.
+	log {
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					delete q
+				}
+			}
+		}
+	}
 }
