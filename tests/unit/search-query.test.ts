@@ -65,6 +65,15 @@ describe("parseQuery: phone", () => {
   });
 });
 
+describe("parseQuery: control characters", () => {
+  it("drops them, so a NUL never reaches Postgres", () => {
+    expect(parseQuery("Ro\u0000ssi")).toEqual({ kind: "name", pattern: "%Rossi%" });
+    expect(parseQuery("\u0000ab")).toEqual({ kind: "name", pattern: "%ab%" });
+    expect(parseQuery("33\u00003")).toEqual({ kind: "phone", digits: "333" });
+    expect(parseQuery("\u0000a")).toEqual({ kind: "short" });
+  });
+});
+
 describe("parseQuery: empty input", () => {
   it("is short", () => {
     expect(parseQuery("")).toEqual({ kind: "short" });

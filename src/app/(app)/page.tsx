@@ -48,7 +48,6 @@ export default async function Home(props: PageProps<"/">) {
   const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
   const activity = await listActivity(getDb());
-  const counts = await loadDayCounts(getDb(), beach.areaId, date);
   // From a search result: open that booking's panel, if it is on this day.
   const initialBooking =
     typeof booking === "string" && /^\d{1,9}$/.test(booking) ? Number(booking) : null;
@@ -59,6 +58,7 @@ export default async function Home(props: PageProps<"/">) {
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
+  const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
   const booked = occupants.length - passes;

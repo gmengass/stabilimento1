@@ -65,13 +65,15 @@ export default async function Search(props: PageProps<"/search">) {
                     })}
                   </span>
                   <span className="text-sm">
-                    {t("where", {
-                      area: r.areaName,
-                      umbrellas: t("umbrellas", {
-                        count: r.umbrellas.length,
-                        numbers: r.umbrellas.join(", "),
-                      }),
-                    })}
+                    {r.umbrellas.length === 0
+                      ? r.areaName
+                      : t("where", {
+                          area: r.areaName,
+                          umbrellas: t("umbrellas", {
+                            count: r.umbrellas.length,
+                            numbers: r.umbrellas.join(", "),
+                          }),
+                        })}
                   </span>
                   {r.todayState && (
                     <span className="text-sm">{t("state", { state: r.todayState })}</span>

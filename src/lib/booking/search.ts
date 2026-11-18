@@ -33,7 +33,8 @@ export interface SearchResult {
  * digits search phones. Too little of either is `short`.
  */
 export function parseQuery(raw: string): SearchQuery {
-  const text = raw.trim();
+  // Control characters (a NUL breaks Postgres text) never match a name or a phone.
+  const text = raw.replace(/\p{Cc}/gu, "").trim();
   if (/\p{L}/u.test(text)) {
     const letters = text.match(/\p{L}/gu) ?? [];
     if (letters.length < MIN_LETTERS) return { kind: "short" };
@@ -45,7 +46,8 @@ export function parseQuery(raw: string): SearchQuery {
 
 /**
  * Active bookings that haven't ended, by customer name or phone, soonest first.
- * A day to jump to is one the booking holds on the map: `booked`, or `no_show` (to restore).
+ * A day to jump to is one the booking shows on the map: `booked`, or a `no_show` nobody rebooked
+ * (to restore it).
  */
 export async function searchBookings(
   db: Kysely<DB>,
@@ -55,11 +57,14 @@ export async function searchBookings(
 ): Promise<SearchResult[]> {
   const query = parseQuery(raw);
   if (query.kind === "short") return [];
-  const days = (date: string, op: "=" | ">=") =>
+  const days = (onOrAfter: boolean, date: string) =>
     sql<string | null>`(select min(sd.date)::text from spot_day sd
       join booking_spot bs on bs.id = sd.booking_spot_id
-      where bs.booking_id = booking.id and sd.state in ('booked', 'no_show')
-        and sd.date ${sql.raw(op)} ${date})`;
+      where bs.booking_id = booking.id
+        and ${onOrAfter ? sql`sd.date >= ${date}` : sql`sd.date = ${date}`}
+        and (sd.state = 'booked' or (sd.state = 'no_show' and not exists (
+          select 1 from spot_day x
+          where x.spot_id = sd.spot_id and x.date = sd.date and x.state = 'booked'))))`;
   const rows = await db
     .selectFrom("booking")
     .innerJoin(
@@ -70,12 +75,14 @@ export async function searchBookings(
           .innerJoin("area", "area.id", "spot.area_id")
           .select([
             "booking_spot.booking_id",
-            sql<number>`min(area.id)`.as("areaId"),
-            sql<string>`min(area.name)`.as("areaName"),
-            sql<number[]>`array_agg(spot.number order by spot.number)`.as("umbrellas"),
+            "area.id as areaId",
+            "area.name as areaName",
+            sql<number[]>`coalesce(array_agg(spot.number order by spot.number)
+              filter (where spot.kind = 'umbrella'), '{}')`.as("umbrellas"),
           ])
           .where("booking_spot.current", "=", true)
-          .groupBy("booking_spot.booking_id")
+          // A booking stays in one space (`bookings.ts`, `move.ts`): one row per booking.
+          .groupBy(["booking_spot.booking_id", "area.id", "area.name"])
           .as("spots"),
       (join) => join.onRef("spots.booking_id", "=", "booking.id"),
     )
@@ -89,8 +96,8 @@ export async function searchBookings(
       "spots.areaId",
       "spots.areaName",
       "spots.umbrellas",
-      days(viewedDate, "=").as("viewedDay"),
-      days(today, ">=").as("nextDay"),
+      days(false, viewedDate).as("viewedDay"),
+      days(true, today).as("nextDay"),
       sql<TodayState | null>`(select case
           when bool_or(sd.state = 'booked') then
             case when exists (select 1 from check_in c

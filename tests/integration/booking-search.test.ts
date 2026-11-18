@@ -343,6 +343,13 @@ describe("searchBookings: jump date", () => {
     expect(await only("rossi", TOMORROW)).toMatchObject({ jumpDate: TODAY, noDaysLeft: false });
   });
 
+  it("skips a no-show day whose umbrella was rebooked", async () => {
+    await book({ startDate: TODAY, endDate: TOMORROW });
+    expect(await applyHoldRule(db, rome("11:05"))).toEqual({ bookings: 1, umbrellas: 1 });
+    await book({ customerName: "Verdi", startDate: TODAY, endDate: TODAY });
+    expect(await only("rossi", TODAY)).toMatchObject({ jumpDate: TOMORROW, noDaysLeft: false });
+  });
+
   it("is today with noDaysLeft when no booked day is left", async () => {
     const pass = await sellPass(addDays(TODAY, 2));
     await release(pass, TODAY, addDays(TODAY, 2));

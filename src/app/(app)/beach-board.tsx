@@ -7,6 +7,7 @@ import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import { BookingDetails, NewBookingForm, NoShowDay, ReleasedDay } from "./booking-panel";
+import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
@@ -31,18 +32,6 @@ interface Props {
   initialBooking?: number | null;
 }
 
-/** A no-show booking's umbrellas still free this day: selecting them shows its restore box. */
-function noShowSpots(
-  lines: MapLine[],
-  noShows: Record<number, Occupant>,
-  occupancy: Record<number, Occupant>,
-  bookingId: number,
-): MapSpot[] {
-  return lines
-    .flatMap((line) => line.spots)
-    .filter((s) => noShows[s.id]?.bookingId === bookingId && !occupancy[s.id]);
-}
-
 /**
  * The map plus its side panel: pick free umbrellas to book, or tap a booked one to see it.
  * On phones the panel is a bottom sheet over the map, so umbrellas stay tappable.
@@ -60,12 +49,9 @@ export function BeachBoard({
   initialBooking = null,
 }: Props) {
   const t = useTranslations("quickBook");
-  const [selected, setSelected] = useState<MapSpot[]>(() =>
-    initialBooking === null ? [] : noShowSpots(lines, noShows, occupancy, initialBooking),
-  );
-  const [openBooking, setOpenBooking] = useState<number | null>(() =>
-    Object.values(occupancy).some((o) => o.bookingId === initialBooking) ? initialBooking : null,
-  );
+  const [initial] = useState(() => initialPanel(lines, occupancy, noShows, initialBooking));
+  const [selected, setSelected] = useState<MapSpot[]>(initial.selected);
+  const [openBooking, setOpenBooking] = useState<number | null>(initial.openBooking);
   /** Quick book: the request form is open, or a suggestion is on the map. */
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);
