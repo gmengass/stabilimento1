@@ -24,6 +24,8 @@ export interface MapLine {
 
 export interface BeachLayout {
   venueName: string;
+  /** The venue's check-in time for day bookings, "HH:MM" (ADR 0018). */
+  defaultHoldUntil: string;
   areaId: number;
   areaName: string;
   lines: MapLine[];
@@ -63,7 +65,12 @@ export async function loadBeach(db: Kysely<DB>, areaId?: number): Promise<BeachL
   const area = await db
     .selectFrom("area")
     .innerJoin("venue", "venue.id", "area.venue_id")
-    .select(["area.id", "area.name", "venue.name as venueName"])
+    .select([
+      "area.id",
+      "area.name",
+      "venue.name as venueName",
+      sql<string>`to_char(venue.default_hold_until, 'HH24:MI')`.as("defaultHoldUntil"),
+    ])
     .where("area.id", "=", picked.id)
     .executeTakeFirstOrThrow();
 
@@ -99,6 +106,7 @@ export async function loadBeach(db: Kysely<DB>, areaId?: number): Promise<BeachL
   }
   return {
     venueName: area.venueName,
+    defaultHoldUntil: area.defaultHoldUntil,
     areaId: area.id,
     areaName: area.name,
     lines: [...lines].map(([number, spots]) => ({ number, spots })),

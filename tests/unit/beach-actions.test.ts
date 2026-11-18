@@ -9,6 +9,7 @@ const { actor, audit, layout, edit } = vi.hoisted(() => {
     layout: { setupBeach: ok() },
     edit: {
       renameVenue: ok(),
+      setDefaultHold: ok(),
       addLine: ok(),
       addUmbrellas: ok(),
       removeLastLine: ok(),
@@ -41,6 +42,7 @@ const user = (role: CurrentUser["role"]): CurrentUser => ({
 const cases = [
   ["setupBeachAction", actions.setupBeachAction, layout.setupBeach],
   ["renameVenueAction", actions.renameVenueAction, edit.renameVenue],
+  ["setDefaultHoldAction", actions.setDefaultHoldAction, edit.setDefaultHold],
   ["addLineAction", actions.addLineAction, edit.addLine],
   ["addUmbrellasAction", actions.addUmbrellasAction, edit.addUmbrellas],
   ["removeLastLineAction", actions.removeLastLineAction, edit.removeLastLine],
@@ -73,7 +75,7 @@ describe.each(cases)("%s", (_name, action, operation) => {
       {
         userId: "u1",
         action: "beach",
-        detail: { what: expect.any(String) },
+        detail: expect.objectContaining({ what: expect.any(String) }),
       },
     );
   });
@@ -90,5 +92,21 @@ describe.each(cases)("%s", (_name, action, operation) => {
     vi.mocked(operation).mockResolvedValueOnce({ ok: false, error: "invalid" } as never);
     await expect(action({})).resolves.toMatchObject({ ok: false });
     expect(audit.writeEntry).not.toHaveBeenCalled();
+  });
+});
+
+describe("setDefaultHoldAction", () => {
+  it("logs the old and the new check-in time", async () => {
+    actor.current = user("admin");
+    edit.setDefaultHold.mockResolvedValueOnce({ ok: true, from: "11:00", to: "12:30" } as never);
+    await actions.setDefaultHoldAction({ defaultHoldUntil: "12:30" });
+    expect(audit.writeEntry).toHaveBeenCalledWith(
+      {},
+      {
+        userId: "u1",
+        action: "beach",
+        detail: { what: "setDefaultHold", from: "11:00", to: "12:30" },
+      },
+    );
   });
 });

@@ -2,26 +2,26 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.9.0` released and deployed: day counts, search (#53, ADR 0016), theme (#54, ADR 0017).
+- `v0.9.0` deployed (ADR 0016, 0017). `feat/default-hold-time` (ADR 0018): PR open.
 
 ## Done this session
-- Theme toggle (#54); release docs for v0.9.0 (changelog, roadmap, architecture). 916 tests pass.
+- Admin check-in time (ADR 0018), reviewed and fixed: 932 tests and 40 e2e pass locally.
 
 ## Next up
-1. Post-deploy check on the box: search, day counts, Theme → Scuro on a tablet and a phone.
+1. Merge the check-in time PR; on the box check search, counts, Theme, "Check-in by".
 2. Live map: changes show on every device within seconds.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 
 ## Open questions
 - Search: rate limit (000–999 lists all customers)? Mask phones in results? `no-store` for it;
   `unaccent` names; no e2e for restoring a no-show from search (needs a pre-11:00 booking).
-- Check-in: no e2e for the no-show tile or on `phone`; two no-shows on one umbrella/day show as
-  one. Owner to decide: check-in for yesterday, partial restore, one-day hold, admin 11:00 edit.
+- Check-in time (ADR 0018): an own hold earlier than the venue's wins (use the later?); "not here
+  by" shows today's setting, not the one in force. Check-in: no e2e for the no-show tile or on
+  `phone`; two no-shows on one umbrella/day show as one. Owner: yesterday, partial, 1-day hold.
 - Moves: change the umbrella count, a pass's first day or a started booking's end (refused now)?
 - Phones: sheet for portrait tablets (768–1023px)? Activity folded on phones (sheet covers Undo)?
 - Android: follow the tablet's dark setting (DayNight)? Tablet versions (min 7.0;
-  `interactive-widget`?). Auto-retry? `FLAG_SECURE`? ADR 0011: Tailscale terms for company use;
-  who gets remote access (owner, which staff).
+  `interactive-widget`?). Auto-retry? `FLAG_SECURE`? ADR 0011: Tailscale terms; who gets it?
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no
   `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.
 - GDPR: retention and redaction for customer data, the audit log, check-ins and no-shows (past

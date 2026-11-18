@@ -478,7 +478,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
     <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
       <h3 className="font-semibold">{t("holdTitle")}</h3>
       <p className="text-xs text-gray-700 dark:text-gray-300">
-        {t("holdHint", { time: occupant.holdTime })}
+        {t("holdHint", { time: occupant.usualHoldTime })}
       </p>
       <label className="flex flex-col gap-1 text-sm">
         {t("holdLabel")}

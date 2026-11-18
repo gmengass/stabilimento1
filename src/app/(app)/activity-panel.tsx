@@ -80,7 +80,9 @@ export async function ActivityPanel({ entries, viewer }: Props) {
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":
-        return t("beach", { user });
+        return detail.what === "setDefaultHold" && detail.to
+          ? t("beachHold", { user, from: String(detail.from), to: String(detail.to) })
+          : t("beach", { user });
       case "season":
         return t("season", { user, what: String(detail.what) });
     }

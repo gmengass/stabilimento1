@@ -6,7 +6,7 @@ import { getDb } from "@/db/client";
 import { requireAdmin } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { AddAreaForm, CurrentAreaForm } from "./area-forms";
-import { LayoutEditor, VenueNameForm } from "./layout-editor";
+import { DefaultHoldForm, LayoutEditor, VenueNameForm } from "./layout-editor";
 import { BeachSetupForm } from "./setup-form";
 
 export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
@@ -32,6 +32,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
           </Link>
         </div>
         <VenueNameForm name={beach.venueName} />
+        <DefaultHoldForm time={beach.defaultHoldUntil} />
         <section className="flex flex-col gap-4 rounded border border-sky-800 dark:border-sky-400 p-4">
           <AreaTabs
             areas={areas}

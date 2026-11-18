@@ -155,6 +155,43 @@ export async function renameVenue(db: Kysely<DB>, input: unknown): Promise<EditR
   });
 }
 
+const defaultHoldSchema = z.object({
+  defaultHoldUntil: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+});
+
+export type SetDefaultHoldResult =
+  { ok: true; from: string; to: string } | { ok: false; error: EditError };
+
+/**
+ * Sets the venue's check-in time for day and multi-day bookings (ADR 0018). Bookings with a
+ * hold time of their own keep it; days already flagged as no-shows stay flagged. Answers the
+ * old and new time ("HH:MM") for the activity entry.
+ */
+export async function setDefaultHold(
+  db: Kysely<DB>,
+  input: unknown,
+): Promise<SetDefaultHoldResult> {
+  const parsed = defaultHoldSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const to = parsed.data.defaultHoldUntil;
+  let from = "";
+  const result = await inVenue(db, async (tx, venueId) => {
+    const venue = await tx
+      .selectFrom("venue")
+      .select(sql<string>`to_char(default_hold_until, 'HH24:MI')`.as("time"))
+      .where("id", "=", venueId)
+      .executeTakeFirstOrThrow();
+    from = venue.time;
+    await tx
+      .updateTable("venue")
+      .set({ default_hold_until: to })
+      .where("id", "=", venueId)
+      .execute();
+    return done;
+  });
+  return result.ok ? { ok: true, from, to } : result;
+}
+
 /** Inserts `umbrellas` default umbrellas after the line's last position. */
 async function appendUmbrellas(
   tx: Tx,

@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Admins can set the check-in time for day and multi-day bookings in Beach settings ("Check-in
+  by", 11:00 until changed). Bookings with their own hold time keep it; season passes are
+  never freed (ADR 0018).
 ### Changed
 - Map header: the space name and the date above the map are gone; the space tabs stay. The Today
   button now shows the day and date ("Oggi: mercoledì 18 nov 2026"; on phones "Oggi: mercoledì 18 nov"). On another day, the calendar button shows

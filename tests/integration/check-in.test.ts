@@ -4,6 +4,7 @@ import { createDb, getDb } from "@/db/client";
 import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { addDays } from "@/i18n/format";
+import { setDefaultHold } from "@/lib/beach/edit";
 import { loadBeach, setupBeach } from "@/lib/beach/layout";
 import { listActivity, type Viewer } from "@/lib/booking/audit";
 import {
@@ -262,6 +263,68 @@ describe("applyHoldRule: the 11:00 boundary (AC 1)", () => {
     await sql`update venue set default_hold_until = '10:00'`.execute(db);
     expect(await hold(rome("10:00:00"))).toEqual({ bookings: 1, umbrellas: 1 });
     expect(await daysOf(id)).toEqual([[101, TODAY, "no_show"]]);
+  });
+});
+
+/** Pretends the booking was made at `at`, so the job's "made before the hold" rule can be tested. */
+async function madeAt(bookingId: number, at: Date) {
+  await db.updateTable("booking").set({ created_at: at }).where("id", "=", bookingId).execute();
+}
+
+describe("an admin changes the default check-in time", () => {
+  it("moves the hold for bookings without their own time, from the next run", async () => {
+    const usual = await book();
+    const late = await book({ spots: [{ spotId: spot[105], sunbeds: 1 }] });
+    await setHold(db, ANNA.id, { bookingId: late, holdUntil: "11:30" }, TODAY);
+    expect(await setDefaultHold(db, { defaultHoldUntil: "12:00" })).toMatchObject({ ok: true });
+
+    expect(await hold(rome("11:59:59"))).toEqual({ bookings: 1, umbrellas: 1 });
+    expect(await daysOf(usual)).toEqual([[101, TODAY, "booked"]]);
+    expect(await daysOf(late)).toEqual([[105, TODAY, "no_show"]]);
+    expect(await hold(rome("12:00:00"))).toEqual({ bookings: 1, umbrellas: 1 });
+    expect(await daysOf(usual)).toEqual([[101, TODAY, "no_show"]]);
+  });
+
+  it("makes a hold stored as the old usual time follow the new one", async () => {
+    const id = await book();
+    await setHold(db, ANNA.id, { bookingId: id, holdUntil: "11:00" }, TODAY);
+    await setDefaultHold(db, { defaultHoldUntil: "09:30" });
+    expect(await hold(rome("09:30:00"))).toEqual({ bookings: 1, umbrellas: 1 });
+  });
+
+  it("leaves no-shows already flagged as they are when the time moves later", async () => {
+    const id = await book();
+    expect(await hold(rome("11:00:00"))).toEqual({ bookings: 1, umbrellas: 1 });
+    await setDefaultHold(db, { defaultHoldUntil: "13:00" });
+    expect(await hold(rome("11:05:00"))).toEqual(NONE);
+    expect(await daysOf(id)).toEqual([[101, TODAY, "no_show"]]);
+  });
+
+  it("moved earlier, never flags a booking made between the new time and now", async () => {
+    const early = await book();
+    const walkIn = await book({ spots: [{ spotId: spot[105], sunbeds: 1 }] });
+    await madeAt(early, rome("09:00:00"));
+    await madeAt(walkIn, rome("10:00:00"));
+    await setDefaultHold(db, { defaultHoldUntil: "09:30" });
+    expect(await hold(rome("10:15:00"))).toEqual({ bookings: 1, umbrellas: 1 });
+    expect(await daysOf(early)).toEqual([[101, TODAY, "no_show"]]);
+    expect(await hold(rome("18:00:00"))).toEqual(NONE);
+    expect(await daysOf(walkIn)).toEqual([[105, TODAY, "booked"]]);
+  });
+
+  it("moved later, flags a booking made after the old time but before the new one", async () => {
+    const id = await book();
+    await madeAt(id, rome("11:30:00"));
+    await setDefaultHold(db, { defaultHoldUntil: "12:00" });
+    expect(await hold(rome("11:59:59"))).toEqual(NONE);
+    expect(await hold(rome("12:00:00"))).toEqual({ bookings: 1, umbrellas: 1 });
+  });
+
+  it("never flags a season pass", async () => {
+    const pass = await sellPass();
+    await setDefaultHold(db, { defaultHoldUntil: "08:00" });
+    expect(await hold(rome("12:00:00"))).toEqual(NONE);
+    expect((await daysOf(pass)).every(([, , state]) => state !== "no_show")).toBe(true);
   });
 });
 

@@ -7,6 +7,7 @@ import {
   formatTimestamp,
   formatWeekdayDate,
   isBookingDate,
+  venueClock,
   venueToday,
 } from "@/i18n/format";
 
@@ -139,5 +140,13 @@ describe("venueToday", () => {
     expect(venueToday(new Date("2026-07-01T22:30:00Z"))).toBe("2026-07-02");
     expect(venueToday(new Date("2026-12-31T22:59:00Z"))).toBe("2026-12-31");
     expect(venueToday(new Date("2026-12-31T23:00:00Z"))).toBe("2027-01-01");
+  });
+});
+
+describe("venueClock", () => {
+  it("is the time in Rome, summer and winter, with midnight as 00:00", () => {
+    expect(venueClock(new Date("2026-07-01T09:05:00Z"))).toBe("11:05");
+    expect(venueClock(new Date("2026-12-31T22:59:00Z"))).toBe("23:59");
+    expect(venueClock(new Date("2026-12-31T23:00:00Z"))).toBe("00:00");
   });
 });

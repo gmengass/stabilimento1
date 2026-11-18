@@ -26,6 +26,7 @@ const occupant = (bookingId: number): Occupant => ({
   checkedIn: false,
   holdUntil: null,
   holdTime: "11:00",
+  usualHoldTime: "11:00",
 });
 
 describe("initialPanel", () => {
