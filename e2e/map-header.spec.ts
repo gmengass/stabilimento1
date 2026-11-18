@@ -11,6 +11,9 @@ test.use({ storageState: ADMIN_STATE, locale: "en-US" });
 test("the date controls stay on one line at every width", async ({ page }) => {
   await page.goto("/");
 
+  await expect(
+    page.getByRole("heading", { level: 1, name: /^.+, \d{1,2} \p{L}+ \d{4}$/u }),
+  ).toBeAttached();
   const nav = page.getByTestId("date-nav");
   await expect(nav).toBeVisible();
   const controls = nav.locator(":scope > a, :scope > label");
@@ -51,7 +54,7 @@ test("picking a calendar day opens it at once, and Today stands out until you go
   await page.waitForURL(new RegExp(`date=${day}`));
   await expect(goToToday).toBeVisible();
   // The day being viewed is never hidden: the calendar button names it.
-  await expect(nav.locator("label")).toHaveText("10 luglio 2090");
+  await expect(nav.locator("label").getByText("10 luglio 2090", { exact: true })).toBeVisible();
 
   await goToToday.click();
   await page.waitForURL((url) => !url.searchParams.has("date"));

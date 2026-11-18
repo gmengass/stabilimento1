@@ -55,6 +55,15 @@ export function formatBookingDate(date: string, locale: Locale): string {
   }).format(parseBookingDate(date));
 }
 
+/** A short `YYYY-MM-DD` booking day with no year (e.g. "29 mar"), for narrow screens. */
+export function formatShortBookingDate(date: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(intlTag[locale], {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(parseBookingDate(date));
+}
+
 /** Formats a UTC instant in the venue time zone; convert only here, at the edge (ADR 0004). */
 export function formatTimestamp(at: Date, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {

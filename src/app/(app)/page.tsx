@@ -3,10 +3,16 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AreaTabs } from "@/components/area-tabs";
 import { BookingSearch } from "@/components/booking-search";
-import { DateJump } from "@/components/date-jump";
+import { DateJump, DayText } from "@/components/date-jump";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
-import { addDays, formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
+import {
+  addDays,
+  formatBookingDate,
+  formatShortBookingDate,
+  isBookingDate,
+  venueToday,
+} from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
@@ -58,7 +64,9 @@ export default async function Home(props: PageProps<"/">) {
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
-  const day = formatBookingDate(date, isLocale(locale) ? locale : "it");
+  const dayLocale = isLocale(locale) ? locale : "it";
+  const day = formatBookingDate(date, dayLocale);
+  const dayLabel = { full: day, short: formatShortBookingDate(date, dayLocale) };
   const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
@@ -89,7 +97,9 @@ export default async function Home(props: PageProps<"/">) {
           </Link>
           {date === today ? (
             <Link href={at()} className="flex min-h-11 items-center rounded border px-3">
-              {t("todayOn", { date: day })}
+              <span>
+                {t("todayPrefix")} <DayText label={dayLabel} />
+              </span>
             </Link>
           ) : (
             <Link
@@ -110,7 +120,7 @@ export default async function Home(props: PageProps<"/">) {
             key={date}
             date={date}
             areaId={beach.areaId}
-            label={date === today ? undefined : day}
+            label={date === today ? undefined : dayLabel}
           />
         </nav>
       </div>

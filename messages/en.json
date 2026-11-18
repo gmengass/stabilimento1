@@ -96,7 +96,7 @@
     "dateNav": "Choose the day",
     "previousDay": "← Previous day",
     "heading": "{area}, {date}",
-    "todayOn": "Today: {date}",
+    "todayPrefix": "Today:",
     "goToToday": "Go to today",
     "nextDay": "Next day →",
     "calendar": "Calendar",

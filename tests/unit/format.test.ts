@@ -3,6 +3,7 @@ import {
   addDays,
   formatBookingDate,
   formatEur,
+  formatShortBookingDate,
   formatTimestamp,
   isBookingDate,
   venueToday,
@@ -33,6 +34,21 @@ describe("formatBookingDate", () => {
       expect(() => formatBookingDate(date, "it")).toThrow(RangeError);
     },
   );
+});
+
+describe("formatShortBookingDate", () => {
+  it.each([
+    ["2026-03-29", "it", "29 mar"],
+    ["2026-03-29", "en", "29 Mar"],
+    ["2026-01-01", "it", "1 gen"],
+    ["2026-12-31", "en", "31 Dec"],
+  ] as const)("formats %s in %s as %s", (date, locale, expected) => {
+    expect(normalizeSpaces(formatShortBookingDate(date, locale))).toBe(expected);
+  });
+
+  it("throws RangeError on an impossible day", () => {
+    expect(() => formatShortBookingDate("2026-02-30", "it")).toThrow(RangeError);
+  });
 });
 
 describe("formatEur", () => {

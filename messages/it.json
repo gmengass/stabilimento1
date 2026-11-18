@@ -96,7 +96,7 @@
     "dateNav": "Scegli il giorno",
     "previousDay": "← Giorno prima",
     "heading": "{area}, {date}",
-    "todayOn": "Oggi: {date}",
+    "todayPrefix": "Oggi:",
     "goToToday": "Torna a oggi",
     "nextDay": "Giorno dopo →",
     "calendar": "Calendario",

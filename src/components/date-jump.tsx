@@ -8,12 +8,18 @@ import { isBookingDate } from "@/i18n/format";
 /** Keys that edit the field. Space, Alt+Down and the like open the picker instead. */
 const TYPING_KEYS = /^(\d|Arrow(Up|Down|Left|Right)|Backspace|Delete)$/;
 
+export interface DayLabel {
+  full: string;
+  /** Shown on narrow screens, so the date controls fit on a phone. */
+  short: string;
+}
+
 interface Props {
   /** The day being viewed (`YYYY-MM-DD`). */
   date: string;
   areaId: number;
-  /** Shown instead of "Calendar", e.g. the day being viewed when it isn't today. */
-  label?: string;
+  /** Shown instead of "Calendar": the day being viewed when it isn't today, full and short. */
+  label?: DayLabel;
 }
 
 /**
@@ -43,9 +49,10 @@ export function DateJump({ date, areaId, label }: Props) {
   return (
     <label className="relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded border px-3 focus-within:ring-2 focus-within:ring-sky-700">
       <CalendarIcon />
-      <span>{label ?? t("calendar")}</span>
+      {label ? <DayText label={label} /> : <span>{t("calendar")}</span>}
       <input
         type="date"
+        aria-label={label ? `${t("calendar")}: ${label.full}` : undefined}
         defaultValue={date}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         onClick={(event) => {
@@ -66,6 +73,16 @@ export function DateJump({ date, areaId, label }: Props) {
         }}
       />
     </label>
+  );
+}
+
+/** The full day on tablets and wider, the short one on phones. */
+export function DayText({ label }: { label: DayLabel }) {
+  return (
+    <>
+      <span className="md:hidden">{label.short}</span>
+      <span className="max-md:hidden">{label.full}</span>
+    </>
   );
 }
 
