@@ -27,6 +27,20 @@ interface Props {
   noShows: Record<number, Occupant>;
   /** The season a pass can be sold for, if one is open. */
   openSeason: OpenSeason | null;
+  /** A booking to open at first (from search): its panel, or its no-show umbrellas. */
+  initialBooking?: number | null;
+}
+
+/** A no-show booking's umbrellas still free this day: selecting them shows its restore box. */
+function noShowSpots(
+  lines: MapLine[],
+  noShows: Record<number, Occupant>,
+  occupancy: Record<number, Occupant>,
+  bookingId: number,
+): MapSpot[] {
+  return lines
+    .flatMap((line) => line.spots)
+    .filter((s) => noShows[s.id]?.bookingId === bookingId && !occupancy[s.id]);
 }
 
 /**
@@ -43,10 +57,15 @@ export function BeachBoard({
   released,
   noShows,
   openSeason,
+  initialBooking = null,
 }: Props) {
   const t = useTranslations("quickBook");
-  const [selected, setSelected] = useState<MapSpot[]>([]);
-  const [openBooking, setOpenBooking] = useState<number | null>(null);
+  const [selected, setSelected] = useState<MapSpot[]>(() =>
+    initialBooking === null ? [] : noShowSpots(lines, noShows, occupancy, initialBooking),
+  );
+  const [openBooking, setOpenBooking] = useState<number | null>(() =>
+    Object.values(occupancy).some((o) => o.bookingId === initialBooking) ? initialBooking : null,
+  );
   /** Quick book: the request form is open, or a suggestion is on the map. */
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);

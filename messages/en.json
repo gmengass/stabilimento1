@@ -97,7 +97,6 @@
     "emptyAdmin": "Set up the lines and umbrellas",
     "emptyStaff": "Ask an admin to set up the lines and umbrellas.",
     "spotBooked": "Umbrella {number}, booked by {name}",
-    "legendFree": "Free: {count}",
     "legendBooked": "Booked: {count}",
     "hint": "Tap free umbrellas to book them, or a booked one to see it.",
     "seaOf": "Sea · {area}",
@@ -110,7 +109,10 @@
     "legendCheckedIn": "Checked in: {count}",
     "legendNoShow": "No-shows: {count}",
     "badgeHold": "hold {time}",
-    "badgeNoShow": "Also a no-show here"
+    "badgeNoShow": "Also a no-show here",
+    "counts": "Free on this day",
+    "countUmbrellas": "Umbrellas free: {free} / {total}",
+    "countSunbeds": "Sunbeds free: {free} / {total}"
   },
   "beachSetup": {
     "title": "Beach settings",
@@ -367,5 +369,22 @@
     "hold": "{user} set a late arrival for {name}: kept until {time}",
     "holdCleared": "{user} set the usual hold time for {name}",
     "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed"
+  },
+  "search": {
+    "label": "Find a booking by name or phone",
+    "placeholder": "Name or phone",
+    "submit": "Search",
+    "title": "Find a booking",
+    "resultsFor": "Bookings for “{query}”",
+    "none": "No current or future booking matches.",
+    "short": "Type at least 2 letters of the name or 3 digits of the phone.",
+    "capped": "Showing the first {count}: type more to narrow it down.",
+    "when": "{kind} · {from} – {to}",
+    "where": "{area} · {umbrellas}",
+    "noDaysLeft": "No days left on the map: it opens on today.",
+    "state": "{state, select, booked {Today: booked} checkedIn {Today: checked in} noShow {Today: no-show} released {Today: released} other {}}",
+    "back": "← Back to the map",
+    "kind": "{kind, select, day {Day booking} multi_day {Multi-day booking} season {Season pass} other {A booking}}",
+    "umbrellas": "{count, plural, one {Umbrella {numbers}} other {Umbrellas {numbers}}}"
   }
 }
