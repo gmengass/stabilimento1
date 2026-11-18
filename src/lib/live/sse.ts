@@ -23,7 +23,12 @@ export interface LiveStreamOptions {
 }
 
 export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uint8Array> {
-  const { subscribe, signal, heartbeatMs = HEARTBEAT_MS, lifetimeMs = STREAM_LIFETIME_MS } = options;
+  const {
+    subscribe,
+    signal,
+    heartbeatMs = HEARTBEAT_MS,
+    lifetimeMs = STREAM_LIFETIME_MS,
+  } = options;
   const encoder = new TextEncoder();
   let stop: (() => void) | undefined;
 
