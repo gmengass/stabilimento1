@@ -45,7 +45,7 @@ export function BeachSetupForm() {
           defaultValue={t("areaNameDefault")}
           className={field}
         />
-        <span className="text-gray-600">{t("areaNameHint")}</span>
+        <span className="text-gray-600 dark:text-gray-400">{t("areaNameHint")}</span>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("lines")}
@@ -59,7 +59,7 @@ export function BeachSetupForm() {
           required
           className={field}
         />
-        <span className="text-gray-600">{t("linesHint")}</span>
+        <span className="text-gray-600 dark:text-gray-400">{t("linesHint")}</span>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("umbrellasPerLine")}
@@ -73,13 +73,13 @@ export function BeachSetupForm() {
           required
           className={field}
         />
-        <span className="text-gray-600">{t("numberingHint")}</span>
+        <span className="text-gray-600 dark:text-gray-400">{t("numberingHint")}</span>
       </label>
       <button type="submit" disabled={pending} className="rounded border px-3 py-2">
         {pending ? t("submitting") : t("submit")}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
           {t(`errors.${error}`)}
         </p>
       )}

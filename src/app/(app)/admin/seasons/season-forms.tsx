@@ -36,13 +36,13 @@ function FeedbackLine({ feedback }: { feedback: Feedback }) {
   if (!feedback) return null;
   if (feedback.kind === "done") {
     return (
-      <p role="status" className="text-sm text-green-700">
+      <p role="status" className="text-sm text-green-700 dark:text-green-400">
         {t(feedback.key)}
       </p>
     );
   }
   return (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="text-sm text-red-700 dark:text-red-400">
       {t(`errors.${feedback.key}`)}
     </p>
   );
@@ -117,7 +117,7 @@ export function NewSeasonForm({ defaults }: { defaults: SeasonDefaults }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-black px-3 py-2 text-white disabled:opacity-60"
+        className="rounded bg-black px-3 py-2 text-white disabled:opacity-60 dark:bg-white dark:text-black"
       >
         {t("add")}
       </button>
@@ -145,7 +145,7 @@ export function SeasonCard({ season }: { season: SeasonRow }) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded border p-4">
       <SeasonFields season={season} datesFixed={sold} />
-      <p className="flex flex-col text-sm text-gray-700">
+      <p className="flex flex-col text-sm text-gray-700 dark:text-gray-300">
         <span>{t("passes", { count: season.passes })}</span>
         {sold && <span>{t("datesFixed")}</span>}
       </p>
@@ -157,7 +157,7 @@ export function SeasonCard({ season }: { season: SeasonRow }) {
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="rounded border border-red-700 px-3 py-2 text-red-700"
+            className="rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
           >
             {t("remove")}
           </button>

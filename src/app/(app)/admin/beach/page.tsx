@@ -24,7 +24,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
       <main className="flex w-full flex-col gap-6 p-4">
         <div className="flex flex-wrap items-baseline gap-4">
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {t("summary", { name: beach.venueName, areas: areas.length })}
           </p>
           <Link href={`/?area=${beach.areaId}`} className="ml-auto underline">
@@ -32,7 +32,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
           </Link>
         </div>
         <VenueNameForm name={beach.venueName} />
-        <section className="flex flex-col gap-4 rounded border border-sky-800 p-4">
+        <section className="flex flex-col gap-4 rounded border border-sky-800 dark:border-sky-400 p-4">
           <AreaTabs
             areas={areas}
             currentId={beach.areaId}

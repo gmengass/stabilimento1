@@ -44,11 +44,11 @@ function FeedbackLine({ feedback }: { feedback: Feedback }) {
   const t = useTranslations("beachSetup");
   if (!feedback) return null;
   return feedback.ok ? (
-    <p role="status" className="text-sm text-green-700">
+    <p role="status" className="text-sm text-green-700 dark:text-green-400">
       {t("saved")}
     </p>
   ) : (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="text-sm text-red-700 dark:text-red-400">
       {t(`errors.${feedback.error}`)}
     </p>
   );
@@ -139,7 +139,7 @@ function SpotEditor({ areaId, spot, onClose }: SpotEditorProps) {
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="rounded border border-red-700 px-3 py-2 text-red-700"
+          className="rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
         >
           {t("removeSpot")}
         </button>
@@ -232,7 +232,7 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
                 <button
                   type="button"
                   onClick={() => setConfirmLine(line.number)}
-                  className="rounded border border-red-700 px-3 py-2 text-red-700"
+                  className="rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
                 >
                   {t("removeLine")}
                 </button>
@@ -246,7 +246,7 @@ function LinesEditor({ beach }: { beach: BeachLayout }) {
         pending={pending}
         onSubmit={(umbrellas) => run(() => addLineAction({ areaId: beach.areaId, umbrellas }))}
       />
-      <p className="text-sm text-gray-600">{t("linesHint")}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{t("linesHint")}</p>
       <FeedbackLine feedback={feedback} />
     </section>
   );
@@ -282,7 +282,7 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("mapTitle")}</h2>
-        <p className="text-sm text-gray-600">{t("mapHint")}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{t("mapHint")}</p>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
           <div className="min-w-0">
             <BeachMap

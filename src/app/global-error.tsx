@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-no-literals */
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <html lang="it">
+    <html lang="it" data-theme="system">
       <body className="flex min-h-full flex-col items-center justify-center gap-4 p-8">
         <h1 className="text-2xl font-semibold">
           <span lang="it">Si è verificato un errore</span> /{" "}

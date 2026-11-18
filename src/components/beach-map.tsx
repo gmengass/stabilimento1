@@ -57,7 +57,7 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, badgeOf, onSpotCl
         </div>
         {lines.map((line) => (
           <section key={line.number} aria-label={t("line", { number: line.number })}>
-            <h2 className="mb-1 text-xs font-medium text-gray-600">
+            <h2 className="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
               {t("line", { number: line.number })}
             </h2>
             <ol

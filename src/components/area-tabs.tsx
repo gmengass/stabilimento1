@@ -25,7 +25,7 @@ export function AreaTabs({ areas, currentId, hrefOf }: Props) {
             className={
               current
                 ? "flex min-h-11 items-center rounded-full bg-sky-800 px-4 font-semibold text-white"
-                : "flex min-h-11 items-center rounded-full border border-sky-800 px-4 text-sky-900"
+                : "flex min-h-11 items-center rounded-full border border-sky-800 dark:border-sky-400 px-4 text-sky-900 dark:text-sky-200"
             }
           >
             {area.name}
@@ -41,10 +41,10 @@ export function AreaBanner({ name }: { name: string }) {
   const t = useTranslations("areas");
   return (
     <div className="flex items-baseline gap-2">
-      <span className="text-xs font-medium tracking-wide text-gray-600 uppercase">
+      <span className="text-xs font-medium tracking-wide text-gray-600 dark:text-gray-400 uppercase">
         {t("current")}
       </span>
-      <span className="text-2xl font-bold text-sky-900">{name}</span>
+      <span className="text-2xl font-bold text-sky-900 dark:text-sky-200">{name}</span>
     </div>
   );
 }

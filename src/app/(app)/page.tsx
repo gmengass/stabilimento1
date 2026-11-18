@@ -113,7 +113,7 @@ export default async function Home(props: PageProps<"/">) {
       </div>
       <BookingSearch date={date} areaId={beach.areaId} />
       <DayCounts counts={counts} />
-      <p className="flex flex-wrap gap-4 text-sm text-gray-700">
+      <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
         <span>{t("legendBooked", { count: booked })}</span>
         {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}
         {freeReleased > 0 && <span>{t("legendReleased", { count: freeReleased })}</span>}

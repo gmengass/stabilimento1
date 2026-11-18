@@ -92,7 +92,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
     <details open data-testid="activity" className="rounded border p-3">
       <summary className="min-h-11 cursor-pointer py-2 text-lg font-semibold">{t("title")}</summary>
       {entries.length === 0 ? (
-        <p className="mt-2 text-sm text-gray-700">{t("empty")}</p>
+        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{t("empty")}</p>
       ) : (
         <ol className="mt-2 flex flex-col divide-y">
           {entries.map((entry) => {
@@ -102,14 +102,21 @@ export async function ActivityPanel({ entries, viewer }: Props) {
                 key={entry.id}
                 className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
               >
-                <time dateTime={entry.at.toISOString()} className="text-gray-600 tabular-nums">
+                <time
+                  dateTime={entry.at.toISOString()}
+                  className="text-gray-600 dark:text-gray-400 tabular-nums"
+                >
                   {formatTimestamp(entry.at, locale)}
                 </time>
-                <span className={entry.undone ? "flex-1 text-gray-500 line-through" : "flex-1"}>
+                <span
+                  className={
+                    entry.undone ? "flex-1 text-gray-500 dark:text-gray-400 line-through" : "flex-1"
+                  }
+                >
                   {text}
                 </span>
                 {entry.undone ? (
-                  <span className="text-gray-600">{t("undone")}</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t("undone")}</span>
                 ) : (
                   mayUndo(entry, viewer, now) && (
                     <UndoButton entryId={entry.id} label={t("undoLabel", { text })} />

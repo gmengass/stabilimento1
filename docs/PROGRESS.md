@@ -2,13 +2,15 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.8.0` deployed. `feat/date-view-counts` (ADR 0016, no migration): PR #53 open, awaiting CI.
+- `v0.8.0` deployed. Day counts and search merged (#53, ADR 0016), not tagged yet.
+- `feat/theme-toggle` (ADR 0017): PR #54 open, merged with main.
 
 ## Done this session
 - Day counts, search by name/phone (`/search`); Caddy drops `q` from logs. 899 + 36 e2e pass.
+- Theme select (Automatic/Light/Dark) in the user menu, per-device cookie, dark colours everywhere.
 
 ## Next up
-1. Merge #53 once CI is green (`docker` checks the Caddy log filter), tick it, tag `v0.9.0`, deploy.
+1. Merge #54 once CI is green, tag `v0.9.0` (day counts, search, theme), deploy.
 2. Live map: changes show on every device within seconds.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 
@@ -20,6 +22,7 @@
   restore, single-day hold override, admin edit of the 11:00 default (seeded by migration).
 - Moves: change the umbrella count, a pass's first day or a started booking's end (refused now)?
 - Phones: sheet for portrait tablets (768–1023px)? Activity folded on phones (sheet covers Undo)?
+- Theme: Android app to follow the tablet's dark setting (DayNight)? No switcher on login.
 - Android: tablet versions (min 7.0; `interactive-widget`?). Auto-retry? `FLAG_SECURE`? ADR 0011:
   Tailscale terms for company use; who gets remote access (owner, which staff).
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no

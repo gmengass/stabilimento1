@@ -51,7 +51,7 @@ export default async function Search(props: PageProps<"/search">) {
                 <Link
                   href={openHref(r)}
                   data-testid="search-result"
-                  className="flex min-h-11 flex-col gap-1 rounded border p-3 hover:bg-gray-50"
+                  className="flex min-h-11 flex-col gap-1 rounded border p-3 hover:bg-gray-50 dark:hover:bg-gray-900"
                 >
                   <span className="font-semibold">
                     {r.customerName}
@@ -79,7 +79,9 @@ export default async function Search(props: PageProps<"/search">) {
                     <span className="text-sm">{t("state", { state: r.todayState })}</span>
                   )}
                   {r.noDaysLeft && (
-                    <span className="text-sm text-amber-800">{t("noDaysLeft")}</span>
+                    <span className="text-sm text-amber-800 dark:text-amber-300">
+                      {t("noDaysLeft")}
+                    </span>
                   )}
                 </Link>
               </li>

@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
+- Light and dark theme: tap your name, then pick Theme: Automatic (follows the device), Light or
+  Dark. The choice is saved on that device. Every screen now has dark colours (ADR 0017).
 - Day counts: above the map, "Umbrellas free X / N" and "Sunbeds free Y / T" for the space and
   day shown. No-shows and released days nobody rebooked count as free.
 - Search: type part of a customer's name or phone (spaces and +39 don't matter) to find current
