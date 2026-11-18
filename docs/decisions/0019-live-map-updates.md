@@ -22,8 +22,9 @@ people could pick the same umbrella or miss a check-in made at the desk.
 - **Stream**: `GET /api/live`, Server-Sent Events, signed-in users only (401 otherwise). Lines
   are `event: changed`, `event: resync` or `: ping` (every 25 s). Each stream ends after 5
   minutes and the client reconnects, so a banned user is cut off within 5 minutes.
-- **Client**: on a signal it calls `router.refresh()`, debounced (400 ms), one at a time. It
-  reconnects with jittered backoff and refreshes once on every reconnect. It restarts the
+- **Client**: on a signal it calls `router.refresh()`, debounced (400 ms; `refresh()` can't be
+  awaited, so the debounce is what limits it). It reconnects with jittered backoff and
+  refreshes once on every open, the first included, to catch up. It restarts the
   stream on `online` and whenever the page becomes visible (a waking tablet may hold a dead
   socket), and if no stream has opened for 6 minutes (pings are comments, which `EventSource`
   can't see, but the server ends every stream after 5). Offline, or down for over 2 s, it shows

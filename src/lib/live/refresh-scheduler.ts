@@ -1,5 +1,6 @@
-// Client timing for the live map (ADR 0019): a trailing debounce with at most one refresh in
-// flight, and the reconnect backoff.
+// Client timing for the live map (ADR 0019): a trailing debounce and the reconnect backoff.
+// A refresh that returns a promise also runs at most once at a time; Next's `router.refresh()`
+// returns nothing, so there the debounce alone limits it.
 
 export interface RefreshScheduler {
   notify(): void;
