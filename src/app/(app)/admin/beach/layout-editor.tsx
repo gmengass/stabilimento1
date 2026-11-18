@@ -12,6 +12,7 @@ import {
   removeLastLineAction,
   removeSpotAction,
   renameVenueAction,
+  setDefaultHoldAction,
   updateSpotAction,
 } from "./actions";
 
@@ -267,6 +268,37 @@ export function VenueNameForm({ name }: { name: string }) {
       <button type="submit" disabled={pending} className={button}>
         {t("save")}
       </button>
+      <FeedbackLine feedback={feedback} />
+    </form>
+  );
+}
+
+/** The venue's check-in time for day and multi-day bookings (ADR 0018). */
+export function DefaultHoldForm({ time }: { time: string }) {
+  const t = useTranslations("beachSetup");
+  const { pending, feedback, run } = useEdit();
+  return (
+    <form
+      onSubmit={(e) => run(() => setDefaultHoldAction(formInput(e)))}
+      className="flex flex-col gap-2"
+    >
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 text-sm">
+          {t("defaultHold")}
+          <input
+            name="defaultHoldUntil"
+            type="time"
+            step={60}
+            defaultValue={time}
+            required
+            className={field}
+          />
+        </label>
+        <button type="submit" disabled={pending} className={button}>
+          {t("save")}
+        </button>
+      </div>
+      <p className="max-w-prose text-sm text-gray-600 dark:text-gray-400">{t("defaultHoldHint")}</p>
       <FeedbackLine feedback={feedback} />
     </form>
   );

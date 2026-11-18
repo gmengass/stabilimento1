@@ -155,6 +155,27 @@ export async function renameVenue(db: Kysely<DB>, input: unknown): Promise<EditR
   });
 }
 
+const defaultHoldSchema = z.object({
+  defaultHoldUntil: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+});
+
+/**
+ * Sets the venue's check-in time for day and multi-day bookings (ADR 0018). Bookings with a
+ * late-arrival time of their own keep it; days already flagged as no-shows stay flagged.
+ */
+export async function setDefaultHold(db: Kysely<DB>, input: unknown): Promise<EditResult> {
+  const parsed = defaultHoldSchema.safeParse(input);
+  if (!parsed.success) return fail("invalid");
+  return inVenue(db, async (tx, venueId) => {
+    await tx
+      .updateTable("venue")
+      .set({ default_hold_until: parsed.data.defaultHoldUntil })
+      .where("id", "=", venueId)
+      .execute();
+    return done;
+  });
+}
+
 /** Inserts `umbrellas` default umbrellas after the line's last position. */
 async function appendUmbrellas(
   tx: Tx,

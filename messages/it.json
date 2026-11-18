@@ -124,6 +124,8 @@
     "title": "Impostazioni spiaggia",
     "intro": "Per iniziare, indica quante file di ombrelloni ha la spiaggia e quanti ombrelloni ci sono in ogni fila. Poi potrai modificare tutto da questa pagina.",
     "venueName": "Nome dello stabilimento",
+    "defaultHold": "Arrivo entro (prenotazioni giornaliere)",
+    "defaultHoldHint": "Le prenotazioni giornaliere e di più giorni senza arrivo entro quest'ora vengono liberate come non presentate. L'orario di arrivo tardivo di una prenotazione ha la precedenza; gli abbonamenti stagionali non vengono mai liberati. La modifica vale dal minuto successivo; i non presentati già segnati restano tali.",
     "lines": "Numero di file",
     "linesHint": "I nuovi ombrelloni ricevono il numero predefinito (fila × 100 + posizione). Si può togliere solo l'ultima fila. Gli ombrelloni già prenotati non si possono togliere.",
     "umbrellasPerLine": "Ombrelloni per fila",

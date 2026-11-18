@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Admins can set the check-in time for day and multi-day bookings in Beach settings ("Check-in
+  by", 11:00 until changed). Bookings with their own late-arrival time keep it; season passes are
+  never freed (ADR 0018).
 
 ## [0.9.0] - 2026-11-18
 ### Added

@@ -12,6 +12,7 @@ import {
   removeSpot,
   renameArea,
   renameVenue,
+  setDefaultHold,
   updateSpot,
 } from "@/lib/beach/edit";
 import { listAreas, loadBeach, setupBeach } from "@/lib/beach/layout";
@@ -77,6 +78,10 @@ describe("no beach yet", () => {
     await sql`truncate venue, area, area_line, spot restart identity cascade`.execute(db);
     expect(await addLine(db, { areaId, umbrellas: 2 })).toEqual({ ok: false, error: "noBeach" });
     expect(await renameVenue(db, { venueName: "X" })).toEqual({ ok: false, error: "noBeach" });
+    expect(await setDefaultHold(db, { defaultHoldUntil: "12:00" })).toEqual({
+      ok: false,
+      error: "noBeach",
+    });
   });
 });
 
@@ -88,6 +93,32 @@ describe("renameVenue", () => {
 
   it("rejects an empty name", async () => {
     expect(await renameVenue(db, { venueName: " " })).toEqual({ ok: false, error: "invalid" });
+  });
+});
+
+describe("setDefaultHold", () => {
+  it("starts at 11:00 and changes the check-in time for day bookings", async () => {
+    expect((await loadBeach(db))?.defaultHoldUntil).toBe("11:00");
+    expect(await setDefaultHold(db, { defaultHoldUntil: "12:30" })).toEqual({ ok: true });
+    expect((await loadBeach(db))?.defaultHoldUntil).toBe("12:30");
+  });
+
+  it("accepts the first and last minute of the day", async () => {
+    for (const time of ["00:00", "23:59"]) {
+      expect(await setDefaultHold(db, { defaultHoldUntil: time })).toEqual({ ok: true });
+      expect((await loadBeach(db))?.defaultHoldUntil).toBe(time);
+    }
+  });
+
+  it("rejects anything that isn't a time HH:MM, and keeps the old one", async () => {
+    for (const bad of ["24:00", "9:00", "11:60", "11:00:00", "", " ", "noon", 1100, null]) {
+      expect(await setDefaultHold(db, { defaultHoldUntil: bad })).toEqual({
+        ok: false,
+        error: "invalid",
+      });
+    }
+    expect(await setDefaultHold(db, {})).toEqual({ ok: false, error: "invalid" });
+    expect((await loadBeach(db))?.defaultHoldUntil).toBe("11:00");
   });
 });
 

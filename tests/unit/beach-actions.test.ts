@@ -9,6 +9,7 @@ const { actor, audit, layout, edit } = vi.hoisted(() => {
     layout: { setupBeach: ok() },
     edit: {
       renameVenue: ok(),
+      setDefaultHold: ok(),
       addLine: ok(),
       addUmbrellas: ok(),
       removeLastLine: ok(),
@@ -41,6 +42,7 @@ const user = (role: CurrentUser["role"]): CurrentUser => ({
 const cases = [
   ["setupBeachAction", actions.setupBeachAction, layout.setupBeach],
   ["renameVenueAction", actions.renameVenueAction, edit.renameVenue],
+  ["setDefaultHoldAction", actions.setDefaultHoldAction, edit.setDefaultHold],
   ["addLineAction", actions.addLineAction, edit.addLine],
   ["addUmbrellasAction", actions.addUmbrellasAction, edit.addUmbrellas],
   ["removeLastLineAction", actions.removeLastLineAction, edit.removeLastLine],

@@ -44,6 +44,10 @@ export async function renameVenueAction(input: unknown): Promise<EditResult | Fo
   return asAdmin("renameVenue", () => edit.renameVenue(getDb(), input));
 }
 
+export async function setDefaultHoldAction(input: unknown): Promise<EditResult | Forbidden> {
+  return asAdmin("setDefaultHold", () => edit.setDefaultHold(getDb(), input));
+}
+
 export async function addLineAction(input: unknown): Promise<EditResult | Forbidden> {
   return asAdmin("addLine", () => edit.addLine(getDb(), input));
 }
