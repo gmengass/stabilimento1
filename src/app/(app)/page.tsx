@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AreaBanner, AreaTabs } from "@/components/area-tabs";
+import { BookingSearch } from "@/components/booking-search";
 import { DateJump } from "@/components/date-jump";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
@@ -10,15 +11,17 @@ import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
 import { loadNoShows, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
+import { loadDayCounts } from "@/lib/booking/counts";
 import { loadOpenSeason } from "@/lib/booking/seasons";
 import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
+import { DayCounts } from "./day-counts";
 
 export default async function Home(props: PageProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations("map");
   const locale = await getLocale();
-  const { date: requested, area } = await props.searchParams;
+  const { date: requested, area, booking } = await props.searchParams;
   const today = venueToday();
   const date = isBookingDate(requested) ? requested : today;
   const requestedArea = parseAreaId(area);
@@ -45,6 +48,9 @@ export default async function Home(props: PageProps<"/">) {
   const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
   const activity = await listActivity(getDb());
+  // From a search result: open that booking's panel, if it is on this day.
+  const initialBooking =
+    typeof booking === "string" && /^\d{1,9}$/.test(booking) ? Number(booking) : null;
   const at = (day?: string) => {
     const query = new URLSearchParams({ area: String(beach.areaId) });
     if (day) query.set("date", day);
@@ -52,11 +58,10 @@ export default async function Home(props: PageProps<"/">) {
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
-  const total = beach.lines.reduce((sum, line) => sum + line.spots.length, 0);
+  const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
   const booked = occupants.length - passes;
-  const free = total - occupants.length;
   const freeReleased = Object.keys(released).filter((id) => !occupancy[Number(id)]).length;
   const checkedIn = occupants.filter((o) => o.checkedIn).length;
   const freeNoShows = Object.keys(noShows).filter((id) => !occupancy[Number(id)]).length;
@@ -106,8 +111,9 @@ export default async function Home(props: PageProps<"/">) {
           <DateJump key={date} date={date} areaId={beach.areaId} />
         </nav>
       </div>
+      <BookingSearch date={date} areaId={beach.areaId} />
+      <DayCounts counts={counts} />
       <p className="flex flex-wrap gap-4 text-sm text-gray-700">
-        <span>{t("legendFree", { count: free })}</span>
         <span>{t("legendBooked", { count: booked })}</span>
         {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}
         {freeReleased > 0 && <span>{t("legendReleased", { count: freeReleased })}</span>}
@@ -117,7 +123,8 @@ export default async function Home(props: PageProps<"/">) {
       </p>
       <BeachBoard
         today={today}
-        key={beach.areaId}
+        key={`${beach.areaId}:${initialBooking ?? ""}`}
+        initialBooking={initialBooking}
         areaId={beach.areaId}
         areaName={beach.areaName}
         date={date}

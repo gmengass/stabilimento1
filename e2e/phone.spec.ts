@@ -12,6 +12,7 @@ const DAYS = {
   wide: "2092-07-07",
   recollapse: "2092-07-08",
   move: "2092-07-09",
+  search: "2092-07-10",
 };
 
 // Selectors avoid translated text: another test switches the shared admin's language. Spot
@@ -290,4 +291,23 @@ test("moving a booking at phone width: tap the new umbrella with the sheet open"
   await page.goto(`/?date=${DAYS.move}`);
   await expect(spotButton(page, to)).toContainText(customer);
   await expect(spotButton(page, from)).not.toContainText(customer);
+});
+
+test("search at phone width opens the booking as a bottom sheet on its day", async ({ page }) => {
+  const customer = `Phone search ${Date.now()}`;
+  await page.goto(`/?date=${DAYS.search}`);
+  const panel = page.locator("aside");
+  await freeSpots(page).first().tap();
+  await panel.locator('input[name="customerName"]').fill(customer);
+  await panel.locator('form button[type="submit"]').tap();
+  await expect(panel).toHaveCount(0);
+
+  await page.goto("/");
+  expect(await smallTapTargets(page)).toEqual([]);
+  await page.getByRole("search").locator('input[name="q"]').fill(customer);
+  await page.getByRole("search").locator('button[type="submit"]').tap();
+  await page.getByTestId("search-result").tap();
+  await page.waitForURL(new RegExp(`date=${DAYS.search}`));
+  await expectBottomSheet(page, panel);
+  await expect(panel).toContainText(customer);
 });

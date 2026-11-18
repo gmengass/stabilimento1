@@ -7,6 +7,7 @@ import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import { BookingDetails, NewBookingForm, NoShowDay, ReleasedDay } from "./booking-panel";
+import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
@@ -27,6 +28,8 @@ interface Props {
   noShows: Record<number, Occupant>;
   /** The season a pass can be sold for, if one is open. */
   openSeason: OpenSeason | null;
+  /** A booking to open at first (from search): its panel, or its no-show umbrellas. */
+  initialBooking?: number | null;
 }
 
 /**
@@ -43,10 +46,12 @@ export function BeachBoard({
   released,
   noShows,
   openSeason,
+  initialBooking = null,
 }: Props) {
   const t = useTranslations("quickBook");
-  const [selected, setSelected] = useState<MapSpot[]>([]);
-  const [openBooking, setOpenBooking] = useState<number | null>(null);
+  const [initial] = useState(() => initialPanel(lines, occupancy, noShows, initialBooking));
+  const [selected, setSelected] = useState<MapSpot[]>(initial.selected);
+  const [openBooking, setOpenBooking] = useState<number | null>(initial.openBooking);
   /** Quick book: the request form is open, or a suggestion is on the map. */
   const [quickForm, setQuickForm] = useState(false);
   const [pick, setPick] = useState<QuickBookPick | null>(null);
