@@ -36,11 +36,11 @@ function FeedbackLine({ feedback }: { feedback: Feedback }) {
   const t = useTranslations("beachSetup");
   if (!feedback) return null;
   return feedback.ok ? (
-    <p role="status" className="text-sm text-green-700">
+    <p role="status" className="text-sm text-green-700 dark:text-green-400">
       {t("saved")}
     </p>
   ) : (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="text-sm text-red-700 dark:text-red-400">
       {t(`errors.${feedback.error}`)}
     </p>
   );
@@ -105,7 +105,7 @@ export function CurrentAreaForm({ areaId, name }: { areaId: number; name: string
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="rounded border border-red-700 px-3 py-2 text-red-700"
+            className="rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
           >
             {t("remove")}
           </button>
@@ -171,7 +171,7 @@ export function AddAreaForm() {
           {t("add")}
         </button>
       </div>
-      <p className="text-sm text-gray-600">{t("addHint")}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{t("addHint")}</p>
       <FeedbackLine feedback={feedback} />
     </form>
   );

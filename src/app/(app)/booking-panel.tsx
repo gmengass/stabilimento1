@@ -63,7 +63,7 @@ export function ErrorLine({ failure }: { failure: Failure | null }) {
   const formatDate = useDate();
   if (!failure) return null;
   return (
-    <div role="alert" className="text-sm text-red-700">
+    <div role="alert" className="text-sm text-red-700 dark:text-red-400">
       <p>{t(failure.key)}</p>
       {failure.clashes && (
         <ul className="list-disc pl-5">
@@ -263,7 +263,7 @@ export function NewBookingForm(props: NewProps) {
               max={season.endDate}
               className={field}
             />
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-400">
               {t("lastDayHint", { date: formatDate(season.endDate) })}
             </span>
           </label>
@@ -299,7 +299,7 @@ export function NewBookingForm(props: NewProps) {
       <label className="flex flex-col gap-1 text-sm">
         {t("notes")}
         <textarea name="notes" maxLength={500} rows={2} className={field} />
-        <span className="text-gray-600">{t("notesHint")}</span>
+        <span className="text-gray-600 dark:text-gray-400">{t("notesHint")}</span>
       </label>
       <button
         type="submit"
@@ -337,14 +337,14 @@ export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded border border-violet-300 bg-violet-50 p-3 text-sm">
+    <div className="flex flex-col gap-2 rounded border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950 p-3 text-sm">
       <p>{t("releasedBy", { name: pass.customerName })}</p>
       {date >= today && (
         <button
           type="button"
           onClick={restore}
           disabled={pending}
-          className="min-h-11 rounded border border-violet-700 px-3 py-2 text-violet-900 disabled:opacity-60"
+          className="min-h-11 rounded border border-violet-700 dark:border-violet-400 px-3 py-2 text-violet-900 dark:text-violet-200 disabled:opacity-60"
         >
           {pending ? t("saving") : t("restore", { name: pass.customerName })}
         </button>
@@ -378,7 +378,7 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
   return (
     <div
       data-testid="no-show"
-      className="flex flex-col gap-2 rounded border border-amber-400 bg-amber-50 p-3 text-sm"
+      className="flex flex-col gap-2 rounded border border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-950 p-3 text-sm"
     >
       <p>{t("noShowBy", { name: noShow.customerName, time: noShow.holdTime })}</p>
       {date === today && noShow.customerPhone && (
@@ -391,7 +391,7 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
           type="button"
           onClick={restore}
           disabled={pending}
-          className="min-h-11 rounded border border-amber-700 px-3 py-2 text-amber-950 disabled:opacity-60"
+          className="min-h-11 rounded border border-amber-700 dark:border-amber-500 px-3 py-2 text-amber-950 dark:text-amber-100 disabled:opacity-60"
         >
           {pending ? t("saving") : t("restoreNoShow", { name: noShow.customerName })}
         </button>
@@ -423,7 +423,7 @@ function CheckInButton({ occupant, date }: { occupant: Occupant; date: string })
   return (
     <div className="flex flex-col gap-2">
       {occupant.checkedIn && (
-        <p className="text-sm font-semibold text-teal-900">{t("checkedIn")}</p>
+        <p className="text-sm font-semibold text-teal-900 dark:text-teal-300">{t("checkedIn")}</p>
       )}
       <button
         type="button"
@@ -438,7 +438,9 @@ function CheckInButton({ occupant, date }: { occupant: Occupant; date: string })
       >
         {pending ? t("saving") : t(occupant.checkedIn ? "uncheck" : "checkIn")}
       </button>
-      {occupant.checkedIn && <p className="text-xs text-gray-700">{t("uncheckHint")}</p>}
+      {occupant.checkedIn && (
+        <p className="text-xs text-gray-700 dark:text-gray-300">{t("uncheckHint")}</p>
+      )}
       <ErrorLine failure={failure} />
     </div>
   );
@@ -475,7 +477,9 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
       <h3 className="font-semibold">{t("holdTitle")}</h3>
-      <p className="text-xs text-gray-700">{t("holdHint", { time: occupant.holdTime })}</p>
+      <p className="text-xs text-gray-700 dark:text-gray-300">
+        {t("holdHint", { time: occupant.holdTime })}
+      </p>
       <label className="flex flex-col gap-1 text-sm">
         {t("holdLabel")}
         <input
@@ -505,7 +509,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
           </button>
         )}
       </div>
-      {saved && <p className="text-sm text-green-800">{t("holdSaved")}</p>}
+      {saved && <p className="text-sm text-green-800 dark:text-green-400">{t("holdSaved")}</p>}
       <ErrorLine failure={failure} />
     </form>
   );
@@ -545,7 +549,7 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
       <h3 className="font-semibold">{t("releaseTitle")}</h3>
-      <p className="text-sm text-gray-700">{t("releaseHint")}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300">{t("releaseHint")}</p>
       <div className="flex gap-2">
         <label className="flex flex-1 flex-col gap-1 text-sm">
           {t("from")}
@@ -576,7 +580,7 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
         {pending ? t("saving") : t("release")}
       </button>
       {released !== null && (
-        <p role="status" className="text-sm text-green-700">
+        <p role="status" className="text-sm text-green-700 dark:text-green-400">
           {t("releasedDone", { count: released })}
         </p>
       )}
@@ -612,7 +616,7 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded border p-3">
       <h3 className="font-semibold">{t("lastDayTitle")}</h3>
-      <p className="text-sm text-gray-700">{t("lastDayHelp")}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300">{t("lastDayHelp")}</p>
       <label className="flex flex-col gap-1 text-sm">
         {t("lastDay")}
         <input
@@ -629,7 +633,7 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
         {pending ? t("saving") : t("setLastDay")}
       </button>
       {saved && (
-        <p role="status" className="text-sm text-green-700">
+        <p role="status" className="text-sm text-green-700 dark:text-green-400">
           {t("lastDaySaved")}
         </p>
       )}
@@ -684,7 +688,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         </a>
       )}
       {isPass && (
-        <p className="flex flex-wrap gap-x-3 text-sm text-violet-900">
+        <p className="flex flex-wrap gap-x-3 text-sm text-violet-900 dark:text-violet-200">
           <span className="font-semibold">{t("passTitle")}</span>
           <span>{t("releasedCount", { count: occupant.releasedDays })}</span>
         </p>
@@ -721,7 +725,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         <LastDayForm occupant={occupant} date={date} today={today} />
       )}
       {confirming ? (
-        <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 p-3">
+        <div className="flex flex-col gap-2 rounded border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 p-3">
           <p className="text-sm">{t(isPass ? "cancelPassConfirm" : "cancelConfirm")}</p>
           <div className="flex gap-2">
             <button
@@ -745,7 +749,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="min-h-11 rounded border border-red-700 px-3 py-2 text-red-700"
+          className="min-h-11 rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
         >
           {t("cancel")}
         </button>

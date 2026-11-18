@@ -106,7 +106,7 @@ export default async function Home(props: PageProps<"/">) {
           <DateJump key={date} date={date} areaId={beach.areaId} />
         </nav>
       </div>
-      <p className="flex flex-wrap gap-4 text-sm text-gray-700">
+      <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
         <span>{t("legendFree", { count: free })}</span>
         <span>{t("legendBooked", { count: booked })}</span>
         {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}

@@ -222,7 +222,7 @@ export function QuickBookForm(props: FormProps) {
         </button>
       </div>
       {failure && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
           {t(`errors.${failure.key}`, { free: failure.free ?? 0 })}
         </p>
       )}
@@ -248,7 +248,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
   const { startDate, endDate } = pick.draft;
   const format = (d: string) => formatBookingDate(d, isLocale(locale) ? locale : defaultLocale);
   return (
-    <div className="flex flex-col gap-2 rounded bg-blue-50 p-3 text-sm">
+    <div className="flex flex-col gap-2 rounded bg-blue-50 dark:bg-blue-950 p-3 text-sm">
       {edited ? (
         <p data-testid="quick-book-edited" className="font-semibold">
           {t("edited")}
@@ -271,14 +271,14 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
               : tb("range", { from: format(startDate), to: format(endDate) }),
         })}
       </p>
-      <p className="text-gray-700">{t("editHint")}</p>
+      <p className="text-gray-700 dark:text-gray-300">{t("editHint")}</p>
       <div className="flex gap-2">
         {pick.suggestions.length > 1 && (
           <button
             type="button"
             onClick={onAnother}
             data-testid="quick-book-another"
-            className="min-h-11 rounded border bg-white px-3 py-2"
+            className="min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2"
           >
             {t("another")}
           </button>
@@ -286,7 +286,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
         <button
           type="button"
           onClick={onChange}
-          className="min-h-11 rounded border bg-white px-3 py-2"
+          className="min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2"
         >
           {t("change")}
         </button>

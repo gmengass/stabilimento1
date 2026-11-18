@@ -33,13 +33,13 @@ function FeedbackLine({ feedback }: { feedback: Feedback }) {
   if (!feedback) return null;
   if (feedback.kind === "done") {
     return (
-      <p role="status" className="text-sm text-green-700">
+      <p role="status" className="text-sm text-green-700 dark:text-green-400">
         {t(`done.${feedback.key}`)}
       </p>
     );
   }
   return (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="text-sm text-red-700 dark:text-red-400">
       {t(`errors.${feedback.key}`)}
     </p>
   );
@@ -68,7 +68,7 @@ export function CreateStaffForm() {
       <label className="flex flex-col gap-1 text-sm">
         {t("create.username")}
         <input name="username" autoCapitalize="none" required className={field} />
-        <span className="text-xs text-gray-600">{t("hints.username")}</span>
+        <span className="text-xs text-gray-600 dark:text-gray-400">{t("hints.username")}</span>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("create.name")}
@@ -83,7 +83,7 @@ export function CreateStaffForm() {
           required
           className={field}
         />
-        <span className="text-xs text-gray-600">{t("hints.password")}</span>
+        <span className="text-xs text-gray-600 dark:text-gray-400">{t("hints.password")}</span>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("create.role")}
@@ -96,7 +96,11 @@ export function CreateStaffForm() {
         </select>
       </label>
       <FeedbackLine feedback={feedback} />
-      <button type="submit" disabled={pending} className="rounded bg-black px-3 py-2 text-white">
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded bg-black px-3 py-2 text-white dark:bg-white dark:text-black"
+      >
         {t("create.submit")}
       </button>
     </form>

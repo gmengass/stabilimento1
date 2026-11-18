@@ -80,9 +80,9 @@ export function MoveForm(props: Props) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3" data-testid="move-form">
       <h2 className="text-lg font-semibold">{t("moveTitle")}</h2>
-      <p className="text-sm text-gray-700">{t("moveHint")}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300">{t("moveHint")}</p>
       {active && (
-        <p role="status" className="text-sm font-semibold text-blue-800">
+        <p role="status" className="text-sm font-semibold text-blue-800 dark:text-blue-300">
           {t("moveTapFor", { number: active.number })}
         </p>
       )}
@@ -95,7 +95,7 @@ export function MoveForm(props: Props) {
                 type="button"
                 onClick={() => onPickFor(s.spotId)}
                 aria-pressed={s.spotId === activeSpotId}
-                className="min-h-11 flex-1 rounded border px-3 py-2 text-left font-semibold aria-pressed:border-blue-700"
+                className="min-h-11 flex-1 rounded border px-3 py-2 text-left font-semibold aria-pressed:border-blue-700 dark:aria-pressed:border-blue-400"
               >
                 {t("moveArrow", { from: s.number, to: target ? target.number : s.number })}
               </button>

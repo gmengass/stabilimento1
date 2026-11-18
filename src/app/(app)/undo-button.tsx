@@ -67,7 +67,7 @@ export function UndoButton({ entryId, label }: { entryId: number; label: string 
         {pending ? t("undoing") : t("undoButton")}
       </button>
       {failure && (
-        <div role="alert" className="basis-full text-red-700">
+        <div role="alert" className="basis-full text-red-700 dark:text-red-400">
           <p>{t(`errors.${failure.key}`)}</p>
           {failure.clashes && (
             <ul className="list-disc pl-5">
