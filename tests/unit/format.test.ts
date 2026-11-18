@@ -3,8 +3,9 @@ import {
   addDays,
   formatBookingDate,
   formatEur,
-  formatShortBookingDate,
+  formatShortWeekdayDate,
   formatTimestamp,
+  formatWeekdayDate,
   isBookingDate,
   venueToday,
 } from "@/i18n/format";
@@ -36,28 +37,21 @@ describe("formatBookingDate", () => {
   );
 });
 
-describe("formatBookingDate with the weekday", () => {
+describe("formatWeekdayDate and formatShortWeekdayDate", () => {
   it.each([
-    ["2026-11-18", "it", "mer 18 novembre 2026"],
-    ["2026-11-18", "en", "Wed, 18 November 2026"],
-    ["2026-03-29", "it", "dom 29 marzo 2026"],
-  ] as const)("formats %s in %s as %s", (date, locale, expected) => {
-    expect(normalizeSpaces(formatBookingDate(date, locale, true))).toBe(expected);
-  });
-});
-
-describe("formatShortBookingDate", () => {
-  it.each([
-    ["2026-03-29", "it", "dom 29 mar"],
-    ["2026-03-29", "en", "Sun 29 Mar"],
-    ["2026-01-01", "it", "gio 1 gen"],
-    ["2026-12-31", "en", "Thu 31 Dec"],
-  ] as const)("formats %s in %s as %s", (date, locale, expected) => {
-    expect(normalizeSpaces(formatShortBookingDate(date, locale))).toBe(expected);
+    ["2026-11-18", "it", "mercoledì 18 nov 2026", "mercoledì 18 nov"],
+    ["2026-11-18", "en", "Wednesday, 18 Nov 2026", "Wednesday 18 Nov"],
+    ["2026-03-29", "it", "domenica 29 mar 2026", "domenica 29 mar"],
+    ["2026-01-01", "it", "giovedì 1 gen 2026", "giovedì 1 gen"],
+    ["2026-12-31", "en", "Thursday, 31 Dec 2026", "Thursday 31 Dec"],
+  ] as const)("formats %s in %s as %s / %s", (date, locale, full, short) => {
+    expect(normalizeSpaces(formatWeekdayDate(date, locale))).toBe(full);
+    expect(normalizeSpaces(formatShortWeekdayDate(date, locale))).toBe(short);
   });
 
   it("throws RangeError on an impossible day", () => {
-    expect(() => formatShortBookingDate("2026-02-30", "it")).toThrow(RangeError);
+    expect(() => formatWeekdayDate("2026-02-30", "it")).toThrow(RangeError);
+    expect(() => formatShortWeekdayDate("2026-02-30", "it")).toThrow(RangeError);
   });
 });
 

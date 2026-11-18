@@ -9,7 +9,8 @@ import { isLocale } from "@/i18n/config";
 import {
   addDays,
   formatBookingDate,
-  formatShortBookingDate,
+  formatShortWeekdayDate,
+  formatWeekdayDate,
   isBookingDate,
   venueToday,
 } from "@/i18n/format";
@@ -67,8 +68,8 @@ export default async function Home(props: PageProps<"/">) {
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
   const dayLabel = {
-    full: formatBookingDate(date, dayLocale, true),
-    short: formatShortBookingDate(date, dayLocale),
+    full: formatWeekdayDate(date, dayLocale),
+    short: formatShortWeekdayDate(date, dayLocale),
   };
   const counts = await loadDayCounts(getDb(), beach.areaId, date);
   const occupants = Object.values(occupancy);

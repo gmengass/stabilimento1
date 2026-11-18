@@ -45,13 +45,9 @@ export function venueToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
 }
 
-/**
- * Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. With
- * `withWeekday`, the short weekday comes first (e.g. "mer 18 novembre 2026").
- */
-export function formatBookingDate(date: string, locale: Locale, withWeekday = false): string {
+/** Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. */
+export function formatBookingDate(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {
-    weekday: withWeekday ? "short" : undefined,
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -59,14 +55,24 @@ export function formatBookingDate(date: string, locale: Locale, withWeekday = fa
   }).format(parseBookingDate(date));
 }
 
-/** A short `YYYY-MM-DD` booking day with the weekday and no year (e.g. "dom 29 mar"). */
-export function formatShortBookingDate(date: string, locale: Locale): string {
+/** A booking day with the full weekday and short month: "mercoledì 18 nov 2026". */
+export function formatWeekdayDate(date: string, locale: Locale): string {
+  return weekdayFormat(locale, true).format(parseBookingDate(date));
+}
+
+/** The same without the year, for narrow screens: "mercoledì 18 nov". */
+export function formatShortWeekdayDate(date: string, locale: Locale): string {
+  return weekdayFormat(locale, false).format(parseBookingDate(date));
+}
+
+function weekdayFormat(locale: Locale, withYear: boolean): Intl.DateTimeFormat {
   return new Intl.DateTimeFormat(intlTag[locale], {
-    weekday: "short",
+    weekday: "long",
     day: "numeric",
     month: "short",
+    year: withYear ? "numeric" : undefined,
     timeZone: "UTC",
-  }).format(parseBookingDate(date));
+  });
 }
 
 /** Formats a UTC instant in the venue time zone; convert only here, at the edge (ADR 0004). */
