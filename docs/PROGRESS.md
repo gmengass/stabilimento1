@@ -2,13 +2,13 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.9.0` deployed (ADR 0016, 0017). `feat/default-hold-time` (ADR 0018): PR open.
+- `v0.9.0` deployed. `main` adds, unreleased: map header (#56), check-in time (#57, ADR 0018).
 
 ## Done this session
-- Admin check-in time (ADR 0018), reviewed and fixed: 932 tests and 40 e2e pass locally.
+- #57 admin "Check-in by" time in Beach settings, merged. #56: lint fix, merged. 938 tests pass.
 
 ## Next up
-1. Merge the check-in time PR; on the box check search, counts, Theme, "Check-in by".
+1. Owner tags and deploys `v0.10.0`; on the box check map header, "Check-in by", search, Theme.
 2. Live map: changes show on every device within seconds.
 3. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 
