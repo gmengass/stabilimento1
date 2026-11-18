@@ -45,6 +45,16 @@ export function venueToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
 }
 
+/** The venue's wall-clock time "HH:MM" at `now`. */
+export function venueClock(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
+}
+
 /** Formats a `YYYY-MM-DD` booking day as a calendar day, with no time zone shift. */
 export function formatBookingDate(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(intlTag[locale], {

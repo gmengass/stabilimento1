@@ -99,13 +99,20 @@ describe("renameVenue", () => {
 describe("setDefaultHold", () => {
   it("starts at 11:00 and changes the check-in time for day bookings", async () => {
     expect((await loadBeach(db))?.defaultHoldUntil).toBe("11:00");
-    expect(await setDefaultHold(db, { defaultHoldUntil: "12:30" })).toEqual({ ok: true });
+    expect(await setDefaultHold(db, { defaultHoldUntil: "12:30" })).toEqual({
+      ok: true,
+      from: "11:00",
+      to: "12:30",
+    });
     expect((await loadBeach(db))?.defaultHoldUntil).toBe("12:30");
   });
 
   it("accepts the first and last minute of the day", async () => {
     for (const time of ["00:00", "23:59"]) {
-      expect(await setDefaultHold(db, { defaultHoldUntil: time })).toEqual({ ok: true });
+      expect(await setDefaultHold(db, { defaultHoldUntil: time })).toMatchObject({
+        ok: true,
+        to: time,
+      });
       expect((await loadBeach(db))?.defaultHoldUntil).toBe(time);
     }
   });

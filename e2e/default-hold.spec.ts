@@ -25,8 +25,18 @@ test("an admin changes the check-in time for day bookings, and it stays after re
     await page.reload();
     await expect(time).toHaveValue("12:45");
   } finally {
+    // Back to 11:00: past 11:00 in Rome the form asks again, as the time moves into the past.
     await time.fill("11:00");
     await form.getByRole("button", { name: t.save }).click();
-    await expect(form.getByRole("status")).toHaveText(t.saved);
+    const again = form.getByRole("button", { name: t.saveAnyway });
+    const saved = form.getByRole("status");
+    await expect(again.or(saved)).toBeVisible();
+    if (await again.isVisible()) {
+      await expect(form.getByRole("alert")).toHaveText(
+        t.defaultHoldEarlier.replace("{time}", "11:00"),
+      );
+      await again.click();
+    }
+    await expect(saved).toHaveText(t.saved);
   }
 });

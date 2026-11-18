@@ -37,6 +37,8 @@ Each item ships something staff can use on the box.
 - [x] Phone layout: the booking panel as a bottom sheet over the map on narrow screens, larger
       tap targets, phone-width e2e tests for booking and quick book (owner, 2026-11-16)
 - [x] Light / dark theme in the user menu, per device (owner, 2026-11-18, ADR 0017)
+- [ ] Admin sets the check-in time for day bookings in Beach settings (owner, 2026-11-18,
+      ADR 0018)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

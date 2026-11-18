@@ -6,6 +6,7 @@ import { BeachMap } from "@/components/beach-map";
 import type { EditError, EditResult } from "@/lib/beach/edit";
 import type { BeachLayout, MapSpot } from "@/lib/beach/layout";
 import { MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "@/lib/beach/limits";
+import { venueClock } from "@/i18n/format";
 import {
   addLineAction,
   addUmbrellasAction,
@@ -273,15 +274,29 @@ export function VenueNameForm({ name }: { name: string }) {
   );
 }
 
-/** The venue's check-in time for day and multi-day bookings (ADR 0018). */
+/**
+ * The venue's check-in time for day and multi-day bookings (ADR 0018). Moving it earlier to a
+ * time already past today frees today's unclaimed bookings within a minute, so that asks twice.
+ */
 export function DefaultHoldForm({ time }: { time: string }) {
   const t = useTranslations("beachSetup");
   const { pending, feedback, run } = useEdit();
+  const [confirming, setConfirming] = useState<string | null>(null);
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    const input = formInput(event);
+    const next = String(input.defaultHoldUntil ?? "").slice(0, 5);
+    const intoThePast = next < time && next <= venueClock();
+    if (intoThePast && confirming !== next) {
+      setConfirming(next);
+      return;
+    }
+    setConfirming(null);
+    run(() => setDefaultHoldAction({ defaultHoldUntil: next }));
+  }
+
   return (
-    <form
-      onSubmit={(e) => run(() => setDefaultHoldAction(formInput(e)))}
-      className="flex flex-col gap-2"
-    >
+    <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-sm">
           {t("defaultHold")}
@@ -295,11 +310,17 @@ export function DefaultHoldForm({ time }: { time: string }) {
           />
         </label>
         <button type="submit" disabled={pending} className={button}>
-          {t("save")}
+          {confirming ? t("saveAnyway") : t("save")}
         </button>
       </div>
       <p className="max-w-prose text-sm text-gray-600 dark:text-gray-400">{t("defaultHoldHint")}</p>
-      <FeedbackLine feedback={feedback} />
+      {confirming ? (
+        <p role="alert" className="max-w-prose text-sm text-amber-800 dark:text-amber-300">
+          {t("defaultHoldEarlier", { time: confirming })}
+        </p>
+      ) : (
+        <FeedbackLine feedback={feedback} />
+      )}
     </form>
   );
 }

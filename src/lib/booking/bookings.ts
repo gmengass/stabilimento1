@@ -329,6 +329,8 @@ export interface Occupant {
   holdUntil: string | null;
   /** The hold time that applies: its own or the venue's ("HH:MM"). */
   holdTime: string;
+  /** The venue's check-in time ("HH:MM"), set by an admin (ADR 0018). */
+  usualHoldTime: string;
 }
 
 /**
@@ -362,6 +364,7 @@ async function loadSpotDays(
       sql<string>`to_char(coalesce(booking.hold_until, venue.default_hold_until), 'HH24:MI')`.as(
         "holdTime",
       ),
+      sql<string>`to_char(venue.default_hold_until, 'HH24:MI')`.as("usualHoldTime"),
       eb
         .exists(
           eb

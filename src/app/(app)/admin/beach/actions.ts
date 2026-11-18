@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { readCurrentUser } from "@/lib/auth/session";
-import { writeEntry } from "@/lib/booking/audit";
+import { writeEntry, type Detail } from "@/lib/booking/audit";
 import * as edit from "@/lib/beach/edit";
 import type { EditResult } from "@/lib/beach/edit";
 import { setupBeach, type SetupResult } from "@/lib/beach/layout";
@@ -11,9 +11,9 @@ import { setupBeach, type SetupResult } from "@/lib/beach/layout";
 type Forbidden = { ok: false; error: "forbidden" };
 
 /** Best effort: the change is already saved, so a failed log write must not report it as failed. */
-async function logChange(userId: string, what: string) {
+async function logChange(userId: string, detail: Detail) {
   try {
-    await writeEntry(getDb(), { userId, action: "beach", detail: { what } });
+    await writeEntry(getDb(), { userId, action: "beach", detail });
   } catch (error) {
     console.error("activity log write failed", error);
   }
@@ -26,12 +26,13 @@ async function logChange(userId: string, what: string) {
 async function asAdmin<R extends { ok: boolean }>(
   what: string,
   run: () => Promise<R>,
+  detailOf: (result: Extract<R, { ok: true }>) => Detail = () => ({}),
 ): Promise<R | Forbidden> {
   const actor = await readCurrentUser();
   if (actor?.role !== "admin") return { ok: false, error: "forbidden" };
   const result = await run();
   if (!result.ok) return result;
-  await logChange(actor.id, what);
+  await logChange(actor.id, { what, ...detailOf(result as Extract<R, { ok: true }>) });
   revalidatePath("/", "layout");
   return result;
 }
@@ -44,8 +45,15 @@ export async function renameVenueAction(input: unknown): Promise<EditResult | Fo
   return asAdmin("renameVenue", () => edit.renameVenue(getDb(), input));
 }
 
-export async function setDefaultHoldAction(input: unknown): Promise<EditResult | Forbidden> {
-  return asAdmin("setDefaultHold", () => edit.setDefaultHold(getDb(), input));
+/** Logged with the old and new time: the job frees umbrellas by it (ADR 0018). */
+export async function setDefaultHoldAction(
+  input: unknown,
+): Promise<edit.SetDefaultHoldResult | Forbidden> {
+  return asAdmin(
+    "setDefaultHold",
+    () => edit.setDefaultHold(getDb(), input),
+    ({ from, to }) => ({ from, to }),
+  );
 }
 
 export async function addLineAction(input: unknown): Promise<EditResult | Forbidden> {
