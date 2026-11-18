@@ -137,8 +137,10 @@ while): `scripts/build-android.sh`.
 - The first build creates the signing key in `~/secrets` (`stabilimento-android.p12` and
   `.pass`, mode 600). Back both up encrypted, off the box, like `caddy_data` (Recovery):
   ```sh
+  export GPG_TTY=$(tty)  # gpg asks for the passphrase here; without it: "Inappropriate ioctl"
   tar czf - -C ~/secrets stabilimento-android.p12 stabilimento-android.pass |
     gpg --symmetric --output ~/secrets/stabilimento-android-key.tgz.gpg
+  gpg -d ~/secrets/stabilimento-android-key.tgz.gpg | tar tzf -  # lists both files
   ```
   Then copy `~/secrets/stabilimento-android-key.tgz.gpg` off the box. Without the key, a new APK
   won't install over the old one: every tablet has to uninstall the app (and sign in again) first.
@@ -226,19 +228,21 @@ script stops with the app down and prints the rollback command.
      disk unencrypted:
      ```sh
      install -d -m 700 ~/secrets
+     export GPG_TTY=$(tty)
      docker run --rm -v stabilimento_caddy_data:/d:ro caddy:2.10-alpine tar czf - -C /d . |
        gpg --symmetric --output ~/secrets/caddy_data.tgz.gpg
      ```
    - On the new box, before the first install:
      ```sh
      docker volume create stabilimento_caddy_data
+     export GPG_TTY=$(tty)
      gpg -d caddy_data.tgz.gpg |
        docker run --rm -i -v stabilimento_caddy_data:/d caddy:2.10-alpine tar xzf - -C /d
      ```
    - Without it, every device has to trust the new root, and the Android app needs rebuilding.
-   - Restore the Android signing key too: `install -d -m 700 ~/secrets` and
-     `gpg -d stabilimento-android-key.tgz.gpg | tar xzf - -C ~/secrets`. Without it, tablets must
-     uninstall the app before a new APK installs.
+   - Restore the Android signing key too: `install -d -m 700 ~/secrets`,
+     `export GPG_TTY=$(tty)` and `gpg -d stabilimento-android-key.tgz.gpg | tar xzf - -C ~/secrets`.
+     Without it, tablets must uninstall the app before a new APK installs.
 4. Install the release that made the dump: `scripts/update.sh vX.Y.Z`.
 5. Restore the latest dump:
    ```sh
