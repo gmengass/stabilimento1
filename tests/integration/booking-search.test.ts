@@ -151,7 +151,13 @@ describe("searchBookings: result", () => {
     const moved = await moveBooking(
       db,
       USER,
-      { bookingId: id, spots: [{ fromSpotId: spot[101], toSpotId: spot[105] }] },
+      {
+        bookingId: id,
+        spots: [
+          { fromSpotId: spot[101], toSpotId: spot[105] },
+          { fromSpotId: spot[102], toSpotId: spot[102] },
+        ],
+      },
       TODAY,
     );
     expect(moved).toEqual({ ok: true });
@@ -329,6 +335,12 @@ describe("searchBookings: jump date", () => {
       jumpDate: addDays(TODAY, 2),
       noDaysLeft: false,
     });
+  });
+
+  it("is today for a no-show today, so staff can restore the latecomer", async () => {
+    await book({ startDate: TODAY, endDate: TODAY });
+    expect(await applyHoldRule(db, rome("11:05"))).toEqual({ bookings: 1, umbrellas: 1 });
+    expect(await only("rossi", TOMORROW)).toMatchObject({ jumpDate: TODAY, noDaysLeft: false });
   });
 
   it("is today with noDaysLeft when no booked day is left", async () => {
