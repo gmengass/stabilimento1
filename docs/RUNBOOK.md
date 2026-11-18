@@ -241,8 +241,8 @@ script stops with the app down and prints the rollback command.
      ```
    - Without it, every device has to trust the new root, and the Android app needs rebuilding.
    - Restore the Android signing key too: `install -d -m 700 ~/secrets`,
-     `export GPG_TTY=$(tty)` and `gpg -d stabilimento-android-key.tgz.gpg | tar xzf - -C ~/secrets`. Without it, tablets must
-     uninstall the app before a new APK installs.
+     `export GPG_TTY=$(tty)` and `gpg -d stabilimento-android-key.tgz.gpg | tar xzf - -C ~/secrets`.
+     Without it, tablets must uninstall the app before a new APK installs.
 4. Install the release that made the dump: `scripts/update.sh vX.Y.Z`.
 5. Restore the latest dump:
    ```sh
