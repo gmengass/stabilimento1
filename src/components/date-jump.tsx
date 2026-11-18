@@ -52,7 +52,7 @@ export function DateJump({ date, areaId, label }: Props) {
       {label ? <DayText label={label} /> : <span>{t("calendar")}</span>}
       <input
         type="date"
-        aria-label={label ? `${t("calendar")}: ${label.full}` : undefined}
+        aria-label={label ? t("calendarOn", { day: label.full }) : undefined}
         defaultValue={date}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         onClick={(event) => {
