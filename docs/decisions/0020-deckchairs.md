@@ -1,6 +1,6 @@
 # 0020. Deckchairs per booking
 
-- Status: Accepted (owner, 2026-11-19)
+- Status: Accepted (owner, 2026-11-19); the "No stock" bullet is superseded by [ADR 0021](0021-sunbed-deckchair-stock.md)
 - Date: 2026-11-19
 - Adds to: [ADR 0004](0004-booking-model.md) §Bookings (sunbeds per umbrella are unchanged)
 
