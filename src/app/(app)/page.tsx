@@ -137,7 +137,6 @@ export default async function Home(props: PageProps<"/">) {
         {freeReleased > 0 && <span>{t("legendReleased", { count: freeReleased })}</span>}
         {checkedIn > 0 && <span>{t("legendCheckedIn", { count: checkedIn })}</span>}
         {freeNoShows > 0 && <span>{t("legendNoShow", { count: freeNoShows })}</span>}
-        <span>{t("hint")}</span>
       </p>
       <LiveRefresh />
       <BeachBoard
