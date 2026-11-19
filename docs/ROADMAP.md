@@ -41,6 +41,8 @@ Each item ships something staff can use on the box.
       2026-11-18)
 - [x] Admin sets the check-in time for day bookings in Beach settings (owner, 2026-11-18,
       ADR 0018)
+- [x] Deckchairs: a booking keeps its sunbeds (2 per umbrella by default) and can add up to 2
+      deckchairs (sdraie) per umbrella (owner, 2026-11-19, ADR 0020)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

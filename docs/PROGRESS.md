@@ -2,17 +2,18 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.10.0` released and deployed. `feat/live-map` (ADR 0019): PR #59 open, not on the box.
+- `v0.10.0` released and deployed. Live map (#59) merged, not tagged. Open: #60, deckchairs.
 
 ## Done this session
-- Live map (ADR 0019), reviewed and fixed: 1007 tests, 43 e2e pass; checked through Caddy 2.10.
+- Deckchairs (ADR 0020, migration 0011): 1035 tests, 44 e2e pass; review approved, security pass.
 
 ## Next up
-1. Merge, tag live map. Box: tablets sync, Wi-Fi off/on; header, Check-in by, search, Theme.
+1. Merge #60 and deckchairs, tag `v0.11.0` (live map, deckchairs). Box: migrate, tablets sync.
 2. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
+- Deckchairs: edit on an existing booking (audited, undo)? Stock limit + counts? "+N" on tiles?
 - Search: rate limit (000–999 lists all)? Mask phones? `no-store`; `unaccent`; e2e restore.
 - ADR 0018: an earlier own hold wins (use the later?); "not here by" shows today's setting. No
   e2e for the no-show tile or on `phone`; two no-shows on one umbrella/day show as one. Owner:
@@ -24,8 +25,7 @@
   0011: Tailscale terms; who gets it?
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no
   `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.
-- GDPR: retention and redaction for customer data, the audit log, check-ins and no-shows (past
-  no-shows are a lasting record); FKs are `on delete restrict` (needs an ADR).
+- GDPR (needs ADR): retention/redaction of customers, audit log, check-ins, no-shows; FK restrict.
 - Owner: cancelled names shown to all staff (initials?); undo "Ripristina"? No rate limits
   (booking, suggest, move, undo, check-in, live streams); new bookings don't check spots vs area.
 - Minor: "retire" for umbrellas with past bookings (FK restrict); quick book "Another suggestion"
