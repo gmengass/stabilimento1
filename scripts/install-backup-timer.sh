@@ -38,7 +38,8 @@ if ! command -v age >/dev/null || ! command -v rclone >/dev/null; then
 fi
 # The distro's rclone can be too old for OneDrive's current API. selfupdate checks the
 # signature of the official release before replacing it.
-sudo rclone selfupdate --stable
+sudo rclone selfupdate --stable ||
+	log "WARN: rclone selfupdate failed: if OneDrive fails, install rclone from rclone.org"
 chmod 600 "$HOME/.config/rclone/rclone.conf" 2>/dev/null || true
 staging=$(mktemp -d)
 render_units "$staging"

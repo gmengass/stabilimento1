@@ -106,13 +106,14 @@ fi
 
 app_down=1
 compose_at "$current" stop app
-# Swap in the checked scratch database. The app is stopped; leftover connections are closed.
+# Swap in the checked scratch database: both renames in one transaction, so either both happen
+# or neither. The app is stopped; leftover connections are closed.
 # shellcheck disable=SC2016 # expanded inside the db container
 compose_at "$current" exec -T db sh -c 'psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 -q \
 	-c "drop database if exists '"$OLD_DB"'" \
 	-c "select pg_terminate_backend(pid) from pg_stat_activity where datname in ('"'$SCRATCH_DB'"', '"'"'$POSTGRES_DB'"'"')" \
-	-c "alter database \"$POSTGRES_DB\" rename to '"$OLD_DB"'" \
-	-c "alter database '"$SCRATCH_DB"' rename to \"$POSTGRES_DB\""' </dev/null >/dev/null ||
+	-c "begin; alter database \"$POSTGRES_DB\" rename to '"$OLD_DB"';
+		alter database '"$SCRATCH_DB"' rename to \"$POSTGRES_DB\"; commit"' </dev/null >/dev/null ||
 	die "swapping in the restored database failed"
 scratch=
 compose_at "$current" up -d --no-deps app caddy

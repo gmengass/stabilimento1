@@ -541,7 +541,10 @@ describe("restore-backup.sh", () => {
       indexOf(result.docker, "kysely_migration"),
       indexOf(result.docker, "compose stop app"),
       indexOf(result.docker, "drop database if exists booking_before_restore"),
-      indexOf(result.docker, 'alter database \\"$POSTGRES_DB\\" rename to booking_before_restore'),
+      indexOf(
+        result.docker,
+        'begin; alter database \\"$POSTGRES_DB\\" rename to booking_before_restore',
+      ),
       indexOf(result.docker, 'alter database booking_restore_test rename to \\"$POSTGRES_DB\\"'),
       indexOf(result.docker, "up -d --no-deps app caddy"),
       result.docker.findLastIndex((c) => c.includes("wget")),

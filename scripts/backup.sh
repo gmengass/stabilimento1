@@ -22,7 +22,9 @@ finish() {
 	[ -n "$partial" ] && rm -f "$partial"
 	if [ "$status" -ne 0 ]; then
 		log "backup FAILED at step: $step"
-		send_alert "$step" "${work:-$(mktemp -d)}"
+		alert_dir=${work:-$(mktemp -d)}
+		send_alert "$step" "$alert_dir"
+		[ -n "$work" ] || rm -rf "$alert_dir"
 	fi
 	[ -n "$work" ] && rm -rf "$work"
 	cleanup
