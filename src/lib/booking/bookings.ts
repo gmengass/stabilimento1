@@ -2,12 +2,12 @@ import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
-import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
+import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
-export const MAX_SPOTS_PER_BOOKING = 20;
+export { MAX_SPOTS_PER_BOOKING };
 
 export const bookingDate = z.string().refine(isBookingDate);
 

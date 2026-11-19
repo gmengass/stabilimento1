@@ -136,6 +136,8 @@ export function NewBookingForm(props: NewProps) {
   const [endDate, setEndDate] = useState(draft && !draft.asPass ? draft.endDate : date);
   const season = asPass ? openSeason : null;
   const maxDeckchairs = spots.length * MAX_DECKCHAIRS_PER_UMBRELLA;
+  // Controlled and clamped: removing an umbrella lowers the cap, and the choice follows it.
+  const [deckchairs, setDeckchairs] = useState(draft?.deckchairs ?? 0);
   const formatDate = useDate();
 
   function togglePass(checked: boolean) {
@@ -213,7 +215,8 @@ export function NewBookingForm(props: NewProps) {
         {t("deckchairs")}
         <select
           name="deckchairs"
-          defaultValue={Math.min(draft?.deckchairs ?? 0, maxDeckchairs)}
+          value={Math.min(deckchairs, maxDeckchairs)}
+          onChange={(e) => setDeckchairs(Number(e.target.value))}
           data-testid="booking-deckchairs"
           className={field}
         >

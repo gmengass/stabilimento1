@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
-import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
+import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import type { Suggestion } from "@/lib/booking/suggest";
 import { suggestQuickBookAction } from "./booking-actions";
@@ -141,7 +141,7 @@ export function QuickBookForm(props: FormProps) {
             type="number"
             required
             min={1}
-            max={20}
+            max={MAX_SPOTS_PER_BOOKING}
             defaultValue={initial?.umbrellas ?? 1}
             data-testid="quick-book-umbrellas"
             className={field}
@@ -167,7 +167,7 @@ export function QuickBookForm(props: FormProps) {
             type="number"
             required
             min={0}
-            max={20 * MAX_DECKCHAIRS_PER_UMBRELLA}
+            max={MAX_SPOTS_PER_BOOKING * MAX_DECKCHAIRS_PER_UMBRELLA}
             defaultValue={initial?.deckchairs ?? 0}
             data-testid="quick-book-deckchairs"
             className={field}
