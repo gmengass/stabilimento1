@@ -14,21 +14,26 @@ KEEP="${BACKUP_KEEP:-14}"
 step=setup
 work=
 scratch=
+partial=
 
 finish() {
 	status=$?
 	[ -n "$scratch" ] && drop_scratch
-	[ -n "$work" ] && rm -rf "$work"
+	[ -n "$partial" ] && rm -f "$partial"
 	if [ "$status" -ne 0 ]; then
 		log "backup FAILED at step: $step"
-		send_alert "$step"
+		send_alert "$step" "${work:-$(mktemp -d)}"
 	fi
+	[ -n "$work" ] && rm -rf "$work"
 	cleanup
 }
 trap finish EXIT
 
 require_env_file
-work=$(mktemp -d)
+nightly="$(backup_root)/nightly"
+mkdir -p "$nightly"
+chmod 700 "$(backup_root)" "$nightly"
+work=$(make_work_dir)
 
 step=config
 recipients="$work/recipients"
@@ -37,10 +42,6 @@ env_value BACKUP_AGE_RECIPIENTS | tr ' ' '\n' | sed '/^$/d' >"$recipients"
 printf 'check' | age -R "$recipients" >/dev/null 2>&1 ||
 	die "BACKUP_AGE_RECIPIENTS in .env is not a valid list of age public keys (age1...)"
 remote=$(rclone_remote)
-backup_dir=$(env_value BACKUP_DIR)
-nightly="${backup_dir:-$DEPLOY_ROOT/backups}/nightly"
-mkdir -p "$nightly"
-chmod 700 "$nightly"
 
 step=lock
 acquire_lock_wait "${BACKUP_LOCK_WAIT:-1800}"
@@ -52,41 +53,41 @@ dump_db "$work/db.dump" || die "pg_dump failed or wrote an empty file"
 
 step="restore check"
 scratch=1
-restore_scratch "$work/db.dump" || die "the dump did not restore into $SCRATCH_DB"
+restore_scratch "$work/db.dump" "$work/pg.err" || die "the dump did not restore into $SCRATCH_DB"
 drop_scratch
 scratch=
 
 step=encrypt
-age -R "$recipients" -o "$nightly/$name.tmp" "$work/db.dump" || die "age encryption failed"
+partial="$nightly/$name.tmp"
+age -R "$recipients" -o "$partial" "$work/db.dump" || die "age encryption failed"
 rm -f "$work/db.dump"
-mv "$nightly/$name.tmp" "$nightly/$name"
+mv "$partial" "$nightly/$name"
+partial=
 log "backup: $nightly/$name"
 
 step=onedrive
 if [ -z "$remote" ]; then
 	log "WARN: BACKUP_RCLONE_REMOTE is empty: OneDrive copy skipped, the backup is on this box only"
 else
-	rclone copyto "$nightly/$name" "$remote/$name" || die "upload to $remote failed"
-	rclone check "$nightly" "$remote" --one-way --include "$name" ||
-		die "the copy on $remote does not match the local file"
-	log "uploaded: $remote/$name"
+	rclone copyto "$nightly/$name" "$remote/$name" || die "upload to OneDrive failed"
+	rclone check "$nightly" "$remote" --one-way --download --include "$name" ||
+		die "the copy on OneDrive does not match the local file"
+	log "uploaded to OneDrive: $name"
 fi
 
 step=prune
 find "$nightly" -maxdepth 1 -type f | sed 's:.*/::' | nightly_names | tail -n +$((KEEP + 1)) |
 	while read -r old; do rm -f "$nightly/$old"; done
 if [ -n "$remote" ]; then
-	old_remote=$(rclone lsf --files-only "$remote") || die "listing $remote failed"
-	printf '%s\n' "$old_remote" | nightly_names | tail -n +$((KEEP + 1)) |
+	listing=$(rclone lsf --files-only "$remote") || die "listing OneDrive failed"
+	printf '%s\n' "$listing" | nightly_names | tail -n +$((KEEP + 1)) |
 		while read -r old; do rclone deletefile "$remote/$old" || exit 1; done ||
-		die "deleting old backups on $remote failed"
+		die "deleting old backups on OneDrive failed"
 fi
 
 step=heartbeat
-heartbeat=$(env_value BACKUP_HEARTBEAT_URL)
-if [ -n "$heartbeat" ]; then
-	curl -fsS --max-time 30 --retry 3 "$heartbeat" >/dev/null ||
-		log "WARN: the heartbeat URL did not answer"
-fi
+send_heartbeat
+[ -n "$(env_value BACKUP_HEARTBEAT_URL)" ] ||
+	log "WARN: BACKUP_HEARTBEAT_URL is empty: nobody notices if backups stop running"
 step=finished
 log "nightly backup OK"

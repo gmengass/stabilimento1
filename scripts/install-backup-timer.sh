@@ -33,8 +33,13 @@ require_env_file
 [ -n "$(env_value BACKUP_AGE_RECIPIENTS)" ] ||
 	log "WARN: BACKUP_AGE_RECIPIENTS is empty in .env: nightly runs fail until you add the key"
 if ! command -v age >/dev/null || ! command -v rclone >/dev/null; then
-	sudo apt-get install -y age rclone
+	sudo apt-get update -q
+	sudo apt-get install -y -q age rclone
 fi
+# The distro's rclone can be too old for OneDrive's current API. selfupdate checks the
+# signature of the official release before replacing it.
+sudo rclone selfupdate --stable
+chmod 600 "$HOME/.config/rclone/rclone.conf" 2>/dev/null || true
 staging=$(mktemp -d)
 render_units "$staging"
 for unit in $UNITS; do

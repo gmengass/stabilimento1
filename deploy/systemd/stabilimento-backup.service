@@ -1,5 +1,5 @@
-# Nightly backup (ADR 0022). Installed by scripts/install-backup-timer.sh, which fills in
-# @USER@ and @ROOT@. A run the timeout kills still sends the failure alert (TERM trap).
+# Nightly backup (ADR 0022). scripts/install-backup-timer.sh fills in the user and the checkout.
+# A run the timeout stops still sends the failure alert (TERM trap).
 [Unit]
 Description=Stabilimento nightly backup
 Wants=network-online.target
@@ -14,3 +14,7 @@ ExecStart=/bin/sh @ROOT@/scripts/backup.sh
 TimeoutStartSec=3h
 Nice=10
 IOSchedulingClass=idle
+UMask=0077
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=full
