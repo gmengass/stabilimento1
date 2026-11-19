@@ -947,3 +947,20 @@ describe("check in as the booking is created", () => {
     expect(await daysOf(id)).toEqual([[101, TODAY, "booked"]]);
   });
 });
+
+describe("check in at creation: audit and multi-day undo", () => {
+  it("records the check-in on the book entry", async () => {
+    await book({ checkIn: true });
+    const { rows } = await sql<{ detail: { checkedIn?: number }; change: { checkIns?: unknown } }>`
+      select detail, change from audit_log where action = 'book'`.execute(db);
+    expect(rows[0].detail.checkedIn).toBe(1);
+    expect(rows[0].change.checkIns).toEqual([{ date: TODAY, before: false, after: true }]);
+  });
+
+  it("undoes a multi-day booking with its check-in", async () => {
+    const id = await book({ endDate: TOMORROW, checkIn: true });
+    expect(await undo(await latestId())).toMatchObject({ ok: true });
+    expect(await checkIns()).toEqual([]);
+    expect(await daysOf(id)).toEqual([]);
+  });
+});

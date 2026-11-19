@@ -26,7 +26,7 @@ Amends [ADR 0015](../decisions/0015-check-in-and-hold-job.md). Builds on `docs/p
 ## Acceptance criteria
 1. Create for today with `checkIn` on: one `check_in` row; the hold run at 11:00 doesn't flag it.
 2. `checkIn` off or missing: no row.
-3. Future or past range: flag ignored, no row.
+3. Future range: flag ignored, no row. A past start is refused as `past` before anything else.
 4. Multi-day including today: exactly one row (today).
 5. Create that fails with `taken`: no `check_in` row.
 6. One audit entry; undo removes the booking and the check-in; undo of the undo restores both.
@@ -35,8 +35,8 @@ Amends [ADR 0015](../decisions/0015-check-in-and-hold-job.md). Builds on `docs/p
 
 ## Files
 `src/lib/booking/bookings.ts`, `src/lib/booking/check-in.ts` (export the insert),
-`src/app/(app)/booking-actions.ts` (pass the field), `booking-panel.tsx`, quick-book confirm
-step, `messages/it.json`, `messages/en.json`, `activity-panel.tsx`, ADR 0015, `docs/ARCHITECTURE.md`.
+`src/app/(app)/booking-actions.ts` (pass the field), `booking-panel.tsx` (quick book opens the same form with its suggested
+umbrellas, so it needs no change), `messages/it.json`, `messages/en.json`, `activity-panel.tsx`, ADR 0015, `docs/ARCHITECTURE.md`.
 
 ## Open question
 Visible, ticked-by-default checkbox (assumed) versus silent auto check-in with no choice.
