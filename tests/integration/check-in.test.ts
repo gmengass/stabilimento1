@@ -903,3 +903,47 @@ describe("migration 0009", () => {
     expect(await daysOf(id)).toEqual([[101, TODAY, "no_show"]]);
   });
 });
+
+describe("check in as the booking is created", () => {
+  it("writes one check-in and one book entry, and the hold run leaves it alone", async () => {
+    const id = await book({ checkIn: true });
+    expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: ANNA.id }]);
+    expect(await actions()).toEqual(["book"]);
+    await hold(rome("11:00:00"));
+    expect(await daysOf(id)).toEqual([[101, TODAY, "booked"]]);
+  });
+
+  it("writes no check-in when the flag is off or missing", async () => {
+    await book({ checkIn: false });
+    await book({ spots: [{ spotId: spot[102], sunbeds: 1 }] });
+    expect(await checkIns()).toEqual([]);
+  });
+
+  it("ignores the flag for a booking that starts later", async () => {
+    await book({ startDate: TOMORROW, endDate: TOMORROW, checkIn: true });
+    expect(await checkIns()).toEqual([]);
+  });
+
+  it("checks in only today of a multi-day booking", async () => {
+    const id = await book({ endDate: TOMORROW, checkIn: true });
+    expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: ANNA.id }]);
+  });
+
+  it("writes no check-in when the umbrella is taken", async () => {
+    await book();
+    const result = await createBooking(db, ANNA.id, booking({ checkIn: true }), TODAY);
+    expect(result).toMatchObject({ ok: false, error: "taken" });
+    expect(await checkIns()).toEqual([]);
+  });
+
+  it("undoing the booking removes the check-in, and undoing that restores both", async () => {
+    const id = await book({ checkIn: true });
+    const entryId = await latestId();
+    expect(await undo(entryId)).toMatchObject({ ok: true });
+    expect(await checkIns()).toEqual([]);
+    expect(await daysOf(id)).toEqual([]);
+    expect(await undo(await latestId())).toMatchObject({ ok: true });
+    expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: ANNA.id }]);
+    expect(await daysOf(id)).toEqual([[101, TODAY, "booked"]]);
+  });
+});

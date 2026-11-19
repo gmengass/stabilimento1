@@ -51,7 +51,13 @@ export function deckchairsFit(booking: { deckchairs: number; spots: unknown[] })
 }
 
 const createSchema = z
-  .object({ ...customerAndSpots, startDate: bookingDate, endDate: bookingDate })
+  .object({
+    ...customerAndSpots,
+    startDate: bookingDate,
+    endDate: bookingDate,
+    /** Check today in with the booking; ignored when the range doesn't include today (ADR 0015). */
+    checkIn: z.boolean().default(false),
+  })
   .refine(deckchairsFit)
   .refine((b) => b.endDate >= b.startDate)
   .refine((b) => daysBetween(b.startDate, b.endDate) < MAX_BOOKING_DAYS);
@@ -142,6 +148,8 @@ export interface BookingToWrite {
   /** Save even when it takes a tracked stock past its number (ADR 0021). */
   allowOverStock?: boolean;
   seasonId?: number;
+  /** Today's date when the booking is checked in as it is created (ADR 0015). */
+  checkInDate?: string;
 }
 
 /** The booking would take a tracked stock past its number: nothing is written (ADR 0021). */
@@ -227,7 +235,13 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       returning booking_spot_id as "bookingSpotId", spot_id as "spotId",
         to_char(date, 'YYYY-MM-DD') as date, state
     `.execute(tx);
-    const { startDate, endDate, deckchairs } = booking;
+    const { startDate, endDate, deckchairs, checkInDate } = booking;
+    if (checkInDate !== undefined) {
+      await tx
+        .insertInto("check_in")
+        .values({ booking_id: id, date: checkInDate, checked_in_by: userId })
+        .execute();
+    }
     const sunbeds = booking.spots.some((s) => s.sunbeds > 0);
     const overStockDays = await checkStock(
       tx,
@@ -243,6 +257,7 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       detail: {
         ...(deckchairs > 0 && { deckchairs }),
         ...(overStockDays > 0 && { overStockDays }),
+        ...(checkInDate !== undefined && { checkedIn: 1 }),
       },
       change: {
         before: { status: "cancelled", endDate },
@@ -250,6 +265,9 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
         added,
         removed: [],
         moved: [],
+        ...(checkInDate !== undefined && {
+          checkIns: [{ date: checkInDate, before: false, after: true }],
+        }),
       },
     });
     return id;
@@ -298,7 +316,9 @@ export async function createBooking(
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   if (parsed.data.startDate < today) return { ok: false, error: "past" };
-  return bookSpots(db, userId, parsed.data);
+  const { checkIn, ...booking } = parsed.data;
+  const walkIn = checkIn && booking.startDate <= today && today <= booking.endDate;
+  return bookSpots(db, userId, walkIn ? { ...booking, checkInDate: today } : booking);
 }
 
 /** A spot_day row as the audit log records it. */
