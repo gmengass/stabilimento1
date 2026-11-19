@@ -6,6 +6,7 @@ import { BeachMap, type SpotView } from "@/components/beach-map";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import type { Occupant } from "@/lib/booking/bookings";
 import type { OpenSeason } from "@/lib/booking/seasons";
+import { tileExtras } from "@/lib/booking/tile-extras";
 import { BookingDetails, NewBookingForm, NoShowDay, ReleasedDay } from "./booking-panel";
 import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
@@ -240,6 +241,25 @@ export function BeachBoard({
     return undefined;
   }
 
+  function extrasOf(spot: MapSpot) {
+    const occupant = occupancy[spot.id];
+    const own = occupant?.spots.find((s) => s.spotId === spot.id);
+    if (!occupant || !own) return undefined;
+    const extras = tileExtras({
+      sunbeds: own.sunbeds,
+      includedSunbeds: spot.includedSunbeds,
+      deckchairs: occupant.deckchairs,
+      showDeckchairs: own.number === Math.min(...occupant.spots.map((s) => s.number)),
+    });
+    if (!extras) return undefined;
+    const parts = [
+      extras.sunbedDelta > 0 && tm("extraSunbeds", { count: extras.sunbedDelta }),
+      extras.sunbedDelta < 0 && tm("fewerSunbeds", { count: -extras.sunbedDelta }),
+      extras.deckchairs > 0 && tm("extraDeckchairs", { count: extras.deckchairs }),
+    ].filter(Boolean);
+    return { text: extras.text, label: parts.join(", ") };
+  }
+
   /** One box per no-show booking on these umbrellas. */
   function noShowsOn(spotIds: number[]) {
     const bookings = new Map(
@@ -388,6 +408,7 @@ export function BeachBoard({
             (occupancy[spot.id] ?? noShows[spot.id] ?? released[spot.id])?.customerName
           }
           badgeOf={badgeOf}
+          extrasOf={extrasOf}
           onSpotClick={onSpotClick}
         />
       </div>
