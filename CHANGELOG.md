@@ -4,6 +4,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
+- Stock of lettini and sdraie: in Beach settings an admin enters how many the club owns (blank:
+  not counted). The map's day counts then show how many are left that day for the whole beach,
+  and a booking, season pass or move to new dates that would go over shows the days short and
+  "Prenota comunque" / "Sposta comunque" to save it anyway (ADR 0021).
+
+## [0.11.0] - 2026-11-19
+### Added
 - Live map: a booking, cancellation, move, undo, check-in or no-show made on one device shows on
   every other open map within seconds, without reloading. If the connection drops, the map
   says "Non aggiornato in tempo reale, riconnessione…" and catches up when it is back
@@ -11,10 +18,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Deckchairs (sdraie): a booking or season pass can ask for up to 2 deckchairs per umbrella, in
   the booking form and in quick book. Sunbeds stay as before (2 per umbrella by default). The
   booking shows "2 sdraie" and the activity list mentions them (ADR 0020).
-- Stock of lettini and sdraie: in Beach settings an admin enters how many the club owns (blank:
-  not counted). The map's day counts then show how many are left that day for the whole beach,
-  and a booking, season pass or move to new dates that would go over shows the days short and
-  "Prenota comunque" / "Sposta comunque" to save it anyway (ADR 0021).
 ### Removed
 - The line "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo." under the
   day counts, to reduce clutter above the map.
