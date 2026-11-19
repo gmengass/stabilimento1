@@ -121,7 +121,10 @@
     "badgeNoShow": "Qui c'è anche un non presentato",
     "counts": "Liberi in questo giorno",
     "countUmbrellas": "Ombrelloni liberi: {free} / {total}",
-    "countSunbeds": "Lettini liberi: {free} / {total}"
+    "countSunbeds": "Lettini liberi: {free} / {total}",
+    "countSunbedStock": "Lettini in magazzino liberi: {free} / {total}",
+    "countDeckchairStock": "Sdraie libere: {free} / {total}",
+    "countOver": "({count} oltre la scorta)"
   },
   "beachSetup": {
     "title": "Impostazioni spiaggia",
@@ -177,7 +180,10 @@
     "addLine": "Aggiungi una fila dietro",
     "areaName": "Nome di questo spazio spiaggia",
     "areaNameDefault": "Spiaggia principale",
-    "areaNameHint": "Potrai aggiungere altri spazi spiaggia in seguito, ognuno con le sue file e i suoi ombrelloni."
+    "areaNameHint": "Potrai aggiungere altri spazi spiaggia in seguito, ognuno con le sue file e i suoi ombrelloni.",
+    "sunbedStock": "Lettini in magazzino",
+    "deckchairStock": "Sdraie in magazzino",
+    "stockHint": "Quanti ne ha il lido per tutta la spiaggia. La mappa mostra quanti ne restano ogni giorno, e il personale viene avvisato prima che una prenotazione li superi. Lascia vuoto per non contarli."
   },
   "booking": {
     "newTitle": "Nuova prenotazione · {area}",
@@ -224,7 +230,8 @@
       "noShow": "Questa prenotazione risulta già non presentata. Ridagli invece gli ombrelloni.",
       "released": "L'abbonato ha liberato oggi: restituiscigli prima il giorno.",
       "season": "Gli abbonamenti stagionali non vengono mai liberati all'orario di tenuta.",
-      "invalidHold": "Scrivi un orario come 13:30."
+      "invalidHold": "Scrivi un orario come 13:30.",
+      "stock": "Lettini o sdraie in magazzino non sufficienti."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -266,7 +273,16 @@
     "holdLabel": "Tieni fino alle",
     "holdSave": "Salva orario",
     "holdClear": "Usa l'orario normale",
-    "holdSaved": "Orario salvato."
+    "holdSaved": "Orario salvato.",
+    "bookAnyway": "Prenota comunque",
+    "moveAnyway": "Sposta comunque",
+    "stock": {
+      "warning": "Scorta insufficiente in questi giorni. Controlla, poi prenota di nuovo per confermare:",
+      "day": "{date}: {items}",
+      "more": "{count, plural, one {e # altro giorno} other {e altri # giorni}}",
+      "sunbedsOver": "{count, plural, one {# lettino in più} other {# lettini in più}}",
+      "deckchairsOver": "{count, plural, one {# sdraio in più} other {# sdraie in più}}"
+    }
   },
   "areas": {
     "tabsLabel": "Spazi spiaggia",
@@ -385,7 +401,9 @@
     "uncheck": "{user} ha tolto l'arrivo di {name} ({spots})",
     "hold": "{user} ha segnato un arrivo in ritardo per {name}: tenuto fino alle {time}",
     "holdCleared": "{user} ha rimesso l'orario normale per {name}",
-    "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}"
+    "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}",
+    "beachStock": "{user} ha impostato la scorta: lettini {sunbeds}, sdraie {deckchairs}",
+    "stockOff": "non contati"
   },
   "search": {
     "label": "Cerca una prenotazione per nome o telefono",

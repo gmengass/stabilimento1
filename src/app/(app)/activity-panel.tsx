@@ -18,6 +18,9 @@ export async function ActivityPanel({ entries, viewer }: Props) {
   const day = (date: unknown) => formatBookingDate(String(date), locale);
   const range = (from: unknown, to: unknown) =>
     from === to ? day(from) : t("range", { from: day(from), to: day(to) });
+  /** A stock in the log: a number, or "" for not tracked (ADR 0021). */
+  const stockText = (count: unknown) =>
+    count === "" || count === undefined ? t("stockOff") : String(count);
 
   function describe(entry: ActivityEntry): string {
     const user = entry.userName ?? t("system");
@@ -84,6 +87,13 @@ export async function ActivityPanel({ entries, viewer }: Props) {
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":
+        if (detail.what === "setStock") {
+          return t("beachStock", {
+            user,
+            sunbeds: stockText(detail.toSunbeds),
+            deckchairs: stockText(detail.toDeckchairs),
+          });
+        }
         return detail.what === "setDefaultHold" && detail.to
           ? t("beachHold", { user, from: String(detail.from), to: String(detail.to) })
           : t("beach", { user });

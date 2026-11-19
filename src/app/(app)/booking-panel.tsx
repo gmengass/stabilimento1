@@ -9,6 +9,7 @@ import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
 import { addDays } from "@/i18n/format";
 import type { OpenSeason } from "@/lib/booking/seasons";
+import type { OverStockDay } from "@/lib/booking/stock";
 import type { QuickBookDraft } from "./quick-book";
 import {
   cancelBookingAction,
@@ -46,6 +47,7 @@ export type ErrorKey =
   | "released"
   | "season"
   | "invalidHold"
+  | "stock"
   | "generic";
 export interface Failure {
   key: ErrorKey;
@@ -77,6 +79,52 @@ export function ErrorLine({ failure }: { failure: Failure | null }) {
       )}
     </div>
   );
+}
+
+/**
+ * The stock warning (ADR 0021): the days a booking would take sunbeds or deckchairs past the
+ * venue's stock. Sending the same request again with `allowOverStock` saves it anyway.
+ */
+export function StockWarning({ days }: { days: OverStockDay[] }) {
+  const t = useTranslations("booking.stock");
+  const formatDate = useDate();
+  const shown = days.slice(0, 10);
+  return (
+    <div
+      role="alert"
+      data-testid="stock-warning"
+      className="text-sm text-amber-800 dark:text-amber-300"
+    >
+      <p>{t("warning")}</p>
+      <ul className="list-disc pl-5">
+        {shown.map((day) => (
+          <li key={day.date}>
+            {t("day", {
+              date: formatDate(day.date),
+              items: [
+                day.sunbeds > 0 && t("sunbedsOver", { count: day.sunbeds }),
+                day.deckchairs > 0 && t("deckchairsOver", { count: day.deckchairs }),
+              ]
+                .filter(Boolean)
+                .join(", "),
+            })}
+          </li>
+        ))}
+      </ul>
+      {days.length > shown.length && <p>{t("more", { count: days.length - shown.length })}</p>}
+    </div>
+  );
+}
+
+/** Warn once, then let the same request through: any change to it needs a fresh check. */
+export function useStockWarning() {
+  const [warning, setWarning] = useState<{ key: string; days: OverStockDay[] } | null>(null);
+  return {
+    days: warning?.days ?? null,
+    allows: (key: string) => warning?.key === key,
+    warn: (key: string, days: OverStockDay[]) => setWarning({ key, days }),
+    clear: () => setWarning(null),
+  };
 }
 
 type CreateFailure = Exclude<Awaited<ReturnType<typeof createBookingAction>>, { ok: true }>;
@@ -139,6 +187,7 @@ export function NewBookingForm(props: NewProps) {
   // Controlled and clamped: removing an umbrella lowers the cap, and the choice follows it.
   const [deckchairs, setDeckchairs] = useState(draft?.deckchairs ?? 0);
   const formatDate = useDate();
+  const stock = useStockWarning();
 
   function togglePass(checked: boolean) {
     setAsPass(checked);
@@ -164,14 +213,21 @@ export function NewBookingForm(props: NewProps) {
       spots: spots.map((s) => ({ spotId: s.id, sunbeds: Number(form.get(`sunbeds-${s.id}`)) })),
       deckchairs: Number(form.get("deckchairs")),
     };
+    const request = { ...customer, endDate: form.get("endDate"), seasonId: season?.id };
+    const key = JSON.stringify(request);
+    const allowOverStock = stock.allows(key);
     startTransition(async () => {
       try {
-        const booking = { ...customer, endDate: form.get("endDate") };
-        const result = season
-          ? await createSeasonPassAction({ ...booking, seasonId: season.id })
-          : await createBookingAction(booking);
+        const { seasonId, ...booking } = { ...request, allowOverStock };
+        const result =
+          seasonId !== undefined
+            ? await createSeasonPassAction({ ...booking, seasonId })
+            : await createBookingAction(booking);
         if (result.ok) onDone();
-        else if (result.error === "past") setFailure({ key: season ? "past" : "pastBooking" });
+        else if (result.error === "stock") {
+          setFailure(null);
+          stock.warn(key, result.days);
+        } else if (result.error === "past") setFailure({ key: season ? "past" : "pastBooking" });
         else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
       } catch {
         setFailure({ key: "generic" });
@@ -180,7 +236,7 @@ export function NewBookingForm(props: NewProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} onChange={stock.clear} className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{t("newTitle", { area: areaName })}</h2>
       <ul className="flex flex-col gap-2">
         {spots.map((spot) => (
@@ -327,8 +383,13 @@ export function NewBookingForm(props: NewProps) {
         disabled={pending}
         className="rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60"
       >
-        {pending ? t("saving") : t(season ? "sellPass" : "book", { count: spots.length })}
+        {pending
+          ? t("saving")
+          : stock.days
+            ? t("bookAnyway")
+            : t(season ? "sellPass" : "book", { count: spots.length })}
       </button>
+      {stock.days && <StockWarning days={stock.days} />}
       <ErrorLine failure={failure} />
     </form>
   );

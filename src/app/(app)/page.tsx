@@ -20,6 +20,7 @@ import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
 import { loadNoShows, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import { loadDayCounts } from "@/lib/booking/counts";
+import { loadStockDay } from "@/lib/booking/stock";
 import { loadOpenSeason } from "@/lib/booking/seasons";
 import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
@@ -72,7 +73,10 @@ export default async function Home(props: PageProps<"/">) {
     full: formatWeekdayDate(date, dayLocale),
     short: formatShortWeekdayDate(date, dayLocale),
   };
-  const counts = await loadDayCounts(getDb(), beach.areaId, date);
+  const [counts, stock] = await Promise.all([
+    loadDayCounts(getDb(), beach.areaId, date),
+    loadStockDay(getDb(), date),
+  ]);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;
   const booked = occupants.length - passes;
@@ -130,7 +134,7 @@ export default async function Home(props: PageProps<"/">) {
         </nav>
       </div>
       <BookingSearch date={date} areaId={beach.areaId} />
-      <DayCounts counts={counts} />
+      <DayCounts counts={counts} stock={stock} />
       <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
         <span>{t("legendBooked", { count: booked })}</span>
         {passes > 0 && <span>{t("legendSeason", { count: passes })}</span>}

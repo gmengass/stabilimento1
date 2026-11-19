@@ -121,7 +121,10 @@
     "badgeNoShow": "Also a no-show here",
     "counts": "Free on this day",
     "countUmbrellas": "Umbrellas free: {free} / {total}",
-    "countSunbeds": "Sunbeds free: {free} / {total}"
+    "countSunbeds": "Sunbeds free: {free} / {total}",
+    "countSunbedStock": "Sunbeds in stock free: {free} / {total}",
+    "countDeckchairStock": "Deckchairs free: {free} / {total}",
+    "countOver": "({count} over the stock)"
   },
   "beachSetup": {
     "title": "Beach settings",
@@ -177,7 +180,10 @@
     "addLine": "Add a line behind",
     "areaName": "Name of this beach space",
     "areaNameDefault": "Main beach",
-    "areaNameHint": "You can add more beach spaces later, each with its own lines and umbrellas."
+    "areaNameHint": "You can add more beach spaces later, each with its own lines and umbrellas.",
+    "sunbedStock": "Sunbeds in stock (lettini)",
+    "deckchairStock": "Deckchairs in stock (sdraie)",
+    "stockHint": "How many the club owns for the whole beach. The map shows how many are left each day, and staff are warned before a booking goes over. Leave blank to not track it."
   },
   "booking": {
     "newTitle": "New booking · {area}",
@@ -224,7 +230,8 @@
       "noShow": "This booking is already a no-show. Give the umbrellas back instead.",
       "released": "The holder released today: give the day back first.",
       "season": "Season passes are never freed at the hold time.",
-      "invalidHold": "Enter a time like 13:30."
+      "invalidHold": "Enter a time like 13:30.",
+      "stock": "Not enough sunbeds or deckchairs in stock."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -266,7 +273,16 @@
     "holdLabel": "Keep until",
     "holdSave": "Save time",
     "holdClear": "Use the usual time",
-    "holdSaved": "Time saved."
+    "holdSaved": "Time saved.",
+    "bookAnyway": "Book anyway",
+    "moveAnyway": "Move anyway",
+    "stock": {
+      "warning": "Not enough in stock on these days. Check, then book again to confirm:",
+      "day": "{date}: {items}",
+      "more": "{count, plural, one {and # more day} other {and # more days}}",
+      "sunbedsOver": "{count, plural, one {# sunbed over} other {# sunbeds over}}",
+      "deckchairsOver": "{count, plural, one {# deckchair over} other {# deckchairs over}}"
+    }
   },
   "areas": {
     "tabsLabel": "Beach spaces",
@@ -385,7 +401,9 @@
     "uncheck": "{user} removed the check-in of {name} ({spots})",
     "hold": "{user} set a late arrival for {name}: kept until {time}",
     "holdCleared": "{user} set the usual hold time for {name}",
-    "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed"
+    "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed",
+    "beachStock": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
+    "stockOff": "not tracked"
   },
   "search": {
     "label": "Find a booking by name or phone",
