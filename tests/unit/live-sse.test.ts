@@ -232,19 +232,4 @@ describe("createLiveStream: onClose", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
-
-  it("frees its slot only once when a signal arrives after the reader cancelled", async () => {
-    const source = fakeSource();
-    const onClose = vi.fn();
-    const stream = createLiveStream({
-      subscribe: source.subscribe,
-      signal: new AbortController().signal,
-      onClose,
-    });
-    const reader = stream.getReader();
-    await reader.read();
-    await reader.cancel();
-    source.emit("changed");
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
 });

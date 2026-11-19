@@ -52,11 +52,6 @@ export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uin
             controller.enqueue(encoder.encode(text));
           } catch {
             stop?.();
-            try {
-              controller.close();
-            } catch {
-              // Already closed.
-            }
           }
         };
         write(formatComment("connected"));
