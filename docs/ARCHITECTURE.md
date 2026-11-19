@@ -22,7 +22,7 @@ screens within seconds. Customers never use the app. They are contact details on
   beach space, so a day belongs to at most one season. The next season can only be added once
   the current one has ended
 - **Booking**: customer, kind (day | multi_day | season), start_date (a season pass's first day),
-  end_date (inclusive local dates), season, status, notes, hold_until (optional override)
+  end_date (inclusive local dates), season, status, notes, hold_until (optional override), deckchairs (0 to 2 per umbrella, ADR 0020)
 - **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella), current (false once
   a move took the booking off this umbrella; its used days stay on record)
 - **SpotDay**: spot, date, booking_spot, state (booked | released | no_show). Unique per (spot, date)

@@ -8,6 +8,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   every other open map within seconds, without reloading. If the connection drops, the map
   says "Non aggiornato in tempo reale, riconnessione…" and catches up when it is back
   (ADR 0019).
+- Deckchairs (sdraie): a booking or season pass can ask for up to 2 deckchairs per umbrella, in
+  the booking form and in quick book. Sunbeds stay as before (2 per umbrella by default). The
+  booking shows "2 sdraie" and the activity list mentions them (ADR 0020).
 
 ## [0.10.0] - 2026-11-18
 ### Added
