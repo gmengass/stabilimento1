@@ -106,7 +106,7 @@
     "emptyStaff": "Ask an admin to set up the lines and umbrellas.",
     "spotBooked": "Umbrella {number}, booked by {name}",
     "legendBooked": "Booked: {count}",
-    "spotsTaken": "Umbrellas you picked were just booked elsewhere and were removed from your selection.",
+    "spotsTaken": "Umbrellas you picked are no longer free, so they were removed from your selection.",
     "bookingGone": "That booking was changed elsewhere, so it is no longer open here.",
     "moveTargetTaken": "An umbrella you chose for the move was just taken, so the move was reset.",
     "liveReconnecting": "Not live, reconnecting…",

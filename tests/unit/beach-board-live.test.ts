@@ -81,7 +81,7 @@ describe("a spot picked, then booked elsewhere", () => {
     tap(2);
     view.rerender(board({ 1: occupant(10, 1) }));
     expect(pressed()).toEqual([2]);
-    expect(notice()).toMatch(/booked elsewhere/);
+    expect(notice()).toMatch(/no longer free/);
 
     view.rerender(board({}));
     expect(pressed()).toEqual([2]);
@@ -92,7 +92,7 @@ describe("a spot picked, then booked elsewhere", () => {
     tap(1);
     view.rerender(board({ 1: occupant(10, 1) }));
     expect(pressed()).toEqual([]);
-    expect(notice()).toMatch(/booked elsewhere/);
+    expect(notice()).toMatch(/no longer free/);
   });
 
   it("starts the next day blank, without a notice, and does not bring the selection back", () => {
@@ -109,13 +109,26 @@ describe("a spot picked, then booked elsewhere", () => {
 });
 
 describe("an open booking and the day changing", () => {
+  const panel = () => screen.queryByRole("complementary");
+
   it("closes a booking that is not on the next day, without a notice", () => {
     const view = render(board({ 1: occupant(10, 1) }));
     tap(1);
+    expect(panel()).not.toBeNull();
     view.rerender(board({}, "2026-11-20"));
+    // The next render must not mistake the missing booking for a change made elsewhere.
     view.rerender(board({}, "2026-11-20"));
+    expect(panel()).toBeNull();
     expect(notice()).toBeNull();
-    expect(pressed()).toEqual([]);
+  });
+
+  it("keeps a booking open when it is also on the next day", () => {
+    const view = render(board({ 1: occupant(10, 1) }));
+    tap(1);
+    view.rerender(board({ 1: occupant(10, 1) }, "2026-11-20"));
+    expect(panel()).not.toBeNull();
+    expect(pressed()).toEqual([1]);
+    expect(notice()).toBeNull();
   });
 });
 
@@ -152,7 +165,7 @@ describe("an open booking changed elsewhere", () => {
     expect(notice()).toBeNull();
   });
 
-  it("clears a notice the moment the user acts, and when their own cancel arrives first", () => {
+  it("clears a notice the moment the user acts", () => {
     const view = render(board({ 1: occupant(10, 1) }));
     tap(1);
     view.rerender(board({}));
