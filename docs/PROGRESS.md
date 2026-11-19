@@ -3,7 +3,7 @@
 
 ## Current state
 - `main` is at the merge of #69 (tile extras), tagged up to `v0.13.3` (deploy unconfirmed; PR #70 docs open). Branch `feat/auto-checkin`
-  (pushed, no PR yet). Backup setup on the box not done.
+  has an open PR (e2e added, not run here; `security` found nothing). Backup setup on the box not done.
 
 ## Done this session
 - Check in at creation (branch `feat/auto-checkin`, ADR 0015 amendment, plan
@@ -13,7 +13,7 @@
 - Reviewer asked for minor fixes (applied, not re-reviewed). Tests pass; full suite run before them.
 
 ## Next up
-1. Open the PR for `feat/auto-checkin` (needs e2e for the checkbox and a `security` pass).
+1. Merge `feat/auto-checkin` once CI (incl. the new e2e) is green; then tag the release.
 2. Owner: RUNBOOK "Backups" setup on the box; enter lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
