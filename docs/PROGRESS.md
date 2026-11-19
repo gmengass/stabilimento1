@@ -2,15 +2,15 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.12.0` released and deployed. `feat/backups` (ADR 0022) pushed, PR #65 open, not merged.
+- `v0.13.0` released and deployed (nightly backups, #65). Backup setup on the box not done yet.
 
 ## Done this session
 - Nightly backups (ADR 0022): age, box + OneDrive, 14 kept, alert + heartbeat, restore script.
   27 tests, real run in CI; review approved, security findings fixed.
 
 ## Next up
-1. Merge `feat/backups` once CI is green, release `v0.13.0`, deploy, then the owner follows the
-   RUNBOOK "Backups" setup (key on PC, rclone OneDrive, SMTP, heartbeat, test run).
+1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
+   heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 

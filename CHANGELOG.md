@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.13.0] - 2026-11-19
 ### Added
 - Nightly backups: every night at 03:30 the box backs up the database, checks it restores,
   encrypts it with age and keeps 14 days on the box and on OneDrive. A failure emails the owner;
