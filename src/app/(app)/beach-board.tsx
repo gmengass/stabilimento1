@@ -92,10 +92,15 @@ export function BeachBoard({
       (t) => occupancy[t.spotId] && occupancy[t.spotId].bookingId !== openBooking,
     );
   if (syncedDate !== date) {
+    // A selection is for one day: another day starts blank, as its booking form does.
     setSyncedDate(date);
     setNotice(null);
-  }
-  if (bookingGone || selectionStale || targetsStale) {
+    setSelected([]);
+    setPick(null);
+    setTargets(null);
+    setMoveFor(null);
+    if (bookingGone) setOpenBooking(null);
+  } else if (bookingGone || selectionStale || targetsStale) {
     if (selectionStale) {
       setSelected(freeSelected);
       if (freeSelected.length === 0) setPick(null);
@@ -105,9 +110,7 @@ export function BeachBoard({
       setTargets(null);
       setMoveFor(null);
     }
-    if (syncedDate === date) {
-      setNotice(bookingGone ? "gone" : targetsStale ? "targetTaken" : "taken");
-    }
+    setNotice(bookingGone ? "gone" : targetsStale ? "targetTaken" : "taken");
   }
 
   const spotById = new Map(lines.flatMap((line) => line.spots.map((s) => [s.id, s])));

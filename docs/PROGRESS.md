@@ -7,7 +7,7 @@
 ## Done this session
 - Live map fix (branch `fix/live-map-stale-state`): a spot picked then booked elsewhere no longer
   returns selected when freed; a move in progress no longer leaves phantom targets when its
-  booking is cancelled/moved elsewhere; both now show a notice. Component tests via jsdom.
+  booking is cancelled/moved elsewhere; both now show a notice; a day change clears the selection. Component tests via jsdom.
 - Nightly backups (ADR 0022): age, box + OneDrive, 14 kept, alert + heartbeat, restore script.
   27 tests, real run in CI; review approved, security findings fixed.
 
@@ -24,8 +24,7 @@
   undo/restore/lowering it; date moves warn on all days, not only added; per space? Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no
   e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
-- Live map: cap streams per user? Refresh debounce is trailing (no max wait); selection carries
-  across days (intended?). Midnight "today"? Phones: portrait-tablet sheet? Android: DayNight, min 7.0,
+- Live map: cap streams per user? Refresh debounce is trailing (no max wait). Midnight "today"? Phones: portrait-tablet sheet? Android: DayNight, min 7.0,
   `FLAG_SECURE`, auto-retry? Tailscale terms, who?
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no
   `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.

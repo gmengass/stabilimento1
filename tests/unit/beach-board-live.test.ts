@@ -95,11 +95,27 @@ describe("a spot picked, then booked elsewhere", () => {
     expect(notice()).toMatch(/booked elsewhere/);
   });
 
-  it("stays quiet when the day changes under the selection", () => {
+  it("starts the next day blank, without a notice, and does not bring the selection back", () => {
     const view = render(board({}));
     tap(1);
+    tap(2);
     view.rerender(board({ 1: occupant(10, 1) }, "2026-11-20"));
+    expect(pressed()).toEqual([]);
     expect(notice()).toBeNull();
+
+    view.rerender(board({}, "2026-11-19"));
+    expect(pressed()).toEqual([]);
+  });
+});
+
+describe("an open booking and the day changing", () => {
+  it("closes a booking that is not on the next day, without a notice", () => {
+    const view = render(board({ 1: occupant(10, 1) }));
+    tap(1);
+    view.rerender(board({}, "2026-11-20"));
+    view.rerender(board({}, "2026-11-20"));
+    expect(notice()).toBeNull();
+    expect(pressed()).toEqual([]);
   });
 });
 
