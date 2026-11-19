@@ -47,6 +47,18 @@ acquire_lock() {
 	LOCK_HELD=1
 }
 
+# Waits up to $1 seconds for the deploy lock shared with update.sh and rollback.sh.
+acquire_lock_wait() {
+	mkdir -p "$STATE_DIR"
+	waited=0
+	until mkdir "$LOCK_DIR" 2>/dev/null; do
+		[ "$waited" -lt "$1" ] || die "another deploy or backup still holds $LOCK_DIR after ${1}s"
+		sleep 1
+		waited=$((waited + 1))
+	done
+	LOCK_HELD=1
+}
+
 read_state() { cat "$STATE_DIR/$1" 2>/dev/null || true; }
 write_state() { printf '%s\n' "$2" >"$STATE_DIR/$1.tmp" && mv "$STATE_DIR/$1.tmp" "$STATE_DIR/$1"; }
 clear_state() { rm -f "$STATE_DIR/$1"; }
