@@ -181,6 +181,7 @@
   "booking": {
     "newTitle": "Nuova prenotazione · {area}",
     "sunbeds": "Lettini",
+    "deckchairs": "Sdraie",
     "remove": "Togli",
     "removeSpot": "Togli l'ombrellone {number}",
     "customerName": "Nome cliente",
@@ -193,6 +194,7 @@
     "close": "Chiudi",
     "range": "{from} – {to}",
     "spotLine": "Ombrellone {number} · {sunbeds, plural, one {# lettino} other {# lettini}}",
+    "deckchairsLine": "{count, plural, one {# sdraio} other {# sdraie}}",
     "cancel": "Annulla prenotazione",
     "cancelConfirm": "Annullare tutta la prenotazione, per ogni ombrellone e ogni giorno?",
     "cancelYes": "Sì, annulla",
@@ -349,6 +351,7 @@
     "spots": "{count, plural, one {ombrellone {numbers}} other {ombrelloni {numbers}}}",
     "range": "{from} – {to}",
     "book": "{user} ha prenotato {spots} per {name}, {dates}",
+    "withDeckchairs": "{text}, con {count, plural, one {# sdraio} other {# sdraie}}",
     "sellPass": "{user} ha venduto un abbonamento stagionale per {spots} a {name}, dal {from}",
     "cancel": "{user} ha annullato la prenotazione di {name} ({spots})",
     "setLastDay": "{user} ha fissato l'ultimo giorno dell'abbonamento di {name} al {date}",

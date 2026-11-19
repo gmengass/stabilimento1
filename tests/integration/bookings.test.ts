@@ -5,6 +5,8 @@ import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { addArea } from "@/lib/beach/edit";
 import { setupBeach, loadBeach } from "@/lib/beach/layout";
+import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
+import { listActivity } from "@/lib/booking/audit";
 import {
   cancelBooking,
   createBooking,
@@ -306,6 +308,76 @@ describe("createBooking", () => {
     );
     expect(result).toMatchObject({ ok: true });
     expect(await spotDayCount()).toBe(MAX_BOOKING_DAYS);
+  });
+});
+
+describe("createBooking: deckchairs (ADR 0020)", () => {
+  async function storedDeckchairs(): Promise<number[]> {
+    const rows = await db.selectFrom("booking").select("deckchairs").orderBy("id").execute();
+    return rows.map((r) => r.deckchairs);
+  }
+
+  const twoUmbrellas = () => [
+    { spotId: spot[101], sunbeds: 2 },
+    { spotId: spot[102], sunbeds: 2 },
+  ];
+
+  it("stores 0 when no deckchairs are given, and the sunbeds are unchanged", async () => {
+    expect(await createBooking(db, USER, booking())).toMatchObject({ ok: true });
+    expect(await storedDeckchairs()).toEqual([0]);
+    const occupancy = await loadOccupancy(db, areaId, "2027-07-10");
+    expect(occupancy[spot[101]]).toMatchObject({
+      deckchairs: 0,
+      spots: [{ number: 101, sunbeds: 2 }],
+    });
+  });
+
+  it("stores 2 deckchairs on one umbrella and shows them with the occupant", async () => {
+    const result = await createBooking(db, USER, booking({ deckchairs: 2 }));
+    expect(result).toMatchObject({ ok: true });
+    expect(await storedDeckchairs()).toEqual([2]);
+    const occupancy = await loadOccupancy(db, areaId, "2027-07-10");
+    expect(occupancy[spot[101]]).toMatchObject({
+      deckchairs: 2,
+      spots: [{ number: 101, sunbeds: 2 }],
+    });
+  });
+
+  it("allows the cap per umbrella on two umbrellas (4)", async () => {
+    const deckchairs = 2 * MAX_DECKCHAIRS_PER_UMBRELLA;
+    const result = await createBooking(db, USER, booking({ spots: twoUmbrellas(), deckchairs }));
+    expect(result).toMatchObject({ ok: true });
+    expect(await storedDeckchairs()).toEqual([4]);
+    expect((await loadOccupancy(db, areaId, "2027-07-11"))[spot[102]]).toMatchObject({
+      deckchairs: 4,
+    });
+  });
+
+  it("refuses 5 deckchairs on two umbrellas and writes nothing", async () => {
+    const deckchairs = 2 * MAX_DECKCHAIRS_PER_UMBRELLA + 1;
+    const result = await createBooking(db, USER, booking({ spots: twoUmbrellas(), deckchairs }));
+    expect(result).toEqual({ ok: false, error: "invalid" });
+    expect(await storedDeckchairs()).toEqual([]);
+    expect(await spotDayCount()).toBe(0);
+  });
+
+  it.each([3, -1, 1.5, "1", null, 41])(
+    "refuses %j deckchairs on one umbrella and writes nothing",
+    async (deckchairs) => {
+      const input = { ...booking(), deckchairs };
+      expect(await createBooking(db, USER, input)).toEqual({ ok: false, error: "invalid" });
+      expect(await storedDeckchairs()).toEqual([]);
+      expect(await spotDayCount()).toBe(0);
+    },
+  );
+
+  it("mentions the deckchairs in the book entry when there are some", async () => {
+    await createBooking(db, USER, booking({ deckchairs: 2 }));
+    await createBooking(db, USER, booking({ spots: [{ spotId: spot[201], sunbeds: 2 }] }));
+    const [none, two] = await listActivity(db);
+    expect(two).toMatchObject({ action: "book", detail: { deckchairs: 2 } });
+    expect(none).toMatchObject({ action: "book", detail: {} });
+    expect(none.detail).not.toHaveProperty("deckchairs");
   });
 });
 

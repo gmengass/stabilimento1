@@ -8,22 +8,25 @@ import {
   bookSpots,
   DAY_COLUMNS,
   customerAndSpots,
+  deckchairsFit,
   isConflict,
   type Clash,
   type CreateResult,
 } from "./bookings";
 
-const passSchema = z.object({
-  ...customerAndSpots,
-  seasonId: z.number().int().positive(),
-  /** The holder's first day, which can be later than the season's opening day (ADR 0004). */
-  startDate: bookingDate,
-  /** The holder's last day, if they know it. Blank or missing: the season's last day. */
-  endDate: z
-    .union([z.literal(""), bookingDate])
-    .nullish()
-    .transform((date) => date || null),
-});
+const passSchema = z
+  .object({
+    ...customerAndSpots,
+    seasonId: z.number().int().positive(),
+    /** The holder's first day, which can be later than the season's opening day (ADR 0004). */
+    startDate: bookingDate,
+    /** The holder's last day, if they know it. Blank or missing: the season's last day. */
+    endDate: z
+      .union([z.literal(""), bookingDate])
+      .nullish()
+      .transform((date) => date || null),
+  })
+  .refine(deckchairsFit);
 
 export type CreateSeasonPassInput = z.input<typeof passSchema>;
 

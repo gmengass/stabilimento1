@@ -25,10 +25,14 @@ export async function ActivityPanel({ entries, viewer }: Props) {
     const spots = t("spots", { count: entry.spots.length, numbers: entry.spots.join(", ") });
     const { detail } = entry;
     switch (entry.action) {
-      case "book":
-        return entry.kind === "season"
-          ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
-          : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
+      case "book": {
+        const text =
+          entry.kind === "season"
+            ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
+            : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
+        const deckchairs = Number(detail.deckchairs ?? 0);
+        return deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text;
+      }
       case "cancel":
         return t("cancel", { user, name, spots });
       case "set_last_day":

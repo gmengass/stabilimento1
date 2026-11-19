@@ -993,3 +993,47 @@ describe("undo after a move from a later day", () => {
     expect(await daysOf(pass)).toEqual(before);
   });
 });
+
+describe("deckchairs go with the booking (ADR 0020)", () => {
+  async function deckchairsOf(bookingId: number): Promise<number> {
+    const row = await db
+      .selectFrom("booking")
+      .select("deckchairs")
+      .where("id", "=", bookingId)
+      .executeTakeFirstOrThrow();
+    return row.deckchairs;
+  }
+
+  it("keeps 2 deckchairs after a move to another umbrella and after undoing it", async () => {
+    const id = await book({ deckchairs: 2 });
+    expect(await deckchairsOf(id)).toBe(2);
+    expect(await move({ bookingId: id, spots: [to(101, 105)] })).toEqual({ ok: true });
+    expect(await deckchairsOf(id)).toBe(2);
+    expect((await loadOccupancy(db, areaId, jul(10)))[spot[105]]).toMatchObject({ deckchairs: 2 });
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await deckchairsOf(id)).toBe(2);
+    expect((await loadOccupancy(db, areaId, jul(10)))[spot[101]]).toMatchObject({ deckchairs: 2 });
+  });
+
+  it("keeps 2 deckchairs after a date move and after undoing it", async () => {
+    const id = await book({ deckchairs: 2 });
+    expect(
+      await move({ bookingId: id, spots: [to(101, 101)], startDate: jul(14), endDate: jul(15) }),
+    ).toEqual({ ok: true });
+    expect(await deckchairsOf(id)).toBe(2);
+    expect((await loadOccupancy(db, areaId, jul(14)))[spot[101]]).toMatchObject({ deckchairs: 2 });
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await deckchairsOf(id)).toBe(2);
+    expect((await loadOccupancy(db, areaId, jul(10)))[spot[101]]).toMatchObject({ deckchairs: 2 });
+  });
+
+  it("keeps 4 deckchairs after a swap of two umbrellas and after undoing it", async () => {
+    const id = await twoUmbrellas({ deckchairs: 4 });
+    expect(await move({ bookingId: id, spots: [to(101, 102), to(102, 101)] })).toEqual({
+      ok: true,
+    });
+    expect(await deckchairsOf(id)).toBe(4);
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await deckchairsOf(id)).toBe(4);
+  });
+});

@@ -2,11 +2,12 @@ import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
+import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
-export const MAX_SPOTS_PER_BOOKING = 20;
+export { MAX_SPOTS_PER_BOOKING };
 
 export const bookingDate = z.string().refine(isBookingDate);
 
@@ -37,10 +38,18 @@ export const customerAndSpots = {
     .min(1)
     .max(MAX_SPOTS_PER_BOOKING)
     .refine((spots) => new Set(spots.map((s) => s.spotId)).size === spots.length),
+  /** Asked for with the booking, not stock (ADR 0020). Capped per umbrella by `deckchairsFit`. */
+  deckchairs: z.number().int().min(0).default(0),
 };
+
+/** At most `MAX_DECKCHAIRS_PER_UMBRELLA` deckchairs for each umbrella in the booking. */
+export function deckchairsFit(booking: { deckchairs: number; spots: unknown[] }): boolean {
+  return booking.deckchairs <= booking.spots.length * MAX_DECKCHAIRS_PER_UMBRELLA;
+}
 
 const createSchema = z
   .object({ ...customerAndSpots, startDate: bookingDate, endDate: bookingDate })
+  .refine(deckchairsFit)
   .refine((b) => b.endDate >= b.startDate)
   .refine((b) => daysBetween(b.startDate, b.endDate) < MAX_BOOKING_DAYS);
 
@@ -125,6 +134,7 @@ export interface BookingToWrite {
   endDate: string;
   notes: string;
   spots: { spotId: number; sunbeds: number }[];
+  deckchairs: number;
   seasonId?: number;
 }
 
@@ -167,6 +177,7 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
         start_date: booking.startDate,
         end_date: booking.endDate,
         notes: booking.notes,
+        deckchairs: booking.deckchairs,
         created_by: userId,
       })
       .returning("id")
@@ -187,11 +198,12 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       returning booking_spot_id as "bookingSpotId", spot_id as "spotId",
         to_char(date, 'YYYY-MM-DD') as date, state
     `.execute(tx);
-    const { endDate } = booking;
+    const { endDate, deckchairs } = booking;
     await writeEntry(tx, {
       userId,
       action: "book",
       bookingId: id,
+      detail: deckchairs > 0 ? { deckchairs } : {},
       change: {
         before: { status: "cancelled", endDate },
         after: { status: "active", endDate },
@@ -323,6 +335,8 @@ export interface Occupant {
   releasedDays: number;
   /** Every umbrella in the booking with its sunbeds, so staff see the whole group. */
   spots: { spotId: number; number: number; sunbeds: number }[];
+  /** Deckchairs asked for with the booking (ADR 0020). */
+  deckchairs: number;
   /** Checked in on the day loaded (ADR 0015). */
   checkedIn: boolean;
   /** The booking's own hold time ("HH:MM"), or null for the venue's. */
@@ -360,6 +374,7 @@ async function loadSpotDays(
       "booking.start_date as startDate",
       "booking.end_date as endDate",
       "booking.notes",
+      "booking.deckchairs",
       sql<string | null>`to_char(booking.hold_until, 'HH24:MI')`.as("holdUntil"),
       sql<string>`to_char(coalesce(booking.hold_until, venue.default_hold_until), 'HH24:MI')`.as(
         "holdTime",

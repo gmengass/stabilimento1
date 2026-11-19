@@ -84,6 +84,7 @@ export interface Booking {
   created_by: string;
   customer_name: string;
   customer_phone: string | null;
+  deckchairs: Generated<number>;
   end_date: string;
   hold_until: string | null;
   id: Generated<number>;

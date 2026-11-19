@@ -257,6 +257,29 @@ describe("createSeasonPass", () => {
     expect(await loadOccupancy(db, areaId, "2027-09-16")).toEqual({});
   });
 
+  it("stores the deckchairs asked for with the pass, and 0 when none are", async () => {
+    const withOne = await sellPass({ deckchairs: 1 });
+    const without = await sellPass({ spots: [{ spotId: spot[102], sunbeds: 2 }] });
+    const rows = await db
+      .selectFrom("booking")
+      .select(["id", "deckchairs"])
+      .orderBy("id")
+      .execute();
+    expect(rows).toEqual([
+      { id: withOne, deckchairs: 1 },
+      { id: without, deckchairs: 0 },
+    ]);
+    expect((await loadOccupancy(db, areaId, TODAY))[spot[101]]).toMatchObject({
+      kind: "season",
+      deckchairs: 1,
+    });
+  });
+
+  it("refuses a pass with more than 2 deckchairs per umbrella", async () => {
+    expect(await sell(pass({ deckchairs: 3 }))).toEqual({ ok: false, error: "invalid" });
+    expect(await db.selectFrom("booking").select("id").execute()).toEqual([]);
+  });
+
   it("starts on the holder's first day when it is later than the opening", async () => {
     const bookingId = await sellPass({ startDate: "2027-09-14" });
     expect(await states(bookingId)).toEqual({ booked: 2 });
