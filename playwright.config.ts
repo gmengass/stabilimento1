@@ -18,7 +18,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
-      testIgnore: /phone\.spec\.ts/,
+      testIgnore: /(phone|stock)\.spec\.ts/,
     },
     {
       name: "phone",
@@ -30,6 +30,13 @@ export default defineConfig({
       },
       dependencies: ["setup"],
       testMatch: /phone\.spec\.ts/,
+    },
+    {
+      // After every other spec: a stock set here would warn their bookings too (ADR 0021).
+      name: "stock",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["chromium", "phone"],
+      testMatch: /stock\.spec\.ts/,
     },
   ],
   webServer: {
