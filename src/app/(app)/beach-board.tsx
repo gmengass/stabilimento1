@@ -69,9 +69,38 @@ export function BeachBoard({
   const ts = useTranslations("sheet");
   const tb = useTranslations("booking");
   const tm = useTranslations("map");
+  /** Why the panel changed under the user: a change made elsewhere (live map, ADR 0019). */
+  const [notice, setNotice] = useState<"taken" | "gone" | null>(null);
+  const [syncedDate, setSyncedDate] = useState(date);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
-  // A booking made or cancelled elsewhere can make the selection stale: drop booked spots.
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
+
+  // A change made elsewhere can leave state pointing at what is gone: umbrellas booked by
+  // someone else, or the open booking cancelled or moved. Drop it for good (a spot freed again
+  // must not come back selected) and say so, unless the user just changed the day.
+  const bookingGone = openBooking !== null && !open;
+  const selectionStale = freeSelected.length !== selected.length;
+  const targetsStale =
+    !!targets &&
+    Object.values(targets).some(
+      (t) => occupancy[t.spotId] && occupancy[t.spotId].bookingId !== openBooking,
+    );
+  if (syncedDate !== date) {
+    setSyncedDate(date);
+    setNotice(null);
+  }
+  if (bookingGone || selectionStale || targetsStale) {
+    if (selectionStale) {
+      setSelected(freeSelected);
+      if (freeSelected.length === 0) setPick(null);
+    }
+    if (bookingGone || targetsStale) {
+      setOpenBooking(bookingGone ? null : openBooking);
+      setTargets(null);
+      setMoveFor(null);
+    }
+    if (syncedDate === date) setNotice(bookingGone || targetsStale ? "gone" : "taken");
+  }
 
   const spotById = new Map(lines.flatMap((line) => line.spots.map((s) => [s.id, s])));
 
@@ -140,6 +169,7 @@ export function BeachBoard({
   }
 
   function reset() {
+    setNotice(null);
     endMove();
     setSelected([]);
     setPick(null);
@@ -345,6 +375,15 @@ export function BeachBoard({
           onSpotClick={onSpotClick}
         />
       </div>
+      {notice && (
+        <p
+          role="status"
+          data-testid="live-panel-notice"
+          className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 lg:col-span-2 dark:bg-amber-950 dark:text-amber-100"
+        >
+          {tm(notice === "taken" ? "spotsTaken" : "bookingGone")}
+        </p>
+      )}
       {panel && (
         <aside
           aria-label={ts("label")}

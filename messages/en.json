@@ -106,6 +106,8 @@
     "emptyStaff": "Ask an admin to set up the lines and umbrellas.",
     "spotBooked": "Umbrella {number}, booked by {name}",
     "legendBooked": "Booked: {count}",
+    "spotsTaken": "Umbrellas you picked were just booked elsewhere and were removed from your selection.",
+    "bookingGone": "That booking was changed elsewhere, so it is no longer open here.",
     "liveReconnecting": "Not live, reconnecting…",
     "seaOf": "Sea · {area}",
     "spotSeason": "Umbrella {number}, season pass of {name}",

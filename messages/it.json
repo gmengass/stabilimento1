@@ -106,6 +106,8 @@
     "emptyStaff": "Chiedi a un amministratore di impostare file e ombrelloni.",
     "spotBooked": "Ombrellone {number}, prenotato da {name}",
     "legendBooked": "Prenotati: {count}",
+    "spotsTaken": "Alcuni ombrelloni scelti sono stati appena prenotati altrove e sono stati tolti dalla selezione.",
+    "bookingGone": "Quella prenotazione è stata modificata altrove, quindi non è più aperta qui.",
     "liveReconnecting": "Non aggiornato in tempo reale, riconnessione…",
     "seaOf": "Mare · {area}",
     "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",
