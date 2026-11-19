@@ -11,6 +11,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Deckchairs (sdraie): a booking or season pass can ask for up to 2 deckchairs per umbrella, in
   the booking form and in quick book. Sunbeds stay as before (2 per umbrella by default). The
   booking shows "2 sdraie" and the activity list mentions them (ADR 0020).
+- Stock of lettini and sdraie: in Beach settings an admin enters how many the club owns (blank:
+  not counted). The map's day counts then show how many are left that day for the whole beach,
+  and a booking, season pass or move to new dates that would go over shows the days short and
+  "Prenota comunque" / "Sposta comunque" to save it anyway (ADR 0021).
 
 ## [0.10.0] - 2026-11-18
 ### Added

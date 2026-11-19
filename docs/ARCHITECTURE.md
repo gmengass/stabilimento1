@@ -9,7 +9,8 @@ Single venue with one or more booking areas. 5–10 staff users; changes appear 
 screens within seconds. Customers never use the app. They are contact details on a booking.
 
 ## Core domain (stack-independent)
-- **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded)
+- **Venue**: the beach club (exactly one for now; modeled as a table so it isn't hard-coded);
+  sunbed_stock and deckchair_stock (null = not tracked; `src/lib/booking/stock.ts`, ADR 0021)
 - **Area**: a bookable zone within the venue (e.g. main beach, second area), with its own layout. Adding an area is a data change, not a code change.
 - **Line** (table `area_line`): area, number (1 = closest to the shore)
 - **Spot**: area, line, number (what staff call it, unique per area; default line × 100 + position), position (order in the line, 1 = leftmost facing the sea), kind (umbrella | sunbed), included_sunbeds (default 2), max_sunbeds (default 3)
