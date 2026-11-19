@@ -184,7 +184,7 @@ export function NewBookingForm(props: NewProps) {
   const [endDate, setEndDate] = useState(draft && !draft.asPass ? draft.endDate : date);
   const season = asPass ? openSeason : null;
   const [checkIn, setCheckIn] = useState(true);
-  const startsToday = !season && startDate <= today && today <= endDate;
+  const startsToday = !season && startDate === today && endDate === today;
   const maxDeckchairs = spots.length * MAX_DECKCHAIRS_PER_UMBRELLA;
   // Controlled and clamped: removing an umbrella lowers the cap, and the choice follows it.
   const [deckchairs, setDeckchairs] = useState(draft?.deckchairs ?? 0);

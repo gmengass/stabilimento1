@@ -924,9 +924,9 @@ describe("check in as the booking is created", () => {
     expect(await checkIns()).toEqual([]);
   });
 
-  it("checks in only today of a multi-day booking", async () => {
-    const id = await book({ endDate: TOMORROW, checkIn: true });
-    expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: ANNA.id }]);
+  it("ignores the flag for a multi-day booking", async () => {
+    await book({ endDate: TOMORROW, checkIn: true });
+    expect(await checkIns()).toEqual([]);
   });
 
   it("writes no check-in when the umbrella is taken", async () => {
@@ -955,12 +955,5 @@ describe("check in at creation: audit and multi-day undo", () => {
       select detail, change from audit_log where action = 'book'`.execute(db);
     expect(rows[0].detail.checkedIn).toBe(1);
     expect(rows[0].change.checkIns).toEqual([{ date: TODAY, before: false, after: true }]);
-  });
-
-  it("undoes a multi-day booking with its check-in", async () => {
-    const id = await book({ endDate: TOMORROW, checkIn: true });
-    expect(await undo(await latestId())).toMatchObject({ ok: true });
-    expect(await checkIns()).toEqual([]);
-    expect(await daysOf(id)).toEqual([]);
   });
 });

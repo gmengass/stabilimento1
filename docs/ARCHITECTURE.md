@@ -30,7 +30,7 @@ screens within seconds. Customers never use the app. They are contact details on
 - **SpotDay**: spot, date, booking_spot, state (booked | released | no_show). Unique per (spot, date)
   while occupied (ADR 0004)
 - **CheckIn** (table `check_in`): booking, date, checked-in time, staff user; one per booking per
-  day, for all its umbrellas (ADR 0015). A booking for today may be checked in as it is created
+  day, for all its umbrellas (ADR 0015). A one-day booking for today may be checked in as it is created
   (inside its `book` audit entry)
 - **AuditLog**: user (null only for the automatic `no_show` run), action, booking, before/after,
   timestamp

@@ -40,11 +40,11 @@ check-in, or how an entry without a user is stored.
 - Several app processes would each start a timer; the advisory lock keeps runs single.
 
 ## Amendment: check in at creation (2026-11-19)
-- Creating a day or multi-day booking whose range includes today may check in today as part of
-  the same transaction (`checkIn: true`; the server default is `false`). Still one `check_in` row
-  per booking per day; later days of a multi-day booking are not checked in.
+- Creating a one-day booking for today may check in as part of the same transaction
+  (`checkIn: true`; the server default is `false`). Multi-day bookings and season passes are
+  never checked in at creation. Still one `check_in` row per booking per day.
 - The check-in is part of the `book` entry (`change.checkIns`, `detail.checkedIn`), not a separate
   entry. Undoing the `book` entry cancels the booking and removes the check-in; undoing that undo
-  restores both. Season passes are unchanged: check-in stays manual.
-- The booking form shows a "Check in now" checkbox, ticked by default, only when the range
-  includes today.
+  restores both. Check-in stays manual for multi-day bookings and passes.
+- The booking form shows a "Check in now" checkbox, ticked by default, only for a one-day
+  booking for today.

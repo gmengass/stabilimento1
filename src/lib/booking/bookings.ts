@@ -55,7 +55,7 @@ const createSchema = z
     ...customerAndSpots,
     startDate: bookingDate,
     endDate: bookingDate,
-    /** Check today in with the booking; ignored when the range doesn't include today (ADR 0015). */
+    /** Check in with the booking; only a one-day booking for today takes it (ADR 0015). */
     checkIn: z.boolean().default(false),
   })
   .refine(deckchairsFit)
@@ -317,7 +317,7 @@ export async function createBooking(
   if (!parsed.success) return { ok: false, error: "invalid" };
   if (parsed.data.startDate < today) return { ok: false, error: "past" };
   const { checkIn, ...booking } = parsed.data;
-  const walkIn = checkIn && booking.startDate <= today && today <= booking.endDate;
+  const walkIn = checkIn && booking.startDate === today && booking.endDate === today;
   return bookSpots(db, userId, walkIn ? { ...booking, checkInDate: today } : booking);
 }
 
