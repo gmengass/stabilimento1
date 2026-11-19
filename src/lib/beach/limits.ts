@@ -7,3 +7,5 @@ export const MAX_AREAS = 10;
 export const MAX_SPOTS_PER_BOOKING = 20;
 /** Deckchairs a booking may ask for, per umbrella in it (ADR 0020). */
 export const MAX_DECKCHAIRS_PER_UMBRELLA = 2;
+/** Sunbeds or deckchairs the venue may record as stock (ADR 0021; the database checks it too). */
+export const MAX_STOCK = 9999;
