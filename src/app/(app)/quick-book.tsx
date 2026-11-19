@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
+import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import type { Suggestion } from "@/lib/booking/suggest";
 import { suggestQuickBookAction } from "./booking-actions";
@@ -17,6 +18,8 @@ export interface QuickBookDraft {
   asPass: boolean;
   umbrellas: number;
   sunbeds: number;
+  /** Handed to the booking form, which caps it per umbrella (ADR 0020). */
+  deckchairs: number;
 }
 
 export interface QuickBookPick {
@@ -86,6 +89,7 @@ export function QuickBookForm(props: FormProps) {
       asPass: !!season,
       umbrellas: Number(form.get("umbrellas")),
       sunbeds: Number(form.get("sunbeds")),
+      deckchairs: Number(form.get("deckchairs")),
     };
     startTransition(async () => {
       try {
@@ -153,6 +157,19 @@ export function QuickBookForm(props: FormProps) {
             max={200}
             defaultValue={initial?.sunbeds ?? 2}
             data-testid="quick-book-sunbeds"
+            className={field}
+          />
+        </label>
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          {tb("deckchairs")}
+          <input
+            name="deckchairs"
+            type="number"
+            required
+            min={0}
+            max={20 * MAX_DECKCHAIRS_PER_UMBRELLA}
+            defaultValue={initial?.deckchairs ?? 0}
+            data-testid="quick-book-deckchairs"
             className={field}
           />
         </label>

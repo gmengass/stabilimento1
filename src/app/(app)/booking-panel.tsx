@@ -5,6 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
 import type { MapSpot } from "@/lib/beach/layout";
+import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
 import type { Clash, Occupant } from "@/lib/booking/bookings";
 import { addDays } from "@/i18n/format";
 import type { OpenSeason } from "@/lib/booking/seasons";
@@ -134,6 +135,7 @@ export function NewBookingForm(props: NewProps) {
   const [startDate, setStartDate] = useState(draft?.startDate ?? date);
   const [endDate, setEndDate] = useState(draft && !draft.asPass ? draft.endDate : date);
   const season = asPass ? openSeason : null;
+  const maxDeckchairs = spots.length * MAX_DECKCHAIRS_PER_UMBRELLA;
   const formatDate = useDate();
 
   function togglePass(checked: boolean) {
@@ -158,6 +160,7 @@ export function NewBookingForm(props: NewProps) {
       startDate: form.get("startDate"),
       notes: form.get("notes"),
       spots: spots.map((s) => ({ spotId: s.id, sunbeds: Number(form.get(`sunbeds-${s.id}`)) })),
+      deckchairs: Number(form.get("deckchairs")),
     };
     startTransition(async () => {
       try {
@@ -206,6 +209,21 @@ export function NewBookingForm(props: NewProps) {
           </li>
         ))}
       </ul>
+      <label className="flex items-center gap-1 text-sm">
+        {t("deckchairs")}
+        <select
+          name="deckchairs"
+          defaultValue={Math.min(draft?.deckchairs ?? 0, maxDeckchairs)}
+          data-testid="booking-deckchairs"
+          className={field}
+        >
+          {Array.from({ length: maxDeckchairs + 1 }, (_, n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="flex flex-col gap-1 text-sm">
         {t("customerName")}
         <input
@@ -702,6 +720,11 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         {occupant.spots.map((s) => (
           <li key={s.number}>{t("spotLine", { number: s.number, sunbeds: s.sunbeds })}</li>
         ))}
+        {occupant.deckchairs > 0 && (
+          <li data-testid="booking-deckchairs-line">
+            {t("deckchairsLine", { count: occupant.deckchairs })}
+          </li>
+        )}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
       {date === today && <CheckInButton occupant={occupant} date={date} />}

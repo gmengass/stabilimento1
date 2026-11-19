@@ -182,6 +182,7 @@
   "booking": {
     "newTitle": "New booking · {area}",
     "sunbeds": "Sunbeds",
+    "deckchairs": "Deckchairs",
     "remove": "Remove",
     "removeSpot": "Remove umbrella {number}",
     "customerName": "Customer name",
@@ -194,6 +195,7 @@
     "close": "Close",
     "range": "{from} – {to}",
     "spotLine": "Umbrella {number} · {sunbeds, plural, one {# sunbed} other {# sunbeds}}",
+    "deckchairsLine": "{count, plural, one {# deckchair} other {# deckchairs}}",
     "cancel": "Cancel booking",
     "cancelConfirm": "Cancel the whole booking, for every umbrella and every day?",
     "cancelYes": "Yes, cancel it",
@@ -350,6 +352,7 @@
     "spots": "{count, plural, one {umbrella {numbers}} other {umbrellas {numbers}}}",
     "range": "{from} – {to}",
     "book": "{user} booked {spots} for {name}, {dates}",
+    "withDeckchairs": "{text}, with {count, plural, one {# deckchair} other {# deckchairs}}",
     "sellPass": "{user} sold a season pass for {spots} to {name}, from {from}",
     "cancel": "{user} cancelled the booking of {name} ({spots})",
     "setLastDay": "{user} set the last day of {name}'s pass to {date}",
