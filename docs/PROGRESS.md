@@ -2,14 +2,14 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.10.0` deployed. Live map (#59) merged, untagged. Open: #60, #61, stock (stacked on #61).
+- `v0.10.0` deployed. Live map (#59) merged, untagged. Open: #60, #61, #62 stock (base #61).
 
 ## Done this session
 - Stock of lettini/sdraie (ADR 0021, migration 0012): Beach settings, day counts, warn + "anyway"
   on book/pass/date move, overrides logged. 1070 tests, 46 e2e; review approved, security pass.
 
 ## Next up
-1. Merge #60, #61, then stock (retarget to `main`); tag `v0.11.0`. Box: migrate, tablets sync.
+1. Merge #60, #61, then #62 stock (retarget to `main`); tag `v0.11.0`. Box: migrate, tablets sync.
 2. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
