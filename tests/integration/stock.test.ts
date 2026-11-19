@@ -313,7 +313,7 @@ describe("booking over the stock", () => {
     );
   });
 
-  it("warns at most once when two desks book the last sunbeds at once", async () => {
+  it("never refuses both of two desks booking the last sunbeds at once", async () => {
     await stock(2);
     const results = await Promise.all([
       createBooking(db, USER, input({ spots: [{ spotId: spot[101], sunbeds: 2 }] }), TODAY),
@@ -356,6 +356,29 @@ describe("moving over the stock", () => {
     });
   });
 
+  it("does not warn about deckchairs on new dates for a booking with none", async () => {
+    await stock(null, 0);
+    await book({
+      startDate: TOMORROW,
+      endDate: TOMORROW,
+      spots: [{ spotId: spot[201], sunbeds: 2 }],
+      deckchairs: 1,
+    });
+    const id = await book();
+    const moved = await moveBooking(
+      db,
+      USER,
+      {
+        bookingId: id,
+        spots: [{ fromSpotId: spot[101], toSpotId: spot[101] }],
+        startDate: TOMORROW,
+        endDate: TOMORROW,
+      },
+      TODAY,
+    );
+    expect(moved).toEqual({ ok: true });
+  });
+
   it("never warns on a move that keeps the dates", async () => {
     await stock(0, 0);
     const id = await book({ deckchairs: 1 });
@@ -366,6 +389,50 @@ describe("moving over the stock", () => {
       TODAY,
     );
     expect(moved).toEqual({ ok: true });
+  });
+});
+
+describe("logging an override", () => {
+  it("records the days over on the book entry when saved anyway, and nothing otherwise", async () => {
+    await stock(1);
+    await createBooking(
+      db,
+      USER,
+      input({ startDate: TODAY, endDate: TOMORROW, allowOverStock: true }),
+      TODAY,
+    );
+    await createBooking(db, USER, input({ spots: [{ spotId: spot[102], sunbeds: 0 }] }), TODAY);
+    const details = await db.selectFrom("audit_log").select("detail").orderBy("id").execute();
+    expect(details.map((d) => d.detail)).toEqual([{ overStockDays: 2 }, {}]);
+  });
+
+  it("records the days over on a move to new dates saved anyway", async () => {
+    await stock(1);
+    await book({
+      startDate: TOMORROW,
+      endDate: TOMORROW,
+      spots: [{ spotId: spot[201], sunbeds: 1 }],
+    });
+    const id = await book({ spots: [{ spotId: spot[101], sunbeds: 1 }] });
+    const moved = await moveBooking(
+      db,
+      USER,
+      {
+        bookingId: id,
+        spots: [{ fromSpotId: spot[101], toSpotId: spot[101] }],
+        startDate: TOMORROW,
+        endDate: TOMORROW,
+        allowOverStock: true,
+      },
+      TODAY,
+    );
+    expect(moved).toEqual({ ok: true });
+    const entry = await db
+      .selectFrom("audit_log")
+      .select("detail")
+      .where("action", "=", "move")
+      .executeTakeFirstOrThrow();
+    expect(entry.detail).toMatchObject({ overStockDays: 1 });
   });
 });
 
