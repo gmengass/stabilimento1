@@ -83,3 +83,28 @@ test("emptying a suggestion on the map ends quick book: the next spot starts bla
   await expect(page.locator('input[name="customerName"]')).toHaveValue("");
   await expect(page.getByTestId("quick-book-suggestion")).toHaveCount(0);
 });
+
+test("quick book carries deckchairs to the booking form and the booking shows them", async ({
+  page,
+}) => {
+  const day = "2091-07-16";
+  const customer = `Deck ${Date.now()}`;
+  await page.goto(`/?date=${day}`);
+
+  await page.getByTestId("quick-book-open").click();
+  await page.locator('input[name="customerName"]').fill(customer);
+  await page.getByTestId("quick-book-umbrellas").fill("1");
+  await page.getByTestId("quick-book-deckchairs").fill("2");
+  await page.getByTestId("quick-book-suggest").click();
+  await expect(page.getByTestId("quick-book-suggestion").first()).toBeVisible();
+
+  // Sunbeds keep their default; the deckchairs come over from quick book (ADR 0020).
+  const form = page.locator("form", { has: page.locator('input[name="customerName"]') });
+  await expect(form.getByTestId("booking-deckchairs")).toHaveValue("2");
+  await form.locator('button[type="submit"]').click();
+  await expect(form).toHaveCount(0);
+
+  await page.goto(`/?date=${day}`);
+  await page.getByTestId("beach-map").locator("ol button", { hasText: customer }).click();
+  await expect(page.getByTestId("booking-deckchairs-line")).toContainText("2");
+});

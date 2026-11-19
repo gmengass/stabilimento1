@@ -114,7 +114,7 @@ test("with the sheet open a second umbrella joins the selection and both get boo
   await spotButton(page, second).tap();
   await expect(spotButton(page, first)).toHaveAttribute("aria-pressed", "true");
   await expect(spotButton(page, second)).toHaveAttribute("aria-pressed", "true");
-  await expect(panel.locator("form select")).toHaveCount(2);
+  await expect(panel.locator('form select[name^="sunbeds-"]')).toHaveCount(2);
 
   await panel.locator('input[name="customerName"]').fill(customer);
   await panel.locator('form button[type="submit"]').tap();
