@@ -108,6 +108,7 @@
     "legendBooked": "Prenotati: {count}",
     "spotsTaken": "Alcuni ombrelloni scelti sono stati appena prenotati altrove e sono stati tolti dalla selezione.",
     "bookingGone": "Quella prenotazione è stata modificata altrove, quindi non è più aperta qui.",
+    "moveTargetTaken": "Un ombrellone scelto per lo spostamento è stato appena occupato, quindi lo spostamento è stato annullato.",
     "liveReconnecting": "Non aggiornato in tempo reale, riconnessione…",
     "seaOf": "Mare · {area}",
     "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",

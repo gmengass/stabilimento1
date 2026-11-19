@@ -11,6 +11,12 @@ import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
+const noticeKey = {
+  taken: "spotsTaken",
+  gone: "bookingGone",
+  targetTaken: "moveTargetTaken",
+} as const;
+
 /** Below Tailwind's `md`: where the panel is a bottom sheet. */
 const PHONE = "(max-width: 47.99rem)";
 
@@ -70,7 +76,7 @@ export function BeachBoard({
   const tb = useTranslations("booking");
   const tm = useTranslations("map");
   /** Why the panel changed under the user: a change made elsewhere (live map, ADR 0019). */
-  const [notice, setNotice] = useState<"taken" | "gone" | null>(null);
+  const [notice, setNotice] = useState<"taken" | "gone" | "targetTaken" | null>(null);
   const [syncedDate, setSyncedDate] = useState(date);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
@@ -99,13 +105,18 @@ export function BeachBoard({
       setTargets(null);
       setMoveFor(null);
     }
-    if (syncedDate === date) setNotice(bookingGone || targetsStale ? "gone" : "taken");
+    if (syncedDate === date) {
+      setNotice(bookingGone ? "gone" : targetsStale ? "targetTaken" : "taken");
+    }
   }
 
   const spotById = new Map(lines.flatMap((line) => line.spots.map((s) => [s.id, s])));
 
   function showSuggestion(next: QuickBookPick, index: number) {
-    const spots = next.suggestions[index].spots.flatMap((s) => spotById.get(s.spotId) ?? []);
+    setNotice(null);
+    const spots = next.suggestions[index].spots.flatMap((s) =>
+      occupancy[s.spotId] ? [] : (spotById.get(s.spotId) ?? []),
+    );
     setPick(next);
     setPickIndex(index);
     setQuickForm(false);
@@ -114,6 +125,7 @@ export function BeachBoard({
   }
 
   function openQuickBook() {
+    setNotice(null);
     setSelected([]);
     setPick(null);
     setOpenBooking(null);
@@ -177,6 +189,7 @@ export function BeachBoard({
   }
 
   function onSpotClick(spot: MapSpot) {
+    setNotice(null);
     if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
     if (occupant) {
@@ -381,7 +394,7 @@ export function BeachBoard({
           data-testid="live-panel-notice"
           className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 lg:col-span-2 dark:bg-amber-950 dark:text-amber-100"
         >
-          {tm(notice === "taken" ? "spotsTaken" : "bookingGone")}
+          {tm(noticeKey[notice])}
         </p>
       )}
       {panel && (

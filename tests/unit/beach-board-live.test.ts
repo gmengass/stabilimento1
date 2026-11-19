@@ -124,15 +124,24 @@ describe("an open booking changed elsewhere", () => {
 
     view.rerender(board({ 1: occupant(10, 1), 2: occupant(11, 2) }));
     expect(pressed()).toEqual([1]);
-    expect(notice()).toMatch(/changed elsewhere/);
+    expect(notice()).toMatch(/umbrella you chose/);
   });
 
   it("shows no notice when the user closes the panel and the booking is then gone", () => {
     const view = render(board({ 1: occupant(10, 1) }));
     tap(1);
     expect(notice()).toBeNull();
-    fireEvent.click(screen.getAllByRole("button", { name: /^close$/i })[0] ?? document.body);
+    fireEvent.click(screen.getAllByRole("button", { name: /^close$/i })[0]);
     view.rerender(board({}));
+    expect(notice()).toBeNull();
+  });
+
+  it("clears a notice the moment the user acts, and when their own cancel arrives first", () => {
+    const view = render(board({ 1: occupant(10, 1) }));
+    tap(1);
+    view.rerender(board({}));
+    expect(notice()).toMatch(/changed elsewhere/);
+    tap(3);
     expect(notice()).toBeNull();
   });
 });
