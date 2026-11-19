@@ -150,6 +150,14 @@ describe("logging", () => {
     expect(JSON.stringify(stored.change)).not.toContain("Rossi");
   });
 
+  it("mentions the deckchairs on the book entry only when there are some", async () => {
+    await book(ANNA, { deckchairs: 4 });
+    await book(ANNA, { startDate: addDays(TODAY, 5), endDate: addDays(TODAY, 5) });
+    const [without, withFour] = await listActivity(db);
+    expect(withFour).toMatchObject({ action: "book", detail: { deckchairs: 4 } });
+    expect(without).toMatchObject({ action: "book", detail: {} });
+  });
+
   it("writes nothing when the change fails", async () => {
     await book();
     expect(await entryCount()).toBe(1);
@@ -220,6 +228,24 @@ describe("undo", () => {
     expect((await bookingState(id)).days).toEqual({ booked: 6 });
     expect(await undo(await latestId())).toEqual({ ok: true });
     expect((await bookingState(id)).days).toEqual({});
+  });
+
+  it("undoes a booking with deckchairs, and undoing that restores it with them", async () => {
+    const id = await book(ANNA, { deckchairs: 3 });
+    const deckchairs = async () =>
+      (
+        await db
+          .selectFrom("booking")
+          .select("deckchairs")
+          .where("id", "=", id)
+          .executeTakeFirstOrThrow()
+      ).deckchairs;
+    expect(await deckchairs()).toBe(3);
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await bookingState(id)).toMatchObject({ status: "cancelled", days: {} });
+    expect(await undo(await latestId())).toEqual({ ok: true });
+    expect(await bookingState(id)).toMatchObject({ status: "active", days: { booked: 6 } });
+    expect(await deckchairs()).toBe(3);
   });
 
   it("refuses to undo a cancel once someone else booked one of the umbrellas", async () => {

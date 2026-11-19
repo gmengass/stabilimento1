@@ -117,6 +117,36 @@ describe.each(dayActions)("%s", (_name, action, operation) => {
   });
 });
 
+describe("deckchairs (ADR 0020)", () => {
+  const input = {
+    customerName: "Rossi",
+    startDate: "2027-07-10",
+    endDate: "2027-07-10",
+    spots: [{ spotId: 1, sunbeds: 2 }],
+    deckchairs: 2,
+  };
+
+  it("createBookingAction passes the deckchairs to createBooking unchanged", async () => {
+    actor.current = staff;
+    await createBookingAction(input);
+    expect(bookingsModule.createBooking).toHaveBeenCalledWith(
+      {},
+      "u1",
+      expect.objectContaining({ deckchairs: 2 }),
+    );
+  });
+
+  it("createSeasonPassAction passes the deckchairs to createSeasonPass unchanged", async () => {
+    actor.current = staff;
+    await createSeasonPassAction({ ...input, seasonId: 1, deckchairs: 1 });
+    expect(passesModule.createSeasonPass).toHaveBeenCalledWith(
+      {},
+      "u1",
+      expect.objectContaining({ deckchairs: 1 }),
+    );
+  });
+});
+
 describe("suggestQuickBookAction", () => {
   it("is forbidden when logged out", async () => {
     actor.current = null;
