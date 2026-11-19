@@ -11,6 +11,12 @@ import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
 
+const noticeKey = {
+  taken: "spotsTaken",
+  gone: "bookingGone",
+  targetTaken: "moveTargetTaken",
+} as const;
+
 /** Below Tailwind's `md`: where the panel is a bottom sheet. */
 const PHONE = "(max-width: 47.99rem)";
 
@@ -69,14 +75,51 @@ export function BeachBoard({
   const ts = useTranslations("sheet");
   const tb = useTranslations("booking");
   const tm = useTranslations("map");
+  /** Why the panel changed under the user: a change made elsewhere (live map, ADR 0019). */
+  const [notice, setNotice] = useState<"taken" | "gone" | "targetTaken" | null>(null);
+  const [syncedDate, setSyncedDate] = useState(date);
   const open = Object.values(occupancy).find((o) => o.bookingId === openBooking);
-  // A booking made or cancelled elsewhere can make the selection stale: drop booked spots.
   const freeSelected = selected.filter((s) => !occupancy[s.id]);
+
+  // A change made elsewhere can leave state pointing at what is gone: umbrellas booked by
+  // someone else, or the open booking cancelled or moved. Drop it for good (a spot freed again
+  // must not come back selected) and say so, unless the user just changed the day.
+  const bookingGone = openBooking !== null && !open;
+  const selectionStale = freeSelected.length !== selected.length;
+  const targetsStale =
+    !!targets &&
+    Object.values(targets).some(
+      (t) => occupancy[t.spotId] && occupancy[t.spotId].bookingId !== openBooking,
+    );
+  if (syncedDate !== date) {
+    // A selection is for one day: another day starts blank, as its booking form does.
+    setSyncedDate(date);
+    setNotice(null);
+    setSelected([]);
+    setPick(null);
+    setTargets(null);
+    setMoveFor(null);
+    if (bookingGone) setOpenBooking(null);
+  } else if (bookingGone || selectionStale || targetsStale) {
+    if (selectionStale) {
+      setSelected(freeSelected);
+      if (freeSelected.length === 0) setPick(null);
+    }
+    if (bookingGone || targetsStale) {
+      setOpenBooking(bookingGone ? null : openBooking);
+      setTargets(null);
+      setMoveFor(null);
+    }
+    setNotice(bookingGone ? "gone" : targetsStale ? "targetTaken" : "taken");
+  }
 
   const spotById = new Map(lines.flatMap((line) => line.spots.map((s) => [s.id, s])));
 
   function showSuggestion(next: QuickBookPick, index: number) {
-    const spots = next.suggestions[index].spots.flatMap((s) => spotById.get(s.spotId) ?? []);
+    setNotice(null);
+    const spots = next.suggestions[index].spots.flatMap((s) =>
+      occupancy[s.spotId] ? [] : (spotById.get(s.spotId) ?? []),
+    );
     setPick(next);
     setPickIndex(index);
     setQuickForm(false);
@@ -85,6 +128,7 @@ export function BeachBoard({
   }
 
   function openQuickBook() {
+    setNotice(null);
     setSelected([]);
     setPick(null);
     setOpenBooking(null);
@@ -140,6 +184,7 @@ export function BeachBoard({
   }
 
   function reset() {
+    setNotice(null);
     endMove();
     setSelected([]);
     setPick(null);
@@ -147,6 +192,7 @@ export function BeachBoard({
   }
 
   function onSpotClick(spot: MapSpot) {
+    setNotice(null);
     if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
     if (occupant) {
@@ -345,6 +391,15 @@ export function BeachBoard({
           onSpotClick={onSpotClick}
         />
       </div>
+      {notice && (
+        <p
+          role="status"
+          data-testid="live-panel-notice"
+          className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 lg:col-span-2 dark:bg-amber-950 dark:text-amber-100"
+        >
+          {tm(noticeKey[notice])}
+        </p>
+      )}
       {panel && (
         <aside
           aria-label={ts("label")}
