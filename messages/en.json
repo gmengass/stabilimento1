@@ -403,7 +403,8 @@
     "holdCleared": "{user} set the usual hold time for {name}",
     "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed",
     "beachStock": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
-    "stockOff": "not tracked"
+    "stockOff": "not tracked",
+    "overStock": "{text} (over the stock)"
   },
   "search": {
     "label": "Find a booking by name or phone",

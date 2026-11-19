@@ -227,8 +227,11 @@ export function NewBookingForm(props: NewProps) {
         else if (result.error === "stock") {
           setFailure(null);
           stock.warn(key, result.days);
-        } else if (result.error === "past") setFailure({ key: season ? "past" : "pastBooking" });
-        else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
+        } else {
+          stock.clear();
+          if (result.error === "past") setFailure({ key: season ? "past" : "pastBooking" });
+          else setFailure(toFailure(result, season ? "invalidPass" : "invalid"));
+        }
       } catch {
         setFailure({ key: "generic" });
       }

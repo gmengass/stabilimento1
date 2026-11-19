@@ -76,8 +76,13 @@ export function MoveForm(props: Props) {
       try {
         const result = await moveBookingAction({ ...request, allowOverStock });
         if (result.ok) onDone();
-        else if (result.error === "stock") stock.warn(key, result.days);
-        else setFailure(toFailure(result));
+        else if (result.error === "stock") {
+          setFailure(null);
+          stock.warn(key, result.days);
+        } else {
+          stock.clear();
+          setFailure(toFailure(result));
+        }
       } catch {
         setFailure({ key: "generic" });
       }

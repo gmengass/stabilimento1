@@ -151,17 +151,20 @@ export class OverStock extends Error {
   }
 }
 
-/** Throws `OverStock` unless allowed. Runs after the booking's days are written. */
+/**
+ * Throws `OverStock` unless allowed. Runs after the booking's days are written. Answers the
+ * number of days over, so the log shows who booked over the stock knowingly.
+ */
 export async function checkStock(
   tx: Kysely<DB>,
   from: string,
   to: string,
   uses: { sunbeds: boolean; deckchairs: boolean },
   allowed = false,
-): Promise<void> {
-  if (allowed) return;
+): Promise<number> {
   const days = await overStock(tx, from, to, uses);
-  if (days.length > 0) throw new OverStock(days);
+  if (days.length > 0 && !allowed) throw new OverStock(days);
+  return days.length;
 }
 
 /** The sunbed limits or the season's dates changed between the first check and the insert. */
@@ -226,7 +229,7 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
     `.execute(tx);
     const { startDate, endDate, deckchairs } = booking;
     const sunbeds = booking.spots.some((s) => s.sunbeds > 0);
-    await checkStock(
+    const overStockDays = await checkStock(
       tx,
       startDate,
       endDate,
@@ -237,7 +240,10 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       userId,
       action: "book",
       bookingId: id,
-      detail: deckchairs > 0 ? { deckchairs } : {},
+      detail: {
+        ...(deckchairs > 0 && { deckchairs }),
+        ...(overStockDays > 0 && { overStockDays }),
+      },
       change: {
         before: { status: "cancelled", endDate },
         after: { status: "active", endDate },

@@ -27,6 +27,9 @@ export async function ActivityPanel({ entries, viewer }: Props) {
     const name = entry.customerName ?? "";
     const spots = t("spots", { count: entry.spots.length, numbers: entry.spots.join(", ") });
     const { detail } = entry;
+    /** Saved over the stock after the warning (ADR 0021). */
+    const overStock = (text: string) =>
+      Number(detail.overStockDays ?? 0) > 0 ? t("overStock", { text }) : text;
     switch (entry.action) {
       case "book": {
         const text =
@@ -34,7 +37,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
             ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
             : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
         const deckchairs = Number(detail.deckchairs ?? 0);
-        return deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text;
+        return overStock(deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text);
       }
       case "cancel":
         return t("cancel", { user, name, spots });
@@ -60,17 +63,19 @@ export async function ActivityPanel({ entries, viewer }: Props) {
       case "move": {
         const list = (numbers: unknown) =>
           t("spots", { count: String(numbers).split(",").length, numbers: String(numbers) });
-        return t("move", {
-          user,
-          name,
-          fromSpots: list(detail.fromSpots),
-          toSpots: list(detail.toSpots),
-          // Same dates: only the umbrellas moved, from `fromDay` on.
-          dates:
-            detail.fromStart === detail.toStart && detail.fromEnd === detail.toEnd
-              ? range(detail.fromDay, detail.toEnd)
-              : range(detail.toStart, detail.toEnd),
-        });
+        return overStock(
+          t("move", {
+            user,
+            name,
+            fromSpots: list(detail.fromSpots),
+            toSpots: list(detail.toSpots),
+            // Same dates: only the umbrellas moved, from `fromDay` on.
+            dates:
+              detail.fromStart === detail.toStart && detail.fromEnd === detail.toEnd
+                ? range(detail.fromDay, detail.toEnd)
+                : range(detail.toStart, detail.toEnd),
+          }),
+        );
       }
       case "check_in":
       case "uncheck":

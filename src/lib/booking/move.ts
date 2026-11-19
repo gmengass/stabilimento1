@@ -373,12 +373,13 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
   }));
   await writeDays(tx, removed, added);
   // Umbrellas keep their sunbeds, so only new dates can change what the booking takes from stock.
+  let overStockDays = 0;
   if (dates) {
     const uses = {
       sunbeds: current.some((r) => r.sunbeds > 0),
       deckchairs: booking.deckchairs > 0,
     };
-    await checkStock(tx, dates.startDate, dates.endDate, uses, move.allowOverStock);
+    overStockDays = await checkStock(tx, dates.startDate, dates.endDate, uses, move.allowOverStock);
   }
 
   const { kind, startDate, endDate } = booking;
@@ -410,6 +411,7 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
       toStart: after.startDate!,
       toEnd: after.endDate,
       fromDay: from,
+      ...(overStockDays > 0 && { overStockDays }),
     },
     change: { before, after, added, removed, moved: [], spots: flags },
   });
