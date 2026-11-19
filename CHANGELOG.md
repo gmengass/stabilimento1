@@ -8,6 +8,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   every other open map within seconds, without reloading. If the connection drops, the map
   says "Non aggiornato in tempo reale, riconnessione…" and catches up when it is back
   (ADR 0019).
+### Removed
+- The line "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo." under the
+  day counts, to reduce clutter above the map.
 
 ## [0.10.0] - 2026-11-18
 ### Added
