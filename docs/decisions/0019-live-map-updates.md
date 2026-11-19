@@ -19,12 +19,13 @@ people could pick the same umbrella or miss a check-in made at the desk.
   every map stale. The stream never carries names, phones or ids.
 - **Server**: one dedicated `LISTEN` connection per process, outside the pool, reconnecting with
   backoff; after a reconnect it sends `resync` so clients catch up on anything missed.
-- **Stream**: `GET /api/live`, Server-Sent Events, signed-in users only (401 otherwise), at most 10 open streams per user (429 with
-  `Retry-After: 30` beyond that; the client's backoff retries). Lines
+- **Stream**: `GET /api/live`, Server-Sent Events, signed-in users only (401 otherwise), at most 10 open streams per user, counted in memory per process (429 with
+  `Retry-After: 30` beyond that; `EventSource` can't see the header, so the client's own
+  backoff does the waiting, and meanwhile shows "Not live, reconnecting"). Lines
   are `event: changed`, `event: resync` or `: ping` (every 25 s). Each stream ends after 5
   minutes and the client reconnects, so a banned user is cut off within 5 minutes.
-- **Client**: on a signal it calls `router.refresh()`, debounced (400 ms, but never held
-  longer than 2 s by a steady stream of signals; `refresh()` can't be awaited, so this is what
+- **Client**: on a signal it calls `router.refresh()`, debounced (400 ms, but a steady stream
+  of signals can't hold it back much beyond 2 s; `refresh()` can't be awaited, so this is what
   limits it). It reconnects with jittered backoff and
   refreshes once on every open, the first included, to catch up. It restarts the
   stream on `online` and whenever the page becomes visible (a waking tablet may hold a dead

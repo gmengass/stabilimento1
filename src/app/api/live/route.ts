@@ -32,22 +32,22 @@ export async function GET(request: Request): Promise<Response> {
   }
   openStreams.set(user.id, (openStreams.get(user.id) ?? 0) + 1);
 
-  // A failed LISTEN retries in the background and sends `resync` once it is back.
+  // Everything after the increment is guarded, so no failure can keep a slot forever.
   try {
+    // A failed LISTEN retries in the background and sends `resync` once it is back.
     await startListener(getEnv().DATABASE_URL).catch(() => undefined);
+    return new Response(
+      createLiveStream({ subscribe, signal: request.signal, onClose: () => release(user.id) }),
+      {
+        headers: {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache, no-store, no-transform",
+          "X-Accel-Buffering": "no",
+        },
+      },
+    );
   } catch (error) {
     release(user.id);
     throw error;
   }
-
-  return new Response(
-    createLiveStream({ subscribe, signal: request.signal, onClose: () => release(user.id) }),
-    {
-      headers: {
-        "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache, no-store, no-transform",
-        "X-Accel-Buffering": "no",
-      },
-    },
-  );
 }

@@ -36,6 +36,31 @@ describe("createRefreshScheduler: longest wait", () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
+  it("first refreshes exactly 2 s into a steady stream by default", async () => {
+    const refresh = vi.fn();
+    const scheduler = createRefreshScheduler({ refresh });
+    for (let t = 0; t < 1_900; t += 100) {
+      scheduler.notify();
+      await vi.advanceTimersByTimeAsync(100);
+    }
+    expect(refresh).not.toHaveBeenCalled();
+    scheduler.notify();
+    await vi.advanceTimersByTimeAsync(99);
+    expect(refresh).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing after dispose, even for signals that were waiting", async () => {
+    const refresh = vi.fn();
+    const scheduler = createRefreshScheduler({ refresh });
+    scheduler.notify();
+    scheduler.dispose();
+    scheduler.notify();
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("starts a new wait after each refresh", async () => {
     const refresh = vi.fn();
     const scheduler = createRefreshScheduler({ refresh, maxWaitMs: 1_000 });
