@@ -2,14 +2,12 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.13.0` released and deployed (nightly backups, #65). Backup setup on the box not done yet.
+- `v0.13.1` released and deployed (live map stale-state fix, #67; before it `v0.13.0`, nightly backups, #65). Backup setup on the box not done yet.
 
 ## Done this session
-- Live map fix (branch `fix/live-map-stale-state`): a spot picked then booked elsewhere no longer
-  returns selected when freed; a move in progress no longer leaves phantom targets when its
-  booking is cancelled/moved elsewhere; both now show a notice; a day change clears the selection. Component tests via jsdom.
-- Nightly backups (ADR 0022): age, box + OneDrive, 14 kept, alert + heartbeat, restore script.
-  27 tests, real run in CI; review approved, security findings fixed.
+- Live map limits (branch `fix/live-map-limits`): refresh debounce now has a 2 s longest wait;
+  10 streams per user, then 429 (ADR 0019 updated).
+- Nightly backups (ADR 0022) shipped earlier: 27 tests, review approved.
 
 ## Next up
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
@@ -24,7 +22,7 @@
   undo/restore/lowering it; date moves warn on all days, not only added; per space? Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no
   e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
-- Live map: cap streams per user? Refresh debounce is trailing (no max wait). Midnight "today"? Phones: portrait-tablet sheet? Android: DayNight, min 7.0,
+- Live map: midnight "today" (rolls over at next refresh, clears selection; fine?). Phones: portrait-tablet sheet? Android: DayNight, min 7.0,
   `FLAG_SECURE`, auto-retry? Tailscale terms, who?
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no
   `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.

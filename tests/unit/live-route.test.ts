@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
 const { actor } = vi.hoisted(() => ({ actor: { current: null as CurrentUser | null } }));
@@ -19,8 +19,8 @@ vi.mock("@/lib/live/listener", async (importOriginal) => ({
   stopListener: vi.fn(async () => undefined),
 }));
 
-const { GET } = await import("@/app/api/live/route");
-const { subscriberCount } = await import("@/lib/live/listener");
+const { GET, MAX_STREAMS_PER_USER } = await import("@/app/api/live/route");
+const { subscriberCount, startListener } = await import("@/lib/live/listener");
 
 const ANNA: CurrentUser = { id: "u1", username: "anna", name: "Anna", role: "staff", locale: "it" };
 
@@ -79,5 +79,53 @@ describe("GET /api/live", () => {
     controller.abort();
     await waitFor(() => subscriberCount() === before);
     expect(subscriberCount()).toBe(before);
+  });
+
+  describe("stream cap per user", () => {
+    const BEA: CurrentUser = { ...ANNA, id: "u2", username: "bea", name: "Bea" };
+    const opened: AbortController[] = [];
+    const open = async (user: CurrentUser, controller = new AbortController()) => {
+      opened.push(controller);
+      actor.current = user;
+      return GET(liveRequest(controller.signal));
+    };
+    afterEach(() => {
+      opened.splice(0).forEach((c) => c.abort());
+    });
+
+    it("refuses one stream too many with 429 and Retry-After, and frees a slot on close", async () => {
+      const first = new AbortController();
+      expect((await open(ANNA, first)).status).toBe(200);
+      for (let i = 1; i < MAX_STREAMS_PER_USER; i++) expect((await open(ANNA)).status).toBe(200);
+
+      const refused = await open(ANNA);
+      expect(refused.status).toBe(429);
+      expect(Number(refused.headers.get("Retry-After"))).toBeGreaterThan(0);
+
+      first.abort();
+      expect((await open(ANNA)).status).toBe(200);
+    });
+
+    it("counts each user separately", async () => {
+      for (let i = 0; i < MAX_STREAMS_PER_USER; i++) await open(ANNA);
+      expect((await open(BEA)).status).toBe(200);
+    });
+
+    it("does not count a request that was already aborted", async () => {
+      const gone = new AbortController();
+      gone.abort();
+      for (let i = 0; i < MAX_STREAMS_PER_USER + 2; i++) await open(ANNA, gone);
+      expect((await open(ANNA)).status).toBe(200);
+    });
+
+    it("gives the slot back when opening the stream fails", async () => {
+      for (let i = 0; i < MAX_STREAMS_PER_USER + 2; i++) {
+        vi.mocked(startListener).mockImplementationOnce(() => {
+          throw new Error("boom");
+        });
+        await expect(open(ANNA)).rejects.toThrow("boom");
+      }
+      expect((await open(ANNA)).status).toBe(200);
+    });
   });
 });
