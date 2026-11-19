@@ -224,15 +224,17 @@ newest 14 are kept in each place. Any failure emails you. See [ADR 0022](decisio
 ### One-time setup
 1. **Install the tools and the timer**: `scripts/install-backup-timer.sh` (asks for your sudo
    password; installs `age` and `rclone`).
-2. **Make the key**, on the box:
-   ```sh
+2. **Make the key on your own PC, not the box.** In PowerShell:
+   ```powershell
+   winget install FiloSottile.age
    age-keygen
    ```
-   - It prints a `# public key: age1…` line and an `AGE-SECRET-KEY-1…` line.
+   - It prints a `# public key: age1…` line and an `AGE-SECRET-KEY-1…` line. Don't save them to a
+     file.
    - Save the **secret** line in the password manager as "Stabilimento backup key". Also print it,
      or write it down, and keep it with the club papers. **Without it no backup can be read.**
-   - Put the **public** key in `.env`: `BACKUP_AGE_RECIPIENTS=age1…`.
-   - Clear the terminal (`clear`). The secret key is never stored on the box.
+   - Put the **public** key in `.env` on the box: `BACKUP_AGE_RECIPIENTS=age1…`.
+   - Close the PowerShell window.
 3. **OneDrive** (you are the Microsoft 365 admin):
    - Make a folder for the backups, e.g. `stabilimento-backups`, in the OneDrive account that
      will hold them.
@@ -245,21 +247,27 @@ newest 14 are kept in each place. Any failure emails you. See [ADR 0022](decisio
      Enterprise applications if the tenant asks for approval), and paste the token back on the
      box. Choose `onedrive` → "OneDrive Personal or Business".
    - Check: `rclone lsd onedrive:`. Then set `BACKUP_RCLONE_REMOTE=onedrive:stabilimento-backups`.
-   - `rclone config` stores the token in `~/.config/rclone/rclone.conf`. Keep a copy in the
-     password manager too, or authorise again on a new box.
+   - `rclone config` stores the token in `~/.config/rclone/rclone.conf` (owner-only). It can read
+     and delete the whole OneDrive: don't copy it anywhere; on a new box, authorise again.
+   - In OneDrive, keep the recycle bin and version history on: they undo a deleted or replaced
+     backup.
 4. **Alert email**: in Microsoft 365, use (or create) a mailbox for the box, e.g.
    `stabilimento@club…`. In the admin centre → Users → that user → Mail → "Manage email apps",
-   turn on **Authenticated SMTP**. If the account has MFA, give it an app password, or use a
-   mailbox without MFA kept only for this. Then in `.env`:
+   turn on **Authenticated SMTP**. It must also be allowed for the tenant (Exchange admin centre
+   → Settings → Mail flow), and Security Defaults block it.
+   - Microsoft is phasing out SMTP with a plain password. If the test in step 6 doesn't arrive,
+     use another SMTP sender instead (your mail provider's, or a service such as Brevo or
+     SMTP2GO) with the same four lines.
+   - Then in `.env`:
    ```
    BACKUP_ALERT_SMTP_URL=smtp://smtp.office365.com:587
    BACKUP_ALERT_SMTP_USER=stabilimento@club…:<password>
    BACKUP_ALERT_FROM=stabilimento@club…
    BACKUP_ALERT_TO=you@club…
    ```
-5. **Optional heartbeat**: a free check on healthchecks.io, "daily, grace 2 hours". Put its ping
-   URL in `BACKUP_HEARTBEAT_URL`. It emails you if a night is missed (box off, timer stopped),
-   which the failure email can't.
+5. **Heartbeat (do this one)**: a free check on healthchecks.io, "daily, grace 2 hours". Put its
+   ping URL in `BACKUP_HEARTBEAT_URL`. It emails you if a good backup doesn't arrive for any
+   reason (box off, timer stopped, run failed, alert email broken).
 6. **Try it**: `sudo systemctl start stabilimento-backup`, then
    `journalctl -u stabilimento-backup -n 50` must end with `nightly backup OK`. Check the file is
    in `backups/nightly/` and in the OneDrive folder. To test the alert, set a wrong
@@ -314,6 +322,10 @@ reminder in your calendar.
    scripts/restore-backup.sh latest
    ```
    - Or a given file: `scripts/restore-backup.sh backups/nightly/<file>.dump.age`.
+   - It restores into a scratch database first. Only if that works does it stop the app and
+     swap it in. The replaced database stays as `booking_before_restore`; when all is well:
+     `docker compose exec db dropdb -U booking booking_before_restore`.
+   - Check the file name and date it shows before typing `yes`.
 
 ## Troubleshooting
 - **"another deploy or backup is running"**: make sure no script is running, then

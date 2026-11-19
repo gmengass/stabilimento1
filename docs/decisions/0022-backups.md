@@ -31,20 +31,34 @@ a key he can use to restore on a brand-new box after the old one is lost.
   An empty remote is skipped with a warning; a remote that is set but fails fails the run. The
   local copy is kept either way.
 - **Retention**: the newest 14 files in each place. Pruning runs only after a fully successful
-  run, so a broken night never deletes a good backup.
+  run, so a broken night never deletes a good backup. Names dated more than a day ahead are
+  ignored by pruning and by `latest`, so files planted on OneDrive can't push real backups out.
+  OneDrive's recycle bin and version history stay on as a second line.
+- **Work files** (the plaintext dump during a run) live in an owner-only folder inside
+  `BACKUP_DIR`, not `/tmp`, and are removed on every exit; the unit adds `PrivateTmp`.
 - **Alert**: any failure (including the timer killing a stuck run) sends an email through
-  `curl` SMTP (`BACKUP_ALERT_*`). The optional `BACKUP_HEARTBEAT_URL` is called after each good
+  `curl` SMTP (`BACKUP_ALERT_*`). URLs and passwords reach curl through its config, never its
+  command line. The optional `BACKUP_HEARTBEAT_URL` is called after each good
   run, so an outside monitor notices when runs stop altogether (box off, timer disabled).
   Alerts name the step that failed, never customer data.
-- **Restore**: `scripts/restore-backup.sh` asks for the secret key (not echoed, kept in a
-  temporary owner-only file). `--test` restores into the scratch database and prints counts;
-  without it, after typing `yes`, it replaces the app database like `rollback.sh` does.
-  `latest` takes the newest file on the box, or on OneDrive when the box has none (new box).
+- **Restore**: `scripts/restore-backup.sh` asks for the secret key (not echoed, passed to age on
+  a pipe, never written to a file) and always restores into the scratch database first.
+  `--test` prints counts and drops it. Without `--test`, after typing `yes`, the app is stopped
+  and the checked scratch database is **renamed** into place; the replaced one is kept as
+  `booking_before_restore` until the next restore. A backup that doesn't restore never touches
+  the app database. `latest` takes the newest file on the box, or on OneDrive when the box has
+  none (new box).
 - **Monthly**: the owner runs `scripts/restore-backup.sh --test latest` with the real key. This
   replaces ADR 0003's automatic monthly test, which the box can't do without the secret key.
 
 ## Consequences
 - Losing the secret key makes every backup unreadable: it is kept in the password manager and
-  on one printed or offline copy.
+  on one printed or offline copy. It is made on the owner's PC, not the box.
+- Each restore (and the monthly test) briefly gives the key to the box: a compromised box at
+  that moment could read every backup.
+- age proves who can read a backup, not who wrote it: anyone with the OneDrive login could
+  upload a crafted dump. A restore shows the file name and date and asks for `yes`.
+- The alert email depends on SMTP sending, which Microsoft 365 is phasing out for basic
+  passwords; the heartbeat is the alert that doesn't.
 - 14 days of backups keep erased customers for up to 14 days (GDPR open question).
 - OneDrive needs rclone authorised once against the club's Microsoft 365 (the owner is admin).
