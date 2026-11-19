@@ -60,8 +60,9 @@ case $cmd in
     [ "\${STUB_RCLONE:-}" = check-fail ] && exit 1
     cmp -s "$p1/$include" "$(map "$p2")/$include" ;;
   lsf)
+    [ "\${STUB_RCLONE:-}" = lsf-fail ] && exit 1
     d=$(map "$p1"); [ -d "$d" ] && find "$d" -maxdepth 1 -type f -exec basename {} \\; ; exit 0 ;;
-  deletefile) rm -f "$(map "$p1")" ;;
+  deletefile) [ "\${STUB_RCLONE:-}" = delete-fail ] && exit 1; rm -f "$(map "$p1")" ;;
 esac
 `;
 
@@ -150,7 +151,8 @@ function run(
   for (const log of ["docker.log", "rclone.log", "curl-argv.log", "curl-data.log", "restore.in"]) {
     writeFileSync(join(logs, log), "");
   }
-  const result = spawnSync("dash", [join(root, "scripts", script), ...args], {
+  // setsid: a new session has no terminal, so a prompt on /dev/tty fails instead of waiting.
+  const result = spawnSync("setsid", ["-w", "dash", join(root, "scripts", script), ...args], {
     cwd: root,
     encoding: "utf8",
     input,
@@ -239,12 +241,14 @@ const expectInOrder = (indexes: number[]) =>
   expect(indexes).toEqual([...indexes].sort((a, b) => a - b));
 
 const called = (calls: string[], fragment: string) => calls.some((c) => c.includes(fragment));
-const alerted = (result: Run) => called(result.curlArgv, SMTP_URL);
+// URLs and passwords reach curl through -K config (stdin or a file), never argv.
+const alerted = (result: Run) => result.curlData.includes(SMTP_URL);
+const pinged = (result: Run) => result.curlData.includes(HEARTBEAT);
 
 function expectAlert(result: Run, step?: RegExp): void {
   expect(result.status).not.toBe(0);
   expect(alerted(result), `no alert sent:\n${result.curlArgv.join("\n")}`).toBe(true);
-  expect(called(result.curlArgv, HEARTBEAT)).toBe(false);
+  expect(pinged(result)).toBe(false);
   if (step) expect(result.curlData).toMatch(step);
 }
 
@@ -312,7 +316,8 @@ describe("backup.sh success", () => {
       ),
     ]);
     expect(result.restoreInput).toBe("DUMPDATA");
-    expect(called(result.curlArgv, HEARTBEAT)).toBe(true);
+    expect(pinged(result)).toBe(true);
+    expect(result.curlArgv.join("\n")).not.toContain(HEARTBEAT);
     expect(alerted(result)).toBe(false);
     expect(existsSync(join(root, ".deploy", "lock"))).toBe(false);
     expectNoSecretsLeft();
@@ -418,13 +423,14 @@ describe("backup.sh failures alert and keep nothing broken", () => {
     const result = backup({ STUB_DUMP: "fail" });
     expect(result.status).not.toBe(0);
     expect(result.stderr).toMatch(/not configured/i);
-    expect(result.curlArgv.filter((argv) => argv.includes("smtp"))).toEqual([]);
+    expect(result.curlArgv.filter((argv) => argv.includes("--mail-from"))).toEqual([]);
   });
 
   it("the alert email has the .env headers, no customer data, and no password in argv", () => {
     const result = backup({ STUB_DUMP: "fail" });
     expectAlert(result);
-    const argv = result.curlArgv.find((a) => a.includes(SMTP_URL)) ?? "";
+    const argv = result.curlArgv.find((a) => a.includes("--mail-from")) ?? "";
+    expect(result.curlArgv.join("\n")).not.toContain(SMTP_URL);
     expect(argv).toContain("--mail-from");
     expect(argv).toContain("--mail-rcpt");
     expect(argv).toContain("owner@example.invalid");
@@ -438,6 +444,26 @@ describe("backup.sh failures alert and keep nothing broken", () => {
 });
 
 describe("backup.sh retention", () => {
+  it("future-dated files neither count towards the 14 nor get deleted", () => {
+    const names = seed(16);
+    const planted = "99991231T000000Z_evil.dump.age";
+    for (const dir of [nightly(), remoteDir()]) writeFileSync(join(dir, planted), "x");
+    const result = backup();
+    expect(result.status, result.stderr).toBe(0);
+    for (const dir of [nightly(), remoteDir()]) {
+      const kept = ageFiles(dir).filter((n) => n !== planted);
+      expect(kept).toHaveLength(14);
+      expect(kept).toEqual(expect.arrayContaining(names.slice(-13)));
+      expect(ageFiles(dir)).toContain(planted);
+    }
+  });
+
+  it("a failed delete on OneDrive alerts at the prune step", () => {
+    seed(16);
+    const result = backup({ STUB_RCLONE: "delete-fail" });
+    expectAlert(result, /prune/);
+  });
+
   it("keeps the newest BACKUP_KEEP dumps in each place and leaves other files alone", () => {
     const seeded = seed(16);
     const result = backup({ BACKUP_KEEP: "14" });
@@ -505,24 +531,77 @@ describe("restore-backup.sh", () => {
     expectClean(before);
   });
 
-  it("--yes <file> replaces the app database with the app stopped", () => {
+  it("--yes <file> checks the backup in the scratch database, then swaps it in", () => {
     const file = encryptInto(nightly(), "20261118T023000Z_v0.12.0.dump.age", "DUMPDATA");
     const before = filesUnder(root);
     const result = restore(["--yes", file]);
     expect(result.status, result.stderr).toBe(0);
-    const restart = result.docker.findIndex(
-      (c) => c.includes("up -d --no-deps app") || c.includes("start app"),
-    );
-    expect(restart).toBeGreaterThanOrEqual(0);
     expectInOrder([
+      indexOf(result.docker, "pg_restore", "booking_restore_test"),
+      indexOf(result.docker, "kysely_migration"),
       indexOf(result.docker, "compose stop app"),
-      indexOf(result.docker, "dropdb", "--force", '"$POSTGRES_DB"'),
-      indexOf(result.docker, "createdb", '"$POSTGRES_DB"'),
-      indexOf(result.docker, "pg_restore", '-d "$POSTGRES_DB"'),
-      restart,
+      indexOf(result.docker, "drop database if exists booking_before_restore"),
+      indexOf(result.docker, 'alter database \\"$POSTGRES_DB\\" rename to booking_before_restore'),
+      indexOf(result.docker, 'alter database booking_restore_test rename to \\"$POSTGRES_DB\\"'),
+      indexOf(result.docker, "up -d --no-deps app caddy"),
       result.docker.findLastIndex((c) => c.includes("wget")),
     ]);
-    expect(result.restoreInput).toContain("DUMPDATA");
+    expect(called(result.docker, "dropdb --force")).toBe(false);
+    expect(result.restoreInput).toBe("DUMPDATA");
     expectClean(before);
+  });
+
+  it("a backup that does not restore never stops the app or touches its database", () => {
+    const file = encryptInto(nightly(), "20261118T023000Z_v0.12.0.dump.age", "DUMPDATA");
+    const result = run(
+      "restore-backup.sh",
+      ["--yes", file],
+      { STUB_RESTORE: "fail" },
+      `${secretKey}\n`,
+    );
+    expect(result.status).not.toBe(0);
+    expect(called(result.docker, "stop app")).toBe(false);
+    expect(called(result.docker, "alter database")).toBe(false);
+    expect(
+      result.docker.findLastIndex(
+        (c) => c.includes("dropdb") && c.includes("booking_restore_test"),
+      ),
+    ).toBeGreaterThan(indexOf(result.docker, "pg_restore"));
+    expectNoSecretsLeft();
+  });
+
+  it("without --yes and no one to type yes, aborts and changes nothing", () => {
+    const file = encryptInto(nightly(), "20261118T023000Z_v0.12.0.dump.age", "DUMPDATA");
+    const result = restore([file]);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/aborted: nothing changed/);
+    expect(called(result.docker, "stop app")).toBe(false);
+    expect(called(result.docker, "alter database")).toBe(false);
+    expectNoSecretsLeft();
+  });
+
+  it("latest ignores names dated in the future (planted files)", () => {
+    encryptInto(nightly(), "20261118T023000Z_v0.12.0.dump.age", "DUMPDATA");
+    encryptInto(nightly(), "99991231T000000Z_evil.dump.age", "EVILDATA");
+    const result = restore(["--test", "latest"]);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.restoreInput).toBe("DUMPDATA");
+  });
+
+  it("latest says so when OneDrive cannot be listed", () => {
+    const result = run(
+      "restore-backup.sh",
+      ["--test", "latest"],
+      { STUB_RCLONE: "lsf-fail" },
+      `${secretKey}\n`,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/listing OneDrive failed/);
+  });
+
+  it("a key pasted with spaces and a CR still works", () => {
+    encryptInto(nightly(), "20261118T023000Z_v0.12.0.dump.age", "DUMPDATA");
+    const result = restore(["--test", "latest"], `  ${secretKey}\r`);
+    expect(result.status, result.stderr).toBe(0);
   });
 });
