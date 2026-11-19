@@ -1,0 +1,11 @@
+# Every night at 03:30 Italian time, outside the hour DST skips or repeats (ADR 0022).
+# Persistent: a night missed while the box was off runs at the next boot.
+[Unit]
+Description=Stabilimento nightly backup
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Rome
+Persistent=true
+
+[Install]
+WantedBy=timers.target
