@@ -1,0 +1,20 @@
+# Nightly backup (ADR 0022). scripts/install-backup-timer.sh fills in the user and the checkout.
+# A run the timeout stops still sends the failure alert (TERM trap).
+[Unit]
+Description=Stabilimento nightly backup
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=@USER@
+WorkingDirectory=@ROOT@
+Environment=DEPLOY_ROOT=@ROOT@
+ExecStart=/bin/sh @ROOT@/scripts/backup.sh
+TimeoutStartSec=3h
+Nice=10
+IOSchedulingClass=idle
+UMask=0077
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=full

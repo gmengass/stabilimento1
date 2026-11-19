@@ -1,10 +1,8 @@
 # Runbook: the club server
 
 How to set up, update, roll back and recover the server.
-- Why it works this way: [ADR 0003](decisions/0003-hosting.md) and
-  [ADR 0008](decisions/0008-deploy-details.md).
-- Nightly backups are a later roadmap item. Until then, the only restore point is the pre-update
-  dump that `update.sh` takes.
+- Why it works this way: [ADR 0003](decisions/0003-hosting.md),
+  [ADR 0008](decisions/0008-deploy-details.md) and [ADR 0022](decisions/0022-backups.md) (backups).
 
 ## What runs where
 - **Docker Compose project `stabilimento`**:
@@ -16,7 +14,8 @@ How to set up, update, roll back and recover the server.
   - `.env`: secrets, kept in the owner's password manager too
   - the `pgdata` volume: the database
   - the `caddy_data` volume: the internal CA's root key
-  - `backups/`: dumps
+  - `backups/`: dumps (`pre-update/` plaintext, `nightly/` encrypted, also on OneDrive)
+  - the backup secret key (`AGE-SECRET-KEY-1…`): in the password manager only, never on the box
   - `~/secrets/stabilimento-android.p12` and `.pass`: the Android app's signing key
 - **Deploy state** lives in `.deploy/` in the checkout:
   - `current`: the installed release
@@ -109,15 +108,16 @@ Do these once, and again after any router change.
    - `SITE_ADDRESS=stabilimento.local, 192.168.1.10`
    - `TRUSTED_ORIGINS=https://192.168.1.10`: exact https origins only, no `*` and no trailing `/`
    - `DEFAULT_SNI=192.168.1.10`: the box's IP, so `https://192.168.1.10` gets a certificate
-   - `BACKUP_DIR` stays on the box's own disk (default `./backups`). Don't use an unencrypted USB
-     stick: dumps contain customer data, and the Backups item adds encryption.
+   - `BACKUP_DIR` stays on the box's own disk (default `./backups`): pre-update dumps there are
+     not encrypted and contain customer data.
 3. Run `scripts/update.sh vX.Y.Z`, using the latest release tag. This is the first install, so it
    takes no backup.
 4. Create the first admin:
    - Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`.
    - Run `APP_VERSION=$(cat .deploy/current) docker compose run --rm seed-admin`.
    - Remove `ADMIN_PASSWORD` from `.env`.
-5. Give the box a fixed IP: a DHCP reservation on the router. Add a router DNS entry for
+5. Set up the nightly backups: see [Backups](#backups).
+6. Give the box a fixed IP: a DHCP reservation on the router. Add a router DNS entry for
    `stabilimento.local` if possible, because Android doesn't reliably resolve `.local` names.
 
 ## Android app for club tablets
@@ -216,6 +216,75 @@ script stops with the app down and prints the rollback command.
 - Use it right after a bad update. If staff have already entered real bookings since then, export
   or write them down first.
 
+## Backups
+Every night at 03:30 (Italian time) `scripts/backup.sh` dumps the database, checks the dump
+restores, encrypts it with age, keeps it in `backups/nightly/` and copies it to OneDrive. The
+newest 14 are kept in each place. Any failure emails you. See [ADR 0022](decisions/0022-backups.md).
+
+### One-time setup
+1. **Install the tools and the timer**: `scripts/install-backup-timer.sh` (asks for your sudo
+   password; installs `age` and `rclone`).
+2. **Make the key on your own PC, not the box.** In PowerShell:
+   ```powershell
+   winget install FiloSottile.age
+   age-keygen
+   ```
+   - It prints a `# public key: age1…` line and an `AGE-SECRET-KEY-1…` line. Don't save them to a
+     file.
+   - Save the **secret** line in the password manager as "Stabilimento backup key". Also print it,
+     or write it down, and keep it with the club papers. **Without it no backup can be read.**
+   - Put the **public** key in `.env` on the box: `BACKUP_AGE_RECIPIENTS=age1…`.
+   - Close the PowerShell window.
+3. **OneDrive** (you are the Microsoft 365 admin):
+   - Make a folder for the backups, e.g. `stabilimento-backups`, in the OneDrive account that
+     will hold them.
+   - On the box run `rclone config`: `n` (new remote), name `onedrive`, storage `onedrive`, leave
+     client id and secret empty, region `global`, "Use web browser to automatically
+     authenticate?" → `n`.
+   - It prints an `rclone authorize "onedrive" …` command. Run it on a Windows PC with rclone
+     (`winget install Rclone.Rclone`), sign in with the club's Microsoft 365 account, accept the
+     consent screen (as admin you can approve it for the organisation in Entra ID →
+     Enterprise applications if the tenant asks for approval), and paste the token back on the
+     box. Choose `onedrive` → "OneDrive Personal or Business".
+   - Check: `rclone lsd onedrive:`. Then set `BACKUP_RCLONE_REMOTE=onedrive:stabilimento-backups`.
+   - `rclone config` stores the token in `~/.config/rclone/rclone.conf` (owner-only). It can read
+     and delete the whole OneDrive: don't copy it anywhere; on a new box, authorise again.
+   - In OneDrive, keep the recycle bin and version history on: they undo a deleted or replaced
+     backup.
+4. **Alert email**: in Microsoft 365, use (or create) a mailbox for the box, e.g.
+   `stabilimento@club…`. In the admin centre → Users → that user → Mail → "Manage email apps",
+   turn on **Authenticated SMTP**. It must also be allowed for the tenant (Exchange admin centre
+   → Settings → Mail flow), and Security Defaults block it.
+   - Microsoft is phasing out SMTP with a plain password. If the test in step 6 doesn't arrive,
+     use another SMTP sender instead (your mail provider's, or a service such as Brevo or
+     SMTP2GO) with the same four lines.
+   - Then in `.env`:
+   ```
+   BACKUP_ALERT_SMTP_URL=smtp://smtp.office365.com:587
+   BACKUP_ALERT_SMTP_USER=stabilimento@club…:<password>
+   BACKUP_ALERT_FROM=stabilimento@club…
+   BACKUP_ALERT_TO=you@club…
+   ```
+5. **Heartbeat (do this one)**: a free check on healthchecks.io, "daily, grace 2 hours". Put its
+   ping URL in `BACKUP_HEARTBEAT_URL`. It emails you if a good backup doesn't arrive for any
+   reason (box off, timer stopped, run failed, alert email broken).
+6. **Try it**: `sudo systemctl start stabilimento-backup`, then
+   `journalctl -u stabilimento-backup -n 50` must end with `nightly backup OK`. Check the file is
+   in `backups/nightly/` and in the OneDrive folder. To test the alert, set a wrong
+   `BACKUP_RCLONE_REMOTE`, run it again, check the email arrives, then put it back.
+
+### Every month: restore test
+Run `scripts/restore-backup.sh --test latest` and paste the secret key from the password
+manager. It restores the newest backup into a throwaway database, prints how many bookings it
+has and the newest one, then deletes it. It must end with `restore test OK`. Put a monthly
+reminder in your calendar.
+
+### Day to day
+- Status: `systemctl list-timers stabilimento-backup.timer` (next run),
+  `journalctl -u stabilimento-backup -n 50` (last run).
+- A run waits up to 30 minutes for an update that is running, then fails and emails you.
+- "OneDrive copy skipped" every night means `BACKUP_RCLONE_REMOTE` is empty.
+
 ## Recovery on a new machine
 1. Set up the machine as in section A or B, then clone the repo.
 2. Copy `.env` from the password manager.
@@ -243,14 +312,20 @@ script stops with the app down and prints the rollback command.
    - Restore the Android signing key too: `install -d -m 700 ~/secrets`,
      `export GPG_TTY=$(tty)` and `gpg -d stabilimento-android-key.tgz.gpg | tar xzf - -C ~/secrets`.
      Without it, tablets must uninstall the app before a new APK installs.
-4. Install the release that made the dump: `scripts/update.sh vX.Y.Z`.
-5. Restore the latest dump:
+4. Install the release that made the backup: the part after `_` in its name, e.g.
+   `20261119T023000Z_v0.13.0.dump.age` → `scripts/update.sh v0.13.0`. To see the names:
+   `rclone lsf onedrive:stabilimento-backups` (after `rclone config`, see [Backups](#backups)).
+5. Set up the backups again ([Backups](#backups) steps 1, 3: the same key and the same OneDrive
+   folder), then restore the newest backup. It downloads it from OneDrive, asks for the secret
+   key and for `yes`, and replaces the empty database:
    ```sh
-   docker compose stop app
-   docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" --force "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB"'
-   docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner' < backups/pre-update/<file>.dump
-   docker compose start app
+   scripts/restore-backup.sh latest
    ```
+   - Or a given file: `scripts/restore-backup.sh backups/nightly/<file>.dump.age`.
+   - It restores into a scratch database first. Only if that works does it stop the app and
+     swap it in. The replaced database stays as `booking_before_restore`; when all is well:
+     `docker compose exec db dropdb -U booking booking_before_restore`.
+   - Check the file name and date it shows before typing `yes`.
 
 ## Troubleshooting
 - **"another deploy or backup is running"**: make sure no script is running, then

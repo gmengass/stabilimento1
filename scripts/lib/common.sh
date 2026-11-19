@@ -39,11 +39,23 @@ valid_tag() { printf '%s\n' "$1" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; }
 require_env_file() { [ -f "$DEPLOY_ROOT/.env" ] || die ".env missing: copy .env.example and fill it in"; }
 
 # Value of KEY in .env (last assignment wins), without sourcing the file.
-env_value() { sed -n "s/^$1=//p" "$DEPLOY_ROOT/.env" | tail -n 1; }
+env_value() { sed -n "s/^$1=//p" "$DEPLOY_ROOT/.env" | tail -n 1 | tr -d '\r'; }
 
 acquire_lock() {
 	mkdir -p "$STATE_DIR"
 	mkdir "$LOCK_DIR" 2>/dev/null || die "another deploy or backup is running ($LOCK_DIR)"
+	LOCK_HELD=1
+}
+
+# Waits up to $1 seconds for the deploy lock shared with update.sh and rollback.sh.
+acquire_lock_wait() {
+	mkdir -p "$STATE_DIR"
+	waited=0
+	until mkdir "$LOCK_DIR" 2>/dev/null; do
+		[ "$waited" -lt "$1" ] || die "another deploy or backup still holds $LOCK_DIR after ${1}s"
+		sleep 1
+		waited=$((waited + 1))
+	done
 	LOCK_HELD=1
 }
 

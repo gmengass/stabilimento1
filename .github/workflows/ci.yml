@@ -67,6 +67,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: age for the backup script tests
+        run: sudo apt-get update -q && sudo apt-get install -y -q age
       - run: npm run lint
       - name: Shellcheck deploy scripts
         run: shellcheck -s sh -x scripts/*.sh scripts/lib/*.sh
@@ -301,6 +303,37 @@ jobs:
           echo "rows: $rows"
           test "$rows" = before-update
           test "$(curl -fsSk https://localhost/health)" = '{"status":"ok","db":"ok"}'
+      - name: Backup tools, a throwaway key, a local folder standing in for OneDrive
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q age rclone
+          age-keygen -o "$RUNNER_TEMP/key" 2>/dev/null
+          {
+            echo "BACKUP_AGE_RECIPIENTS=$(age-keygen -y "$RUNNER_TEMP/key")"
+            echo "BACKUP_RCLONE_REMOTE=:local:$RUNNER_TEMP/onedrive"
+          } >> .env
+      - name: Nightly backup, encrypted, on the box and the remote
+        run: |
+          scripts/backup.sh
+          file=$(ls backups/nightly)
+          cmp "backups/nightly/$file" "$RUNNER_TEMP/onedrive/$file"
+          head -c 21 "backups/nightly/$file" | grep -q '^age-encryption.org/v1'
+      - name: Monthly restore test with the secret key
+        run: grep AGE-SECRET-KEY "$RUNNER_TEMP/key" | scripts/restore-backup.sh --test latest
+      - name: New box - the whole database restored from the remote
+        run: |
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "delete from deploy_marker"'
+          rm -rf backups/nightly
+          grep AGE-SECRET-KEY "$RUNNER_TEMP/key" | scripts/restore-backup.sh --yes latest
+          rows=$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select label from deploy_marker"')
+          test "$rows" = before-update
+          test "$(curl -fsSk https://localhost/health)" = '{"status":"ok","db":"ok"}'
+      - name: Systemd units are valid
+        run: |
+          mkdir "$RUNNER_TEMP/units"
+          scripts/install-backup-timer.sh --render "$RUNNER_TEMP/units"
+          systemd-analyze verify "$RUNNER_TEMP/units/stabilimento-backup.timer"
       - name: Logs on failure
         if: failure()
         run: docker compose logs
