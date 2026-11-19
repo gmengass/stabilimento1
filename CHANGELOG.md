@@ -11,6 +11,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - Deckchairs (sdraie): a booking or season pass can ask for up to 2 deckchairs per umbrella, in
   the booking form and in quick book. Sunbeds stay as before (2 per umbrella by default). The
   booking shows "2 sdraie" and the activity list mentions them (ADR 0020).
+### Removed
+- The line "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo." under the
+  day counts, to reduce clutter above the map.
 
 ## [0.10.0] - 2026-11-18
 ### Added
