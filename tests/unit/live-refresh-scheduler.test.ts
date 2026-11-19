@@ -25,6 +25,38 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("createRefreshScheduler: longest wait", () => {
+  it("refreshes during a steady stream of signals, not only after it stops", async () => {
+    const refresh = vi.fn();
+    const scheduler = createRefreshScheduler({ refresh });
+    for (let i = 0; i < 10; i++) {
+      scheduler.notify();
+      await vi.advanceTimersByTimeAsync(300);
+    }
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts a new wait after each refresh", async () => {
+    const refresh = vi.fn();
+    const scheduler = createRefreshScheduler({ refresh, maxWaitMs: 1_000 });
+    for (let i = 0; i < 12; i++) {
+      scheduler.notify();
+      await vi.advanceTimersByTimeAsync(300);
+    }
+    expect(refresh).toHaveBeenCalledTimes(3);
+  });
+
+  it("still waits the full quiet period when signals are rare", async () => {
+    const refresh = vi.fn();
+    const scheduler = createRefreshScheduler({ refresh });
+    scheduler.notify();
+    await vi.advanceTimersByTimeAsync(399);
+    expect(refresh).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("createRefreshScheduler: trailing debounce", () => {
   it("refreshes once, 400 ms after the last notify by default", async () => {
     const refresh = vi.fn();

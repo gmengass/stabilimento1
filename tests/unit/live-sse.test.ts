@@ -185,3 +185,51 @@ describe("createLiveStream", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe("createLiveStream: onClose", () => {
+  it("is called once when the client aborts", () => {
+    const source = fakeSource();
+    const controller = new AbortController();
+    const onClose = vi.fn();
+    createLiveStream({ subscribe: source.subscribe, signal: controller.signal, onClose });
+    controller.abort();
+    controller.abort();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("is called when the stream is cancelled by its reader", async () => {
+    const source = fakeSource();
+    const onClose = vi.fn();
+    const stream = createLiveStream({
+      subscribe: source.subscribe,
+      signal: new AbortController().signal,
+      onClose,
+    });
+    await stream.cancel();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("is called when the stream is already aborted", () => {
+    const source = fakeSource();
+    const controller = new AbortController();
+    controller.abort();
+    const onClose = vi.fn();
+    createLiveStream({ subscribe: source.subscribe, signal: controller.signal, onClose });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("is called when the stream reaches its lifetime", async () => {
+    vi.useFakeTimers();
+    const source = fakeSource();
+    const onClose = vi.fn();
+    createLiveStream({
+      subscribe: source.subscribe,
+      signal: new AbortController().signal,
+      lifetimeMs: 1_000,
+      onClose,
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});

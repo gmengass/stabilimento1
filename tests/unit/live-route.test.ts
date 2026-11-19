@@ -19,7 +19,7 @@ vi.mock("@/lib/live/listener", async (importOriginal) => ({
   stopListener: vi.fn(async () => undefined),
 }));
 
-const { GET } = await import("@/app/api/live/route");
+const { GET, MAX_STREAMS_PER_USER } = await import("@/app/api/live/route");
 const { subscriberCount } = await import("@/lib/live/listener");
 
 const ANNA: CurrentUser = { id: "u1", username: "anna", name: "Anna", role: "staff", locale: "it" };
@@ -79,5 +79,47 @@ describe("GET /api/live", () => {
     controller.abort();
     await waitFor(() => subscriberCount() === before);
     expect(subscriberCount()).toBe(before);
+  });
+
+  describe("stream cap per user", () => {
+    const BEA: CurrentUser = { ...ANNA, id: "u2", username: "bea", name: "Bea" };
+    const open = async (user: CurrentUser, controller: AbortController) => {
+      actor.current = user;
+      return GET(liveRequest(controller.signal));
+    };
+
+    it("refuses one stream too many with 429 and Retry-After, and frees a slot on close", async () => {
+      const controllers = Array.from({ length: MAX_STREAMS_PER_USER }, () => new AbortController());
+      for (const c of controllers) expect((await open(ANNA, c)).status).toBe(200);
+
+      const refused = await open(ANNA, new AbortController());
+      expect(refused.status).toBe(429);
+      expect(Number(refused.headers.get("Retry-After"))).toBeGreaterThan(0);
+
+      controllers[0].abort();
+      const again = new AbortController();
+      expect((await open(ANNA, again)).status).toBe(200);
+
+      again.abort();
+      controllers.slice(1).forEach((c) => c.abort());
+    });
+
+    it("counts each user separately", async () => {
+      const annas = Array.from({ length: MAX_STREAMS_PER_USER }, () => new AbortController());
+      for (const c of annas) await open(ANNA, c);
+      const bea = new AbortController();
+      expect((await open(BEA, bea)).status).toBe(200);
+      bea.abort();
+      annas.forEach((c) => c.abort());
+    });
+
+    it("does not count a request that was already aborted", async () => {
+      const gone = new AbortController();
+      gone.abort();
+      for (let i = 0; i < MAX_STREAMS_PER_USER + 2; i++) await open(ANNA, gone);
+      const fresh = new AbortController();
+      expect((await open(ANNA, fresh)).status).toBe(200);
+      fresh.abort();
+    });
   });
 });

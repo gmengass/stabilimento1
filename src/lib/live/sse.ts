@@ -22,6 +22,8 @@ export interface LiveStreamOptions {
   signal: AbortSignal;
   heartbeatMs?: number;
   lifetimeMs?: number;
+  /** Called once when the stream ends, however it ends. */
+  onClose?: () => void;
 }
 
 export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uint8Array> {
@@ -30,6 +32,7 @@ export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uin
     signal,
     heartbeatMs = HEARTBEAT_MS,
     lifetimeMs = STREAM_LIFETIME_MS,
+    onClose,
   } = options;
   const encoder = new TextEncoder();
   let stop: (() => void) | undefined;
@@ -38,6 +41,7 @@ export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uin
     {
       start(controller) {
         if (signal.aborted) {
+          onClose?.();
           controller.close();
           return;
         }
@@ -67,6 +71,7 @@ export function createLiveStream(options: LiveStreamOptions): ReadableStream<Uin
           clearTimeout(lifetime);
           signal.removeEventListener("abort", onAbort);
           unsubscribe();
+          onClose?.();
         };
         signal.addEventListener("abort", onAbort);
       },
