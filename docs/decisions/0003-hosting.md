@@ -2,6 +2,7 @@
 
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-10
+- Amended by: [ADR 0022](0022-backups.md) (backups: age, box disk + OneDrive, 14 days)
 
 ## Context
 - One beach club, possibly with more booking areas later.
@@ -43,6 +44,9 @@
 - Tailscale also provides valid HTTPS certificates for the server's Tailscale name.
 
 ### Backups: OneDrive
+> Amended by [ADR 0022](0022-backups.md): no USB, age instead of rclone `crypt`, 14 daily,
+> a nightly scratch restore plus a monthly owner-run test.
+
 - Every night the server makes a **database dump** (`pg_dump`). It keeps a local copy on a USB drive
   and uploads an **encrypted** copy to a dedicated folder on the company OneDrive using
   `rclone` (OneDrive remote + `crypt` layer). OneDrive only ever sees encrypted files.
