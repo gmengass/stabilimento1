@@ -290,7 +290,8 @@ describe("the live-map migration", () => {
     ]);
     expect(await notifyTriggers()).toEqual({});
     expect(await notifyFunctions()).toBe(0);
-    expect(await notificationsDuring(() => book())).toBe(0);
+    // Raw SQL: rolling back to BEFORE also drops later columns the app writes (e.g. deckchairs).
+    expect(await notificationsDuring(() => sql`update venue set name = name`.execute(db))).toBe(0);
 
     const up = await runMigrations(db, "up");
     if (up.error) throw up.error;

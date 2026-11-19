@@ -23,6 +23,7 @@ const occupant = (bookingId: number): Occupant => ({
   notes: "",
   releasedDays: 0,
   spots: [],
+  deckchairs: 0,
   checkedIn: false,
   holdUntil: null,
   holdTime: "11:00",
