@@ -4,7 +4,14 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import type { Occupant } from "@/lib/booking/bookings";
 import { moveBookingAction } from "./booking-actions";
-import { ErrorLine, field, later, type Failure } from "./booking-panel";
+import {
+  ErrorLine,
+  field,
+  later,
+  StockWarning,
+  useStockWarning,
+  type Failure,
+} from "./booking-panel";
 
 /** Where each of the booking's umbrellas goes: spot id → the new umbrella's id and number. */
 export type MoveTargets = Record<number, { spotId: number; number: number }>;
@@ -24,7 +31,7 @@ interface Props {
 
 type MoveFailure = Exclude<Awaited<ReturnType<typeof moveBookingAction>>, { ok: true }>;
 
-function toFailure(result: MoveFailure): Failure {
+function toFailure(result: Exclude<MoveFailure, { error: "stock" }>): Failure {
   if (result.error === "invalid") return { key: "invalidMove" };
   if (result.error !== "taken") return { key: result.error };
   if (result.clashes.length === 0) return { key: "takenNow" };
@@ -40,6 +47,7 @@ export function MoveForm(props: Props) {
   const t = useTranslations("booking");
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
+  const stock = useStockWarning();
   const canMoveDates = occupant.kind !== "season" && occupant.startDate >= today;
   const [startDate, setStartDate] = useState(occupant.startDate);
   const [endDate, setEndDate] = useState(occupant.endDate);
@@ -61,11 +69,20 @@ export function MoveForm(props: Props) {
       toSpotId: targets[s.spotId]?.spotId ?? s.spotId,
     }));
     const when = canMoveDates ? { startDate, endDate } : { fromDate };
+    const request = { bookingId: occupant.bookingId, spots, ...when };
+    const key = JSON.stringify(request);
+    const allowOverStock = stock.allows(key);
     startTransition(async () => {
       try {
-        const result = await moveBookingAction({ bookingId: occupant.bookingId, spots, ...when });
+        const result = await moveBookingAction({ ...request, allowOverStock });
         if (result.ok) onDone();
-        else setFailure(toFailure(result));
+        else if (result.error === "stock") {
+          setFailure(null);
+          stock.warn(key, result.days);
+        } else {
+          stock.clear();
+          setFailure(toFailure(result));
+        }
       } catch {
         setFailure({ key: "generic" });
       }
@@ -78,7 +95,12 @@ export function MoveForm(props: Props) {
   const distinct = new Set(chosen).size === chosen.length;
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3" data-testid="move-form">
+    <form
+      onSubmit={onSubmit}
+      onChange={stock.clear}
+      className="flex flex-col gap-3"
+      data-testid="move-form"
+    >
       <h2 className="text-lg font-semibold">{t("moveTitle")}</h2>
       <p className="text-sm text-gray-700 dark:text-gray-300">{t("moveHint")}</p>
       {active && (
@@ -156,12 +178,13 @@ export function MoveForm(props: Props) {
           disabled={pending || !distinct}
           className="min-h-11 flex-1 rounded bg-blue-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
         >
-          {pending ? t("saving") : t("moveConfirm")}
+          {pending ? t("saving") : stock.days ? t("moveAnyway") : t("moveConfirm")}
         </button>
         <button type="button" onClick={onBack} className="min-h-11 flex-1 rounded border px-3 py-2">
           {t("moveBack")}
         </button>
       </div>
+      {stock.days && <StockWarning days={stock.days} />}
       <ErrorLine failure={failure} />
     </form>
   );

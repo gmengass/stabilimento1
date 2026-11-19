@@ -56,6 +56,21 @@ export async function setDefaultHoldAction(
   );
 }
 
+/** Logged with the old and new numbers: the counts and booking warnings use them (ADR 0021). */
+export async function setStockAction(input: unknown): Promise<edit.SetStockResult | Forbidden> {
+  return asAdmin(
+    "setStock",
+    () => edit.setStock(getDb(), input),
+    // The log holds strings and numbers: "" stands for "not tracked".
+    ({ from, to }) => ({
+      fromSunbeds: from.sunbedStock ?? "",
+      toSunbeds: to.sunbedStock ?? "",
+      fromDeckchairs: from.deckchairStock ?? "",
+      toDeckchairs: to.deckchairStock ?? "",
+    }),
+  );
+}
+
 export async function addLineAction(input: unknown): Promise<EditResult | Forbidden> {
   return asAdmin("addLine", () => edit.addLine(getDb(), input));
 }

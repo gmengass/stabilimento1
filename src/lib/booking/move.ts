@@ -5,12 +5,15 @@ import { addDays, venueToday } from "@/i18n/format";
 import { writeEntry, type BookingState, type DayRow, type SpotFlag } from "./audit";
 import {
   bookingDate,
+  checkStock,
   DAY_COLUMNS,
   isConflict,
   MAX_BOOKING_DAYS,
   MAX_SPOTS_PER_BOOKING,
+  OverStock,
   type Clash,
 } from "./bookings";
+import type { OverStockDay } from "./stock";
 
 /** One umbrella of the booking and where it goes. `toSpotId` may equal `fromSpotId`. */
 export interface SpotMove {
@@ -35,6 +38,8 @@ export const moveSchema = z
     startDate: bookingDate.optional(),
     endDate: bookingDate.optional(),
     fromDate: bookingDate.optional(),
+    /** Staff saw the stock warning for the new dates and move anyway (ADR 0021). */
+    allowOverStock: z.boolean().default(false),
   })
   .refine((m) => (m.startDate === undefined) === (m.endDate === undefined))
   .refine((m) => m.startDate === undefined || m.fromDate === undefined)
@@ -52,7 +57,8 @@ export type MoveResult =
       error:
         "invalid" | "notFound" | "ended" | "started" | "past" | "sunbeds" | "unchanged" | "split";
     }
-  | { ok: false; error: "taken"; clashes: Clash[] };
+  | { ok: false; error: "taken"; clashes: Clash[] }
+  | { ok: false; error: "stock"; days: OverStockDay[] };
 
 function daysBetween(start: string, end: string): number {
   return (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000;
@@ -104,6 +110,7 @@ interface LockedBooking {
   kind: BookingKind;
   startDate: string;
   endDate: string;
+  deckchairs: number;
 }
 
 interface BookingSpotRow {
@@ -129,7 +136,7 @@ const refuse = (result: Exclude<MoveResult, { ok: true }>): never => {
 async function lockBooking(tx: Kysely<DB>, bookingId: number): Promise<LockedBooking> {
   const booking = await tx
     .selectFrom("booking")
-    .select(["kind", "start_date as startDate", "end_date as endDate"])
+    .select(["kind", "start_date as startDate", "end_date as endDate", "deckchairs"])
     .where("id", "=", bookingId)
     .where("status", "=", "active")
     .forUpdate()
@@ -365,8 +372,18 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
     bookingSpotId: idOf.get(day.spotId)!,
   }));
   await writeDays(tx, removed, added);
+  // Umbrellas keep their sunbeds, so only new dates can change what the booking takes from stock.
+  let overStockDays = 0;
+  if (dates) {
+    const uses = {
+      sunbeds: current.some((r) => r.sunbeds > 0),
+      deckchairs: booking.deckchairs > 0,
+    };
+    overStockDays = await checkStock(tx, dates.startDate, dates.endDate, uses, move.allowOverStock);
+  }
 
-  const before: BookingState = { status: "active", ...booking };
+  const { kind, startDate, endDate } = booking;
+  const before: BookingState = { status: "active", kind, startDate, endDate };
   const after: BookingState = dates
     ? { status: "active", ...dates, kind: kindFor(dates.startDate, dates.endDate) }
     : before;
@@ -394,6 +411,7 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
       toStart: after.startDate!,
       toEnd: after.endDate,
       fromDay: from,
+      ...(overStockDays > 0 && { overStockDays }),
     },
     change: { before, after, added, removed, moved: [], spots: flags },
   });
@@ -418,6 +436,7 @@ export async function moveBooking(
     return { ok: true };
   } catch (error) {
     if (error instanceof Refused) return error.result;
+    if (error instanceof OverStock) return { ok: false, error: "stock", days: error.days };
     // Someone booked one of the umbrellas between the check and the write: the unique index won.
     if (isConflict(error)) return { ok: false, error: "taken", clashes: [] };
     throw error;

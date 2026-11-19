@@ -4,6 +4,7 @@ import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
 import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
+import { overStock, type OverStockDay } from "./stock";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -40,6 +41,8 @@ export const customerAndSpots = {
     .refine((spots) => new Set(spots.map((s) => s.spotId)).size === spots.length),
   /** Asked for with the booking, not stock (ADR 0020). Capped per umbrella by `deckchairsFit`. */
   deckchairs: z.number().int().min(0).default(0),
+  /** Staff saw the stock warning and book anyway (ADR 0021). */
+  allowOverStock: z.boolean().default(false),
 };
 
 /** At most `MAX_DECKCHAIRS_PER_UMBRELLA` deckchairs for each umbrella in the booking. */
@@ -63,7 +66,8 @@ export interface Clash {
 export type CreateResult =
   | { ok: true; bookingId: number }
   | { ok: false; error: "invalid" | "sunbeds" | "past" }
-  | { ok: false; error: "taken"; clashes: Clash[] };
+  | { ok: false; error: "taken"; clashes: Clash[] }
+  | { ok: false; error: "stock"; days: OverStockDay[] };
 
 export type CancelResult = { ok: true } | { ok: false; error: "invalid" | "notFound" | "ended" };
 
@@ -135,7 +139,32 @@ export interface BookingToWrite {
   notes: string;
   spots: { spotId: number; sunbeds: number }[];
   deckchairs: number;
+  /** Save even when it takes a tracked stock past its number (ADR 0021). */
+  allowOverStock?: boolean;
   seasonId?: number;
+}
+
+/** The booking would take a tracked stock past its number: nothing is written (ADR 0021). */
+export class OverStock extends Error {
+  constructor(readonly days: OverStockDay[]) {
+    super("stock");
+  }
+}
+
+/**
+ * Throws `OverStock` unless allowed. Runs after the booking's days are written. Answers the
+ * number of days over, so the log shows who booked over the stock knowingly.
+ */
+export async function checkStock(
+  tx: Kysely<DB>,
+  from: string,
+  to: string,
+  uses: { sunbeds: boolean; deckchairs: boolean },
+  allowed = false,
+): Promise<number> {
+  const days = await overStock(tx, from, to, uses);
+  if (days.length > 0 && !allowed) throw new OverStock(days);
+  return days.length;
 }
 
 /** The sunbed limits or the season's dates changed between the first check and the insert. */
@@ -198,12 +227,23 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
       returning booking_spot_id as "bookingSpotId", spot_id as "spotId",
         to_char(date, 'YYYY-MM-DD') as date, state
     `.execute(tx);
-    const { endDate, deckchairs } = booking;
+    const { startDate, endDate, deckchairs } = booking;
+    const sunbeds = booking.spots.some((s) => s.sunbeds > 0);
+    const overStockDays = await checkStock(
+      tx,
+      startDate,
+      endDate,
+      { sunbeds, deckchairs: deckchairs > 0 },
+      booking.allowOverStock,
+    );
     await writeEntry(tx, {
       userId,
       action: "book",
       bookingId: id,
-      detail: deckchairs > 0 ? { deckchairs } : {},
+      detail: {
+        ...(deckchairs > 0 && { deckchairs }),
+        ...(overStockDays > 0 && { overStockDays }),
+      },
       change: {
         before: { status: "cancelled", endDate },
         after: { status: "active", endDate },
@@ -241,6 +281,7 @@ export async function bookSpots(
       return { ok: true, bookingId: await insertBooking(db, userId, booking) };
     } catch (error) {
       if (error instanceof Stale) return { ok: false, error: error.reason };
+      if (error instanceof OverStock) return { ok: false, error: "stock", days: error.days };
       if (!isConflict(error)) throw error;
       if (attempt >= ATTEMPTS) return { ok: false, error: "taken", clashes: [] };
     }

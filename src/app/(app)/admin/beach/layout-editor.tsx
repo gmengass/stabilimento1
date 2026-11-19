@@ -5,7 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { BeachMap } from "@/components/beach-map";
 import type { EditError, EditResult } from "@/lib/beach/edit";
 import type { BeachLayout, MapSpot } from "@/lib/beach/layout";
-import { MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "@/lib/beach/limits";
+import { MAX_STOCK, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "@/lib/beach/limits";
 import { venueClock } from "@/i18n/format";
 import {
   addLineAction,
@@ -14,6 +14,7 @@ import {
   removeSpotAction,
   renameVenueAction,
   setDefaultHoldAction,
+  setStockAction,
   updateSpotAction,
 } from "./actions";
 
@@ -321,6 +322,72 @@ export function DefaultHoldForm({ time }: { time: string }) {
       ) : (
         <FeedbackLine feedback={feedback} />
       )}
+    </form>
+  );
+}
+
+/** A number input's value for the server: blank stays "" (not tracked), anything else a number. */
+function stockValue(value: FormDataEntryValue | undefined): number | "" {
+  const text = String(value ?? "").trim();
+  return text === "" ? "" : Number(text);
+}
+
+/** The venue's sunbed and deckchair stock; blank means not tracked (ADR 0021). */
+export function StockForm({
+  sunbeds,
+  deckchairs,
+}: {
+  sunbeds: number | null;
+  deckchairs: number | null;
+}) {
+  const t = useTranslations("beachSetup");
+  const { pending, feedback, run } = useEdit();
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    const input = formInput(event);
+    run(() =>
+      setStockAction({
+        sunbedStock: stockValue(input.sunbedStock),
+        deckchairStock: stockValue(input.deckchairStock),
+      }),
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2" data-testid="stock-form">
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 text-sm">
+          {t("sunbedStock")}
+          <input
+            name="sunbedStock"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={MAX_STOCK}
+            step={1}
+            defaultValue={sunbeds ?? ""}
+            className={`${field} w-32`}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          {t("deckchairStock")}
+          <input
+            name="deckchairStock"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={MAX_STOCK}
+            step={1}
+            defaultValue={deckchairs ?? ""}
+            className={`${field} w-32`}
+          />
+        </label>
+        <button type="submit" disabled={pending} className={button}>
+          {t("save")}
+        </button>
+      </div>
+      <p className="max-w-prose text-sm text-gray-600 dark:text-gray-400">{t("stockHint")}</p>
+      <FeedbackLine feedback={feedback} />
     </form>
   );
 }

@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { DB } from "@/db/types";
 import { venueToday } from "@/i18n/format";
 import { areaSchema, createArea, defaultSpotNumber } from "./layout";
-import { MAX_AREAS, MAX_LINES, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
+import { MAX_AREAS, MAX_LINES, MAX_STOCK, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
 
 export type EditError =
   | "invalid"
@@ -153,6 +153,45 @@ export async function renameVenue(db: Kysely<DB>, input: unknown): Promise<EditR
       .execute();
     return done;
   });
+}
+
+/** A stock: a whole number up to 9999, or blank / null for "not tracked" (ADR 0021). */
+const stockCount = z
+  .union([z.literal(""), z.null(), z.number().int().min(0).max(MAX_STOCK)])
+  .transform((n) => (n === "" ? null : n));
+
+const stockSchema = z.object({ sunbedStock: stockCount, deckchairStock: stockCount });
+
+export interface Stock {
+  sunbedStock: number | null;
+  deckchairStock: number | null;
+}
+
+export type SetStockResult = { ok: true; from: Stock; to: Stock } | { ok: false; error: EditError };
+
+/**
+ * Sets the venue's sunbed and deckchair stock (ADR 0021). Bookings already made stay; the
+ * counts and the next booking's warning use the new numbers. Answers old and new for the log.
+ */
+export async function setStock(db: Kysely<DB>, input: unknown): Promise<SetStockResult> {
+  const parsed = stockSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const to = parsed.data;
+  let from: Stock = { sunbedStock: null, deckchairStock: null };
+  const result = await inVenue(db, async (tx, venueId) => {
+    from = await tx
+      .selectFrom("venue")
+      .select(["sunbed_stock as sunbedStock", "deckchair_stock as deckchairStock"])
+      .where("id", "=", venueId)
+      .executeTakeFirstOrThrow();
+    await tx
+      .updateTable("venue")
+      .set({ sunbed_stock: to.sunbedStock, deckchair_stock: to.deckchairStock })
+      .where("id", "=", venueId)
+      .execute();
+    return done;
+  });
+  return result.ok ? { ok: true, from, to } : result;
 }
 
 const defaultHoldSchema = z.object({

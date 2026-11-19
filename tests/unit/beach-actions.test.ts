@@ -10,6 +10,11 @@ const { actor, audit, layout, edit } = vi.hoisted(() => {
     edit: {
       renameVenue: ok(),
       setDefaultHold: ok(),
+      setStock: vi.fn(async () => ({
+        ok: true as const,
+        from: { sunbedStock: null, deckchairStock: null },
+        to: { sunbedStock: 20, deckchairStock: 4 },
+      })),
       addLine: ok(),
       addUmbrellas: ok(),
       removeLastLine: ok(),
@@ -43,6 +48,7 @@ const cases = [
   ["setupBeachAction", actions.setupBeachAction, layout.setupBeach],
   ["renameVenueAction", actions.renameVenueAction, edit.renameVenue],
   ["setDefaultHoldAction", actions.setDefaultHoldAction, edit.setDefaultHold],
+  ["setStockAction", actions.setStockAction, edit.setStock],
   ["addLineAction", actions.addLineAction, edit.addLine],
   ["addUmbrellasAction", actions.addUmbrellasAction, edit.addUmbrellas],
   ["removeLastLineAction", actions.removeLastLineAction, edit.removeLastLine],
@@ -68,7 +74,7 @@ describe.each(cases)("%s", (_name, action, operation) => {
 
   it("runs for an admin", async () => {
     actor.current = user("admin");
-    await expect(action({ x: 1 })).resolves.toEqual({ ok: true });
+    await expect(action({ x: 1 })).resolves.toMatchObject({ ok: true });
     expect(operation).toHaveBeenCalledWith({}, { x: 1 });
     expect(audit.writeEntry).toHaveBeenCalledWith(
       {},
@@ -106,6 +112,27 @@ describe("setDefaultHoldAction", () => {
         userId: "u1",
         action: "beach",
         detail: { what: "setDefaultHold", from: "11:00", to: "12:30" },
+      },
+    );
+  });
+});
+
+describe("setStockAction", () => {
+  it("logs the old and the new stock, with blank for not tracked", async () => {
+    actor.current = user("admin");
+    await actions.setStockAction({ sunbedStock: 20, deckchairStock: 4 });
+    expect(audit.writeEntry).toHaveBeenCalledWith(
+      {},
+      {
+        userId: "u1",
+        action: "beach",
+        detail: {
+          what: "setStock",
+          fromSunbeds: "",
+          toSunbeds: 20,
+          fromDeckchairs: "",
+          toDeckchairs: 4,
+        },
       },
     );
   });
