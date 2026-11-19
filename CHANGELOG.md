@@ -3,6 +3,12 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Nightly backups: every night at 03:30 the box backs up the database, checks it restores,
+  encrypts it with age and keeps 14 days on the box and on OneDrive. A failure emails the owner;
+  an optional heartbeat URL catches nights with no backup at all (ADR 0022).
+- `scripts/restore-backup.sh`: monthly restore test (`--test latest`) and full restore on a new
+  box from OneDrive. The backup is checked in a scratch database before it replaces anything.
 
 ## [0.12.0] - 2026-11-19
 ### Added

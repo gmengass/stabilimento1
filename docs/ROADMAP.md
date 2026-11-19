@@ -9,7 +9,8 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Hosting decision (ADR 0003)
 - [x] Scaffold app, lint/format, test runner, CI green
 - [x] Deploy: Docker Compose stack (app, PostgreSQL, Caddy), update/rollback scripts, RUNBOOK (ADR 0003)
-- [ ] Backups: nightly encrypted pg_dump to USB + OneDrive (rclone), retention, restore test, failure alert
+- [x] Backups: nightly encrypted pg_dump to box disk + OneDrive (rclone), 14 days, restore test,
+      failure alert (owner, 2026-11-19, ADR 0022)
 - [x] Database + first migration (Venue, Area, Spot), seed data
 - [x] Interface languages: Italian + English, switchable anytime incl. after login (ADR 0005;
       after login the switcher is in the user menu, ADR 0009)
