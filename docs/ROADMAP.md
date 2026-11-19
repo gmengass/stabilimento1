@@ -46,6 +46,8 @@ Each item ships something staff can use on the box.
       deckchairs (sdraie) per umbrella (owner, 2026-11-19, ADR 0020)
 - [x] Sunbed and deckchair stock in Beach settings: free / stock per day, warning before a
       booking goes over (owner, 2026-11-19, ADR 0021)
+- [x] Map tiles show sunbeds and deckchairs beyond the default: `+L`, `-L`, `+S` (owner,
+      2026-11-19, ADR 0023)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

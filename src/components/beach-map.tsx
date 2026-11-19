@@ -38,6 +38,8 @@ interface Props {
   captionOf: (spot: MapSpot) => string | undefined;
   /** A short mark in the corner: a tick, a late-arrival time, a no-show marker. */
   badgeOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
+  /** A short mark in the other top corner: sunbeds or deckchairs beyond the default (ADR 0023). */
+  extrasOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
   onSpotClick: (spot: MapSpot) => void;
 }
 
@@ -46,7 +48,15 @@ interface Props {
  * it, position 1 on the left. Each spot sits in the grid column of its position, so gaps on the
  * real beach stay visible.
  */
-export function BeachMap({ areaName, lines, viewOf, captionOf, badgeOf, onSpotClick }: Props) {
+export function BeachMap({
+  areaName,
+  lines,
+  viewOf,
+  captionOf,
+  badgeOf,
+  extrasOf,
+  onSpotClick,
+}: Props) {
   const t = useTranslations("map");
   const columns = Math.max(1, ...lines.flatMap((line) => line.spots.map((s) => s.position)));
   return (
@@ -68,6 +78,7 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, badgeOf, onSpotCl
                 const view = viewOf(spot);
                 const caption = captionOf(spot);
                 const badge = badgeOf?.(spot);
+                const extras = extrasOf?.(spot);
                 return (
                   <li key={spot.id} style={{ gridColumn: spot.position }}>
                     <button
@@ -93,9 +104,19 @@ export function BeachMap({ areaName, lines, viewOf, captionOf, badgeOf, onSpotCl
                           {badge.text}
                         </span>
                       )}
+                      {extras && (
+                        <span
+                          aria-hidden
+                          data-testid="tile-extras"
+                          className="absolute top-0 left-0.5 text-[10px] leading-tight font-normal"
+                        >
+                          {extras.text}
+                        </span>
+                      )}
                       <span className="sr-only">
                         {t(labelKey[view], { number: spot.number, name: caption ?? "" })}
                         {badge && <span> {badge.label}</span>}
+                        {extras && <span> {extras.label}</span>}
                       </span>
                     </button>
                   </li>
