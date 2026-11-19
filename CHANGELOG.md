@@ -15,6 +15,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   not counted). The map's day counts then show how many are left that day for the whole beach,
   and a booking, season pass or move to new dates that would go over shows the days short and
   "Prenota comunque" / "Sposta comunque" to save it anyway (ADR 0021).
+### Removed
+- The line "Tocca gli ombrelloni liberi per prenotarli, o uno prenotato per vederlo." under the
+  day counts, to reduce clutter above the map.
 
 ## [0.10.0] - 2026-11-18
 ### Added
