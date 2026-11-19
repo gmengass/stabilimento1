@@ -2,14 +2,14 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.11.0` deployed (live map, deckchairs). Stock missed it (#62 landed on #61's branch): #63.
+- `v0.12.0` released and deployed (stock of lettini/sdraie, #63). `v0.11.0`: live map, deckchairs.
 
 ## Done this session
 - Stock of lettini/sdraie (ADR 0021, migration 0012): Beach settings, day counts, warn + "anyway"
   on book/pass/date move, overrides logged. 1070 tests, 46 e2e; review approved, security pass.
 
 ## Next up
-1. Merge #63 (stock), tag `v0.12.0`, deploy (migration 0012). Delete branch `feat/deckchairs`.
+1. Owner: enter the lettini/sdraie stock in Beach settings. Delete branch `feat/deckchairs`.
 2. Backups: nightly encrypted pg_dump to USB + OneDrive (owner: M365 approval, USB in the box).
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 

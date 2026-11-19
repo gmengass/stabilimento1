@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.12.0] - 2026-11-19
 ### Added
 - Stock of lettini and sdraie: in Beach settings an admin enters how many the club owns (blank:
   not counted). The map's day counts then show how many are left that day for the whole beach,

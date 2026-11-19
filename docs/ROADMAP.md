@@ -43,7 +43,7 @@ Each item ships something staff can use on the box.
       ADR 0018)
 - [x] Deckchairs: a booking keeps its sunbeds (2 per umbrella by default) and can add up to 2
       deckchairs (sdraie) per umbrella (owner, 2026-11-19, ADR 0020)
-- [ ] Sunbed and deckchair stock in Beach settings: free / stock per day, warning before a
+- [x] Sunbed and deckchair stock in Beach settings: free / stock per day, warning before a
       booking goes over (owner, 2026-11-19, ADR 0021)
 
 ## Milestone 2 — Business features
