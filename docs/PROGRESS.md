@@ -2,19 +2,19 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `main` is at the merge of #73 (activity stream and undo cover the whole day, ADR 0024), after
-  #71 (check in at creation) and `v0.13.3` (released and deployed). Branch `feat/communal-accounts`
-  (PR #72) is rebased onto it. Backup setup on the box not done yet.
+- `main` is at the merge of #72 (communal accounts, ADR 0025), tagged `v0.13.4`. #73 (ADR 0024)
+  and #71 are before it; `v0.13.3` was released and deployed. `v0.13.4` is tagged, deploy not
+  confirmed. Backup setup on the box not done yet.
 
 ## Done this session
-- Communal (shared tablet) accounts (ADR 0025, plan `docs/plans/communal-accounts.md`): flag at
-  account creation, 30-day session, "Who is doing this?" pop-up (first action, then after 2 min
-  idle), actions and Undo per chosen person. ADR renumbered 0024 to 0025 (clash with #73).
-- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) passed
-  locally with system Chrome before the merge with main; rerun in CI.
+- Communal (shared tablet) accounts merged (#72, ADR 0025, plan `docs/plans/communal-accounts.md`):
+  flag at account creation, 30-day session, "Who is doing this?" pop-up (first action, then after
+  2 min idle), actions and Undo per chosen person.
+- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) ran in CI
+  with the merge; not re-run locally after the rebase.
+- Docs sync: ROADMAP communal-accounts line ticked.
 
 ## Next up
-0. Merge `feat/communal-accounts` after CI is green; then tick the ROADMAP line and release.
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
@@ -30,7 +30,7 @@
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
 - Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021): no warning on undo/restore/ lowering it; date moves warn on all days, not only added; per space? Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
-- Activity: no e2e for undoing an older entry of today (sessions can't run Playwright); CHANGELOG lacks 0.13.1-0.13.3; confirm 0.13.2/0.13.3 deployed.
+- Activity: no e2e for undoing an older entry of today (sessions can't run Playwright); CHANGELOG has no 0.13.1-0.13.4 sections (changes sit under Unreleased); confirm 0.13.2-0.13.4 deployed.
 - Live map: midnight "today" (rolls over at next refresh, clears selection; fine?). Phones: portrait-tablet sheet? Android: DayNight, min 7.0, `FLAG_SECURE`, auto-retry? Tailscale terms, who?
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.
 - Owner: cancelled names shown to all staff? No rate limits (booking, suggest, move, undo, check-in, live). Minor: "retire" umbrellas with past bookings; quick book "Another suggestion" resets the form; venue name takes control chars; setup numbers take `true`/`1e1`.
