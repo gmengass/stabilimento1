@@ -25,6 +25,6 @@
 6. `security` agent review (auth + session change), then `reviewer`.
 
 ## Risks
-- Per-account session length may need a custom Better Auth hook (check before step 2).
+- Session length relies on a Better Auth hook (checked in 1.7.20); a test must catch an upgrade that ignores it.
 - Many actions to cover; a missed one would record the communal account. Add a test that fails
   if an action writes the session user id directly.
