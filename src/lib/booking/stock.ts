@@ -40,7 +40,7 @@ async function loadUse(
   to: string,
 ): Promise<UseRow[]> {
   const { rows } = await sql<UseRow>`
-    with venue as (
+    with space as (
       select sunbed_stock, deckchair_stock from area where id = ${areaId}
     ), used as (
       select sd.date, bs.booking_id, sum(bs.sunbeds)::int as sunbeds
@@ -54,13 +54,13 @@ async function loadUse(
     select to_char(d, 'YYYY-MM-DD') as date,
       coalesce(sum(used.sunbeds), 0)::int as sunbeds,
       coalesce(sum(b.deckchairs), 0)::int as deckchairs,
-      venue.sunbed_stock as "sunbedStock",
-      venue.deckchair_stock as "deckchairStock"
+      space.sunbed_stock as "sunbedStock",
+      space.deckchair_stock as "deckchairStock"
     from generate_series(${from}::date, ${to}::date, '1 day') d
-    cross join venue
+    cross join space
     left join used on used.date = d
     left join booking b on b.id = used.booking_id
-    group by d, venue.sunbed_stock, venue.deckchair_stock
+    group by d, space.sunbed_stock, space.deckchair_stock
     order by d
   `.execute(db);
   return rows;

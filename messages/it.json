@@ -414,6 +414,7 @@
     "holdCleared": "{user} ha rimesso l'orario normale per {name}",
     "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}",
     "beachStock": "{user} ha impostato la scorta di {area}: lettini {sunbeds}, sdraie {deckchairs}",
+    "beachStockVenue": "{user} ha impostato la scorta: lettini {sunbeds}, sdraie {deckchairs}",
     "stockOff": "non contati",
     "overStock": "{text} (oltre la scorta)"
   },

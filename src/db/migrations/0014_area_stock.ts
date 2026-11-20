@@ -2,6 +2,7 @@ import { sql, type Kysely } from "kysely";
 
 // Sunbed and deckchair stock moves from the venue to each beach space (ADR 0026). NULL still means
 // not tracked. A stock already entered for the venue goes to the first space, so no number is lost.
+// `down` is lossy: the venue gets the sum of its spaces' stocks, capped at 9999.
 
 export async function up(db: Kysely<unknown>): Promise<void> {
   await sql`alter table area
@@ -24,8 +25,8 @@ export async function down(db: Kysely<unknown>): Promise<void> {
     db,
   );
   await sql`update venue set
-      sunbed_stock = (select sum(sunbed_stock)::int from area where venue_id = venue.id),
-      deckchair_stock = (select sum(deckchair_stock)::int from area where venue_id = venue.id)`.execute(
+      sunbed_stock = (select least(sum(sunbed_stock), 9999)::int from area where venue_id = venue.id),
+      deckchair_stock = (select least(sum(deckchair_stock), 9999)::int from area where venue_id = venue.id)`.execute(
     db,
   );
   await sql`alter table area drop column deckchair_stock, drop column sunbed_stock`.execute(db);

@@ -414,6 +414,7 @@
     "holdCleared": "{user} set the usual hold time for {name}",
     "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed",
     "beachStock": "{user} set the stock of {area}: sunbeds {sunbeds}, deckchairs {deckchairs}",
+    "beachStockVenue": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "stockOff": "not tracked",
     "overStock": "{text} (over the stock)"
   },

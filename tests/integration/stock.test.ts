@@ -504,4 +504,20 @@ describe("0014_area_stock migration", () => {
     });
     expect((await loadStockDay(db, north.areaId, TODAY)).sunbeds).toBeNull();
   });
+
+  it("caps the venue's stock at 9999 when the spaces add up to more", async () => {
+    await stock(6000, 1);
+    const north = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
+    if (!north.ok) throw new Error("no area");
+    await setStock(db, { areaId: north.areaId, sunbedStock: 6000, deckchairStock: "" });
+    try {
+      const down = await createMigrator(db).migrateTo("0013_communal");
+      if (down.error) throw down.error;
+      const { rows } = await sql<{ s: number }>`select sunbed_stock as s from venue`.execute(db);
+      expect(rows[0].s).toBe(9999);
+    } finally {
+      const up = await runMigrations(db, "up");
+      if (up.error) throw up.error;
+    }
+  });
 });

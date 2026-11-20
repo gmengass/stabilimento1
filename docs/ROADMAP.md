@@ -55,6 +55,8 @@ Each item ships something staff can use on the box.
       (owner, 2026-11-19, ADR 0015 amendment)
 - [x] Activity stream and undo cover the whole day, not only the last 10 entries (owner,
       2026-11-20, ADR 0024)
+- [ ] Sunbed and deckchair stock per beach space, entered in each space's panel in Beach settings
+      (owner, 2026-11-20, ADR 0026; tick when #PR is merged)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

@@ -1,20 +1,20 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #72 (communal accounts, ADR 0025), tagged `v0.13.4`. #73 (ADR 0024)
-  and #71 are before it; `v0.13.4` is released and deployed (owner, 2026-11-20). Backup setup on the box not done yet.
+- `main` is at the merge of #76, last tag `v0.13.4` (released and deployed, owner, 2026-11-20).
+  Backup setup on the box not done yet. Branch `feat/stock-per-space` is open (PR, not merged).
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
-- Communal (shared tablet) accounts merged (#72, ADR 0025, plan `docs/plans/communal-accounts.md`):
-  flag at account creation, 30-day session, "Who is doing this?" pop-up (first action, then after
-  2 min idle), actions and Undo per chosen person.
-- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) ran in CI
-  with the merge; not re-run locally after the rebase.
+- Stock per beach space (ADR 0026, owner 2026-11-20): `area.sunbed_stock` / `deckchair_stock`
+  replace the venue columns (migration 0014; old venue stock goes to the first space, `down`
+  sums, capped at 9999). Set in each space's panel in Beach settings; counts, warnings and the
+  activity log use that space. Unit + integration tests pass; e2e not run (sessions can't).
 ## Next up
 1. Owner: try one communal tablet with real staff (no PIN: watch for wrong names).
 2. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
-3. Owner: enter the lettini/sdraie stock in Beach settings.
+3. Owner: after v0.14 deploys, enter the lettini/sdraie stock for each space in Beach settings
+   (the old venue stock lands on the first space).
 4. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
@@ -24,7 +24,7 @@
   they go straight to the umbrella, so each day they'd be flagged `no_show`. Apply the hold rule
   to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
-- Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021): no warning on undo/restore/ lowering it; date moves warn on all days, not only added; per space? Races pass.
+- Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021/0026): no warning on undo/restore/ lowering it; date moves warn on all days, not only added; no venue-wide total. Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
 - Activity: no e2e for undoing an older entry of today (sessions can't run Playwright).
 - Live map: midnight "today" (rolls over at next refresh, clears selection; fine?). Phones: portrait-tablet sheet? Android: DayNight, min 7.0, `FLAG_SECURE`, auto-retry? Tailscale terms, who?

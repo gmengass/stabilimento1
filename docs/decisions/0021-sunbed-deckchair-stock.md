@@ -2,6 +2,7 @@
 
 - Status: Accepted (owner, 2026-11-19: "count and warn")
 - Date: 2026-11-19
+- Superseded in part by [ADR 0026](0026-stock-per-space.md): stock is per beach space, not per venue.
 - Supersedes: the "No stock" bullet of [ADR 0020](0020-deckchairs.md). Everything else in 0020
   and the per-umbrella sunbed limits of [ADR 0004](0004-booking-model.md) are unchanged.
 
