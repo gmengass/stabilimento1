@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Stock per beach space: lettini and sdraie stock are set in each space's panel in Beach settings
+  (ADR 0026, migration 0014; old venue stock moves to the first space).
+- Accessibility: a "Skip to content" link, and a distinct page title on login, search, Beach
+  settings, Seasons and Staff.
 
 ## [0.13.4] - 2026-11-20
 ### Added
