@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Check in at creation: a one-day booking for today shows a "Check in now" checkbox, ticked by
+  default. Checked in, it is never flagged as a no-show at the hold time. Multi-day bookings and
+  season passes are not checked in at creation (ADR 0015 amendment).
+
 ### Changed
 - The activity list on the map shows everything that happened today, not only the last 10
   actions, and any of today's actions can be undone (staff: their own within 30 minutes; admins:

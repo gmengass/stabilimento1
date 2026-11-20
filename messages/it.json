@@ -193,6 +193,7 @@
   "booking": {
     "newTitle": "Nuova prenotazione · {area}",
     "sunbeds": "Lettini",
+    "checkInNow": "Segna arrivo subito",
     "deckchairs": "Sdraie",
     "remove": "Togli",
     "removeSpot": "Togli l'ombrellone {number}",
@@ -374,6 +375,7 @@
     "spots": "{count, plural, one {ombrellone {numbers}} other {ombrelloni {numbers}}}",
     "range": "{from} – {to}",
     "book": "{user} ha prenotato {spots} per {name}, {dates}",
+    "checkedIn": "{text}, arrivo segnato",
     "withDeckchairs": "{text}, con {count, plural, one {# sdraio} other {# sdraie}}",
     "sellPass": "{user} ha venduto un abbonamento stagionale per {spots} a {name}, dal {from}",
     "cancel": "{user} ha annullato la prenotazione di {name} ({spots})",

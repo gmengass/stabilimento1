@@ -37,7 +37,10 @@ export async function ActivityPanel({ entries, viewer }: Props) {
             ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
             : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
         const deckchairs = Number(detail.deckchairs ?? 0);
-        return overStock(deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text);
+        const withChairs = deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text;
+        return overStock(
+          Number(detail.checkedIn ?? 0) > 0 ? t("checkedIn", { text: withChairs }) : withChairs,
+        );
       }
       case "cancel":
         return t("cancel", { user, name, spots });

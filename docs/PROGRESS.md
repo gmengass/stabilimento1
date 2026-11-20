@@ -2,24 +2,27 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `v0.13.3` tagged (tile marks #69, live map limits #68, stale-state fix #67); `v0.13.1` was the
-  last release confirmed deployed (0.13.2/0.13.3 tagged, deploy unconfirmed). Branch
-  `feat/activity-today` (no PR yet, pending merge): the activity stream and undo cover the whole
-  day (ADR 0024), 500-entry cap; tests, lint, typecheck green.
+- `main` is at the merge of #71 (check in at creation), after `v0.13.3` (released and deployed).
+  Branch `feat/activity-today` (PR #73): the activity stream and undo cover the whole day
+  (ADR 0024), 500-entry cap. Backup setup on the box not done yet.
 
 ## Done this session
 - Activity stream lists all of today's entries (venue-local day) and undo works on any of them,
   same author 30 min / admin rules (ADR 0024, amends 0013). `venueDayStart` is DST-safe. No migration.
 - Review approved; security found nothing above Low (stream/undo are not scoped by venue).
+- Merged `main` (#70, #71) into the branch; docs conflicts only.
 
 ## Next up
-0. Merge `feat/activity-today` once CI is green (PR), then tag and update CHANGELOG.
+0. Merge `feat/activity-today` once CI is green; then tag the release and update CHANGELOG.
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
+- Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in:
+  they go straight to the umbrella, so each day they'd be flagged `no_show`. Apply the hold rule
+  to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
 - Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021): no warning on undo/restore/ lowering it; date moves warn on all days, not only added; per space? Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
