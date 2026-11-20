@@ -16,6 +16,7 @@ import {
 import { moveBooking } from "@/lib/booking/move";
 import { createSeasonPass, endSeasonPass, releaseDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
+import { stampToday } from "./audit-clock";
 import { undoEntry } from "@/lib/booking/undo";
 import { testDatabaseUrl } from "./test-database";
 
@@ -130,11 +131,12 @@ function move(input: Record<string, unknown>, today = TODAY, by = ANNA) {
 }
 
 async function latestId(): Promise<number> {
-  const [entry] = await listActivity(db, 1);
+  const [entry] = await listActivity(db, new Date(0), 1);
   return entry.id;
 }
 
-function undo(entryId: number, by = ANNA, today = TODAY) {
+async function undo(entryId: number, by = ANNA, today = TODAY) {
+  await stampToday(db, entryId, today);
   return undoEntry(db, by, { entryId }, today, new Date());
 }
 
@@ -221,7 +223,7 @@ describe("moveBooking: one umbrella to another (AC 1)", () => {
   it("logs who moved which booking from and to which umbrellas, without customer data", async () => {
     const id = await book();
     await move({ bookingId: id, spots: [to(101, 105)] }, TODAY, BRUNO);
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({
       action: "move",
       userId: BRUNO.id,
@@ -697,7 +699,7 @@ describe("undo a move (AC 8)", () => {
       { number: 101, sunbeds: 2 },
       { number: 102, sunbeds: 1 },
     ]);
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({ action: "undo", undoesAction: "move" });
     expect(
       await book(
@@ -820,12 +822,12 @@ describe("only current umbrellas are shown after a move (AC 9)", () => {
   it("lists only current umbrellas in the activity, after a move and after a cancel", async () => {
     const id = await twoUmbrellas();
     await move({ bookingId: id, spots: [to(101, 105), to(102, 102)] });
-    expect((await listActivity(db)).map((e) => [e.action, e.spots])).toEqual([
+    expect((await listActivity(db, new Date(0), 500)).map((e) => [e.action, e.spots])).toEqual([
       ["move", [102, 105]],
       ["book", [102, 105]],
     ]);
     await cancelBooking(db, ANNA.id, { bookingId: id }, TODAY);
-    const [cancel] = await listActivity(db);
+    const [cancel] = await listActivity(db, new Date(0), 500);
     expect(cancel).toMatchObject({ action: "cancel", spots: [102, 105] });
   });
 

@@ -164,7 +164,7 @@ describe("map_changed: one notification per committed change", () => {
 
   it("undoing", async () => {
     await book();
-    const [entry] = await listActivity(db, 1);
+    const [entry] = await listActivity(db, new Date(0), 1);
     const work = () => expectOk(undoEntry(db, ANNA, { entryId: entry.id }, TODAY, new Date()));
     expect(await notificationsDuring(work)).toBe(1);
   });

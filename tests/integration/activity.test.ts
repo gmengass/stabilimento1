@@ -3,13 +3,14 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, getDb } from "@/db/client";
 import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
-import { addDays } from "@/i18n/format";
+import { addDays, venueDayStart } from "@/i18n/format";
 import { loadBeach, setupBeach } from "@/lib/beach/layout";
 import { listActivity, UNDO_WINDOW_MS, writeEntry, type Viewer } from "@/lib/booking/audit";
 import { cancelBooking, createBooking, type CreateBookingInput } from "@/lib/booking/bookings";
 import { createSeasonPass, endSeasonPass, releaseDays, restoreDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
 import { undoEntry } from "@/lib/booking/undo";
+import { stampEntry, stampToday } from "./audit-clock";
 import { testDatabaseUrl } from "./test-database";
 
 let db: Kysely<DB>;
@@ -95,12 +96,29 @@ async function sellPass(by: Viewer = ANNA) {
 }
 
 async function latestId(): Promise<number> {
-  const [entry] = await listActivity(db, 1);
+  const [entry] = await listActivity(db, new Date(0), 1);
   return entry.id;
 }
 
-function undo(entryId: number, by: Viewer = ANNA, today = TODAY, now = new Date()) {
+/** Undo with the entry stamped as made today, so only the rule under test can refuse it. */
+async function undo(entryId: number, by: Viewer = ANNA, today = TODAY, now = new Date()) {
+  await stampToday(db, entryId, today);
   return undoEntry(db, by, { entryId }, today, now);
+}
+
+const DAY_START = venueDayStart(TODAY);
+const MINUTE = 60_000;
+
+/** Undo exactly as stored: the entry keeps the time it was stamped with. */
+function undoAsStamped(entryId: number, by: Viewer, now: Date) {
+  return undoEntry(db, by, { entryId }, TODAY, now);
+}
+
+async function stampedEntry(by: Viewer, at: Date): Promise<number> {
+  await book(by);
+  const id = await latestId();
+  await stampEntry(db, id, at);
+  return id;
 }
 
 async function bookingState(bookingId: number) {
@@ -121,6 +139,15 @@ async function bookingState(bookingId: number) {
   };
 }
 
+async function bookingCount(): Promise<number> {
+  const { count } = await db
+    .selectFrom("booking")
+    .select((eb) => eb.fn.countAll<number>().as("count"))
+    .where("status", "=", "active")
+    .executeTakeFirstOrThrow();
+  return Number(count);
+}
+
 async function entryCount(): Promise<number> {
   const { count } = await db
     .selectFrom("audit_log")
@@ -132,7 +159,7 @@ async function entryCount(): Promise<number> {
 describe("logging", () => {
   it("logs a booking with who, which booking, its umbrellas and the customer from the booking", async () => {
     const id = await book();
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({
       userId: ANNA.id,
       userName: "Anna",
@@ -153,7 +180,7 @@ describe("logging", () => {
   it("mentions the deckchairs on the book entry only when there are some", async () => {
     await book(ANNA, { deckchairs: 4 });
     await book(ANNA, { startDate: addDays(TODAY, 5), endDate: addDays(TODAY, 5) });
-    const [without, withFour] = await listActivity(db);
+    const [without, withFour] = await listActivity(db, new Date(0), 500);
     expect(withFour).toMatchObject({ action: "book", detail: { deckchairs: 4 } });
     expect(without).toMatchObject({ action: "book", detail: {} });
   });
@@ -174,21 +201,55 @@ describe("logging", () => {
     const range = { bookingId: pass, startDate: TODAY, endDate: addDays(TODAY, 1) };
     await releaseDays(db, ANNA.id, range, TODAY);
     await releaseDays(db, ANNA.id, range, TODAY);
-    const actions = (await listActivity(db)).map((e) => [e.action, e.detail]);
+    const actions = (await listActivity(db, new Date(0), 500)).map((e) => [e.action, e.detail]);
     expect(actions).toEqual([
       ["release", { startDate: TODAY, endDate: addDays(TODAY, 1), days: 2 }],
       ["book", {}],
     ]);
   });
 
-  it("lists the 10 latest entries, newest first", async () => {
-    for (let i = 0; i < 12; i++) {
+  it("lists every entry from today on, newest first, not just 10", async () => {
+    for (let i = 0; i < 15; i++) {
       await book(ANNA, { startDate: addDays(TODAY, i * 3), endDate: addDays(TODAY, i * 3) });
     }
-    const entries = await listActivity(db);
-    expect(entries).toHaveLength(10);
-    expect(entries[0].startDate).toBe(addDays(TODAY, 33));
-    expect(entries[9].startDate).toBe(addDays(TODAY, 6));
+    await sql`update audit_log set created_at = ${DAY_START.toISOString()}::timestamptz
+      + id * interval '1 minute'`.execute(db);
+    const entries = await listActivity(db, DAY_START, 500);
+    expect(entries).toHaveLength(15);
+    expect(entries[0].startDate).toBe(addDays(TODAY, 42));
+    expect(entries[14].startDate).toBe(TODAY);
+  });
+
+  it("starts at today 00:00 Rome: 23:59 the day before is out, midnight is in", async () => {
+    const before = await stampedEntry(ANNA, new Date(DAY_START.getTime() - MINUTE));
+    const at = await stampedEntry(ANNA, DAY_START);
+    const ids = (await listActivity(db, DAY_START, 500)).map((e) => e.id);
+    expect(ids).toEqual([at]);
+    expect(ids).not.toContain(before);
+  });
+
+  it("starts the day at the right instant on a 23-hour and a 25-hour day", async () => {
+    for (const day of ["2027-03-28", "2027-10-31"]) {
+      const start = venueDayStart(day);
+      await sql`truncate audit_log restart identity cascade`.execute(db);
+      const out = await stampedEntry(ANNA, new Date(start.getTime() - MINUTE));
+      const inn = await stampedEntry(ANNA, start);
+      const ids = (await listActivity(db, start, 500)).map((e) => e.id);
+      expect([day, ids]).toEqual([day, [inn]]);
+      expect(ids).not.toContain(out);
+    }
+  });
+
+  it("returns at most the cap, newest first", async () => {
+    for (let i = 0; i < 5; i++) {
+      await book(ANNA, { startDate: addDays(TODAY, i * 3), endDate: addDays(TODAY, i * 3) });
+    }
+    const entries = await listActivity(db, new Date(0), 3);
+    expect(entries.map((e) => e.startDate)).toEqual([
+      addDays(TODAY, 12),
+      addDays(TODAY, 9),
+      addDays(TODAY, 6),
+    ]);
   });
 });
 
@@ -203,7 +264,7 @@ describe("undo", () => {
       cancelledBy: ANNA.id,
       days: {},
     });
-    const [undoEntryRow, original] = await listActivity(db);
+    const [undoEntryRow, original] = await listActivity(db, new Date(0), 500);
     expect(undoEntryRow).toMatchObject({ action: "undo", undoesAction: "book", undone: false });
     expect(original).toMatchObject({ id: entryId, undone: true });
     expect(await book(BRUNO)).toBeGreaterThan(id);
@@ -339,7 +400,7 @@ describe("undo", () => {
     const original = await latestId();
     await undo(original);
     await undo(await latestId());
-    const entries = await listActivity(db);
+    const entries = await listActivity(db, new Date(0), 500);
     expect(entries.find((e) => e.id === original)).toMatchObject({ undone: false });
     expect(entries[1]).toMatchObject({ action: "undo", undone: true });
   });
@@ -355,7 +416,7 @@ describe("undo", () => {
 
   it("refuses beach and season entries", async () => {
     await writeEntry(db, { userId: ADMIN.id, action: "beach", detail: { what: "addLine" } });
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({ action: "beach", undoable: false, bookingId: null });
     expect(await undo(entry.id, ADMIN)).toEqual({ ok: false, error: "invalid" });
   });
@@ -374,29 +435,82 @@ describe("who may undo", () => {
     expect(await undo(await latestId(), BRUNO)).toEqual({ ok: false, error: "forbidden" });
   });
 
-  it("lets staff undo their own entries for 30 minutes", async () => {
-    await book(ANNA);
-    const entryId = await latestId();
-    const late = new Date(Date.now() + UNDO_WINDOW_MS + 60_000);
-    expect(await undo(entryId, ANNA, TODAY, late)).toEqual({ ok: false, error: "forbidden" });
-    expect(
-      await undo(entryId, ANNA, TODAY, new Date(Date.now() + UNDO_WINDOW_MS - 60_000)),
-    ).toEqual({ ok: true });
+  it("lets staff undo their own entries for 30 minutes, not 31", async () => {
+    const at = new Date(DAY_START.getTime() + 9 * 60 * MINUTE);
+    const late = await stampedEntry(ANNA, at);
+    expect(await undoAsStamped(late, ANNA, new Date(at.getTime() + 31 * MINUTE))).toEqual({
+      ok: false,
+      error: "forbidden",
+    });
+    expect(await bookingCount()).toBe(1);
+    expect(await undoAsStamped(late, ANNA, new Date(at.getTime() + 30 * MINUTE))).toEqual({
+      ok: true,
+    });
   });
 
   it("lets an admin undo anyone's entry at any time", async () => {
-    await book(BRUNO);
-    const late = new Date(Date.now() + 24 * 60 * 60_000);
-    expect(await undo(await latestId(), ADMIN, TODAY, late)).toEqual({ ok: true });
+    const at = new Date(DAY_START.getTime() + MINUTE);
+    const entryId = await stampedEntry(BRUNO, at);
+    const late = new Date(DAY_START.getTime() + 23 * 60 * MINUTE);
+    expect(await undoAsStamped(entryId, ADMIN, late)).toEqual({ ok: true });
   });
 
-  it("only allows the 10 latest entries", async () => {
-    await book(ANNA, { startDate: addDays(TODAY, 40), endDate: addDays(TODAY, 40) });
-    const old = await latestId();
-    for (let i = 0; i < 10; i++) {
-      await book(BRUNO, { startDate: addDays(TODAY, i * 3), endDate: addDays(TODAY, i * 3) });
+  it("allows an entry from today even when it is the 11th newest or older", async () => {
+    const old = await stampedEntry(ANNA, new Date(DAY_START.getTime() + MINUTE));
+    for (let i = 0; i < 12; i++) {
+      await book(BRUNO, {
+        startDate: addDays(TODAY, 10 + i * 3),
+        endDate: addDays(TODAY, 10 + i * 3),
+      });
     }
-    expect(await undo(old, ADMIN)).toEqual({ ok: false, error: "notFound" });
+    await sql`update audit_log set created_at = ${new Date(DAY_START.getTime() + 2 * MINUTE).toISOString()}::timestamptz
+      where id > ${old}`.execute(db);
+    expect(await undoAsStamped(old, ADMIN, new Date(DAY_START.getTime() + 60 * MINUTE))).toEqual({
+      ok: true,
+    });
+  });
+
+  it("answers notFound for an entry from before today and changes nothing", async () => {
+    const id = await book(ANNA);
+    const entryId = await latestId();
+    await stampEntry(db, entryId, new Date(DAY_START.getTime() - MINUTE));
+    const before = await bookingState(id);
+    const entries = await entryCount();
+    expect(await undoAsStamped(entryId, ADMIN, DAY_START)).toEqual({
+      ok: false,
+      error: "notFound",
+    });
+    expect(await bookingState(id)).toEqual(before);
+    expect(await entryCount()).toBe(entries);
+  });
+
+  it("refuses an older undo while a later change to the same days stands, newest first", async () => {
+    const id = await sellPass();
+    const sale = await latestId();
+    await releaseDays(db, ANNA.id, { bookingId: id, startDate: TODAY, endDate: TODAY }, TODAY);
+    const release = await latestId();
+    const at = new Date(DAY_START.getTime() + 60 * MINUTE);
+    await stampEntry(db, sale, at);
+    await stampEntry(db, release, at);
+    const now = new Date(at.getTime() + MINUTE);
+    expect(await undoAsStamped(sale, ANNA, now)).toEqual({ ok: false, error: "changed" });
+    expect(await undoAsStamped(release, ANNA, now)).toEqual({ ok: true });
+    expect(await undoAsStamped(sale, ANNA, now)).toEqual({ ok: true });
+  });
+
+  it("undoes an undo made today even when the entry it undid is from yesterday", async () => {
+    const id = await book(ANNA);
+    const original = await latestId();
+    await stampToday(db, original, TODAY);
+    expect(
+      await undoAsStamped(original, ADMIN, new Date(DAY_START.getTime() + 11 * 60 * MINUTE)),
+    ).toEqual({ ok: true });
+    const undoId = await latestId();
+    await stampEntry(db, original, new Date(DAY_START.getTime() - 60 * MINUTE));
+    await stampEntry(db, undoId, new Date(DAY_START.getTime() + 11 * 60 * MINUTE));
+    const now = new Date(DAY_START.getTime() + 12 * 60 * MINUTE);
+    expect(await undoAsStamped(undoId, ADMIN, now)).toEqual({ ok: true });
+    expect((await bookingState(id)).status).toBe("active");
   });
 });
 

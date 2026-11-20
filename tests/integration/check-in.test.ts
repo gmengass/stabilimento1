@@ -18,6 +18,7 @@ import { checkIn, restoreNoShow, setHold, uncheck } from "@/lib/booking/check-in
 import { applyHoldRule } from "@/lib/booking/hold";
 import { createSeasonPass, releaseDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
+import { stampToday } from "./audit-clock";
 import { undoEntry } from "@/lib/booking/undo";
 import { testDatabaseUrl } from "./test-database";
 
@@ -164,11 +165,12 @@ async function actions(): Promise<string[]> {
 }
 
 async function latestId(): Promise<number> {
-  const [entry] = await listActivity(db, 1);
+  const [entry] = await listActivity(db, new Date(0), 1);
   return entry.id;
 }
 
-function undo(entryId: number, by = ANNA) {
+async function undo(entryId: number, by = ANNA) {
+  await stampToday(db, entryId, TODAY);
   return undoEntry(db, by, { entryId }, TODAY, new Date());
 }
 
@@ -413,7 +415,7 @@ describe("checkIn (AC 4)", () => {
     const id = await family();
     expect(await checkIn(db, BRUNO.id, today(id), TODAY)).toEqual({ ok: true });
     expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: BRUNO.id }]);
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({
       action: "check_in",
       userId: BRUNO.id,
@@ -573,7 +575,7 @@ describe("no-show spots and restore (AC 5, 6, 7)", () => {
       [102, TODAY, "booked"],
     ]);
     expect(await checkIns()).toEqual([{ bookingId: id, date: TODAY, by: BRUNO.id }]);
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({
       action: "restore",
       userId: BRUNO.id,
@@ -700,7 +702,7 @@ describe("setHold", () => {
       ok: true,
     });
     expect(await holdUntilOf(id)).toBe("13:30:00");
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({ action: "hold", bookingId: id, undoable: true });
     expect(await setHold(db, ANNA.id, { bookingId: id, holdUntil: null }, TODAY)).toEqual({
       ok: true,
@@ -765,7 +767,7 @@ describe("undo (AC 7)", () => {
     await checkIn(db, ANNA.id, today(id), TODAY);
     expect(await undo(await latestId())).toEqual({ ok: true });
     expect(await checkIns()).toEqual([]);
-    expect((await listActivity(db, 1))[0]).toMatchObject({
+    expect((await listActivity(db, new Date(0), 1))[0]).toMatchObject({
       action: "undo",
       undoesAction: "check_in",
     });
@@ -803,7 +805,7 @@ describe("undo (AC 7)", () => {
     const id = await threeDays();
     await checkIn(db, ANNA.id, { bookingId: id, date: YESTERDAY }, YESTERDAY);
     const entryId = await latestId();
-    expect(await undoEntry(db, ADMIN, { entryId }, TODAY, new Date())).toEqual({
+    expect(await undo(entryId, ADMIN)).toEqual({
       ok: false,
       error: "ended",
     });
@@ -832,7 +834,7 @@ describe("system entries in the activity stream (AC 9)", () => {
   it("lists a no-show run with no user and refuses to undo it", async () => {
     await book();
     await hold(rome("11:00:00"));
-    const [entry] = await listActivity(db);
+    const [entry] = await listActivity(db, new Date(0), 500);
     expect(entry).toMatchObject({
       action: "no_show",
       userId: null,
