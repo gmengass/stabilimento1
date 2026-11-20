@@ -1,25 +1,20 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
-
 ## Current state
 - `main` is at the merge of #72 (communal accounts, ADR 0025), tagged `v0.13.4`. #73 (ADR 0024)
   and #71 are before it; `v0.13.3` was released and deployed. `v0.13.4` is tagged, deploy not
   confirmed. Backup setup on the box not done yet.
-
 ## Done this session
 - Communal (shared tablet) accounts merged (#72, ADR 0025, plan `docs/plans/communal-accounts.md`):
   flag at account creation, 30-day session, "Who is doing this?" pop-up (first action, then after
   2 min idle), actions and Undo per chosen person.
 - `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) ran in CI
   with the merge; not re-run locally after the rebase.
-- Docs sync: ROADMAP communal-accounts line ticked.
-
 ## Next up
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
-
 ## Open questions
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
   (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?).
@@ -36,7 +31,6 @@
 - Owner: cancelled names shown to all staff? No rate limits (booking, suggest, move, undo, check-in, live). Minor: "retire" umbrellas with past bookings; quick book "Another suggestion" resets the form; venue name takes control chars; setup numbers take `true`/`1e1`.
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; 101+201 over 101+103; `formatEur` cents; per-tablet space/session; search/admin not live; e2e restore; FK restrict; "Ripristina" undo; initials for cancelled names.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). E2E uses all 5 sign-ins/minute.
-
 ## Known issues
 - Sessions can't pull images, reach Google Maven, get Playwright or push tags. `live-route` test
   fails without `.env` (CI passes); `next dev` re-creates AGENTS.md.
