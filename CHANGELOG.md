@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Shared tablets: an admin can create a staff account flagged "shared tablet". It stays logged in
+  for 30 days. The first booking, move, cancel or check-in asks "Who is doing this?", and again
+  after 2 minutes idle. Actions are recorded under the person chosen, so Undo works per person
+  (ADR 0024).
 
 ## [0.13.0] - 2026-11-19
 ### Added

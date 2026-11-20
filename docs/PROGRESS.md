@@ -5,17 +5,24 @@
 - `v0.13.1` released and deployed (live map stale-state fix, #67; before it `v0.13.0`, nightly backups, #65). Backup setup on the box not done yet.
 
 ## Done this session
-- Live map limits (branch `fix/live-map-limits`): refresh debounce now has a 2 s longest wait;
-  10 streams per user, then 429 (ADR 0019 updated).
-- Nightly backups (ADR 0022) shipped earlier: 27 tests, review approved.
+- Communal (shared tablet) accounts, branch `feat/communal-accounts` (ADR 0024, plan in
+  `docs/plans/communal-accounts.md`): flag at account creation, 30-day session, "Who is doing this?"
+  pop-up (first action, then after 2 min idle), actions and Undo per chosen person. 1207 tests
+  pass; security and reviewer agents ran, findings fixed. Not merged yet.
+- Missing: Playwright e2e at tablet and phone width (pop-up, chosen name recorded, idle re-prompt).
 
 ## Next up
+0. Merge `feat/communal-accounts` after CI is green and the e2e above is added; then tick the
+   ROADMAP line and release.
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
+- Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
+  (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?).
+  Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test;
   "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
 - Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021): no warning on

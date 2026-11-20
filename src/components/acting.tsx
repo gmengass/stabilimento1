@@ -12,25 +12,25 @@ import {
   type ReactNode,
 } from "react";
 import { chooseActingAction, clearActingAction } from "@/app/(app)/acting-actions";
+import type { ActingChoice } from "@/lib/auth/acting";
 import { ACTING_IDLE_MS } from "@/lib/auth/rules";
 
 type NeedsActor = { ok: false; error: "needsActor" };
 
-export interface ActingChoice {
-  id: string;
-  name: string;
-}
+export type { ActingChoice };
 
 interface ActingContext {
   communal: boolean;
   actingName: string | null;
-  clear: () => void;
+  clear: () => Promise<void>;
   /**
    * Runs a booking action. When a communal tablet doesn't know who is acting, asks first and
    * retries once. Returns null if nobody was chosen: nothing was done (ADR 0024).
    */
   run: <T>(call: () => Promise<T>) => Promise<Exclude<T, NeedsActor> | null>;
 }
+
+const MAX_ASKS = 3;
 
 function isNeedsActor(result: unknown): result is NeedsActor {
   return (result as { error?: unknown } | null)?.error === "needsActor";
@@ -40,7 +40,7 @@ function isNeedsActor(result: unknown): result is NeedsActor {
 const Context = createContext<ActingContext>({
   communal: false,
   actingName: null,
-  clear: () => undefined,
+  clear: async () => undefined,
   run: async (call) => {
     const result = await call();
     return isNeedsActor(result) ? null : (result as never);
@@ -62,7 +62,10 @@ interface ProviderProps {
 export function ActingProvider({ communal, choices, initialName, children }: ProviderProps) {
   const [actingName, setActingName] = useState(initialName);
   const [asking, setAsking] = useState(false);
-  const resolver = useRef<((chosen: boolean) => void) | null>(null);
+  const pendingAsk = useRef<{
+    promise: Promise<boolean>;
+    settle: (chosen: boolean) => void;
+  } | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const startIdleTimer = useCallback(() => {
@@ -75,20 +78,31 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
     return () => clearTimeout(idleTimer.current);
   }, [initialName, startIdleTimer]);
 
-  const ask = useCallback(
-    () =>
-      new Promise<boolean>((resolve) => {
-        resolver.current?.(false);
-        resolver.current = resolve;
-        setAsking(true);
-      }),
+  // One pop-up serves every action waiting for an answer, so none is dropped.
+  const ask = useCallback(() => {
+    if (!pendingAsk.current) {
+      let settle: (chosen: boolean) => void = () => undefined;
+      const promise = new Promise<boolean>((resolve) => {
+        settle = resolve;
+      });
+      pendingAsk.current = { promise, settle };
+      setAsking(true);
+    }
+    return pendingAsk.current.promise;
+  }, []);
+
+  useEffect(
+    () => () => {
+      pendingAsk.current?.settle(false);
+      pendingAsk.current = null;
+    },
     [],
   );
 
   const finish = useCallback(
     (chosen: ActingChoice | null) => {
-      resolver.current?.(chosen !== null);
-      resolver.current = null;
+      pendingAsk.current?.settle(chosen !== null);
+      pendingAsk.current = null;
       setAsking(false);
       if (chosen) {
         setActingName(chosen.name);
@@ -101,10 +115,10 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
   const run = useCallback(
     async <T,>(call: () => Promise<T>) => {
       let result = await call();
-      if (isNeedsActor(result)) {
-        if (!(await ask())) return null;
+      // Asked again if the person chosen was disabled before the retry went through.
+      for (let asked = 0; isNeedsActor(result); asked += 1) {
+        if (asked >= MAX_ASKS || !(await ask())) return null;
         result = await call();
-        if (isNeedsActor(result)) return null;
       }
       if (communal) startIdleTimer();
       return result as Exclude<T, NeedsActor>;
@@ -112,9 +126,15 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
     [ask, communal, startIdleTimer],
   );
 
-  const clear = useCallback(() => {
+  const clear = useCallback(async () => {
+    try {
+      const result = await clearActingAction();
+      if (!result.ok) return;
+    } catch {
+      return;
+    }
+    clearTimeout(idleTimer.current);
     setActingName(null);
-    void clearActingAction();
   }, []);
 
   const value = useMemo(

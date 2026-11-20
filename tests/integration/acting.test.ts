@@ -10,6 +10,7 @@ import {
   clearActing,
   listActingChoices,
   resolveActor,
+  viewerFor,
 } from "@/lib/auth/acting";
 import type { Auth } from "@/lib/auth/auth";
 import { createStaff, listUsers, setDisabled } from "@/lib/auth/staff";
@@ -325,5 +326,23 @@ describe("currentActing", () => {
     await chooseActing(db, sessionId(), anna);
     await db.updateTable("user").set({ banned: true }).where("id", "=", anna).execute();
     await expect(currentActing(db, tablet.actor)).resolves.toBeNull();
+  });
+});
+
+describe("viewerFor (activity panel undo)", () => {
+  const normal = { id: "u1", role: "staff" as const, communal: false };
+  const shared = { id: "tablet", role: "staff" as const, communal: true };
+
+  it("is the account itself for a normal account", () => {
+    expect(viewerFor(normal, null)).toEqual({ id: "u1", role: "staff" });
+    expect(viewerFor({ ...normal, role: "admin" }, null)).toEqual({ id: "u1", role: "admin" });
+  });
+
+  it("is the person acting on a tablet, as staff", () => {
+    expect(viewerFor(shared, { id: "a1", name: "Anna" })).toEqual({ id: "a1", role: "staff" });
+  });
+
+  it("is nobody on a tablet while no one is acting", () => {
+    expect(viewerFor(shared, null)).toBeNull();
   });
 });

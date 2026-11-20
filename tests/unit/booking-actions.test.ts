@@ -252,11 +252,18 @@ describe("communal sessions (ADR 0024)", () => {
     await expect(suggestQuickBookAction({ x: 1 })).resolves.toMatchObject({ ok: true });
   });
 
-  it("no action passes the session user's id to the booking code directly", async () => {
+  it("every action that changes data resolves the actor and never reads the session user's id", async () => {
     const source = await readFile(
       new URL("../../src/app/(app)/booking-actions.ts", import.meta.url),
       "utf8",
     );
-    expect(source).not.toMatch(/\buser\.id\b/);
+    expect(source).not.toMatch(/\buser\.id\b|\{[^}]*\bid\b[^}]*\}\s*=\s*user\b/);
+    const actions = source.split(/^export async function /m).slice(1);
+    expect(actions.length).toBeGreaterThan(10);
+    for (const action of actions) {
+      const name = action.slice(0, action.indexOf("("));
+      if (name === "suggestQuickBookAction") continue;
+      expect(action, name).toMatch(/\bactorFor\(\)|\bresolveActor\(/);
+    }
   });
 });

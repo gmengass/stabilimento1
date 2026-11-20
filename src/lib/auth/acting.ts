@@ -1,5 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import type { DB } from "@/db/types";
+import type { Viewer } from "@/lib/booking/audit";
 import { ACTING_IDLE_MS } from "./rules";
 import type { CurrentUser } from "./session";
 
@@ -30,6 +31,7 @@ export async function resolveActor(
     update acting_staff a set last_used_at = ${now}
     from "user" u
     where a.session_id = ${user.sessionId} and u.id = a.staff_user_id and not u.banned
+      and u.role = 'staff' and not u.communal
       and a.last_used_at >= ${oldest}
     returning a.staff_user_id as "staffUserId"`.execute(db);
   const row = rows[0];
@@ -87,4 +89,16 @@ export async function currentActing(
     .where("a.last_used_at", ">=", oldest)
     .executeTakeFirst();
   return row ?? null;
+}
+
+/**
+ * Who the activity panel shows Undo for: a normal account itself, a communal tablet the person
+ * currently acting (as staff), and no one when nobody is (ADR 0024).
+ */
+export function viewerFor(
+  user: Pick<CurrentUser, "id" | "role" | "communal">,
+  acting: ActingChoice | null,
+): Viewer | null {
+  if (!user.communal) return { id: user.id, role: user.role };
+  return acting ? { id: acting.id, role: "staff" } : null;
 }

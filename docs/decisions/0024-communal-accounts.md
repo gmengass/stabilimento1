@@ -1,6 +1,6 @@
 # 0024. Communal accounts: shared tablets, "who is acting?"
 
-- Status: Proposed
+- Status: Accepted (on merge of this PR)
 - Date: 2026-11-20
 - Amends: [ADR 0007](0007-auth-details.md) (sessions), [ADR 0013](0013-activity-and-undo.md) (who is the actor)
 

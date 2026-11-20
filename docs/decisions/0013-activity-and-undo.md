@@ -39,3 +39,4 @@ undo.
 - `releaseDays`, `restoreDays` and `endSeasonPass` now take the user id, like the other changes.
 - The log grows with every action; retention is part of the open GDPR question.
 - Automatic no-shows (later item) will log as user "system" and need their own undo rule.
+- On communal tablets the actor is the staff member chosen on the session, never the tablet account ([ADR 0024](0024-communal-accounts.md)).

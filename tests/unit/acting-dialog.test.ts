@@ -128,4 +128,51 @@ describe("ActingProvider (ADR 0024)", () => {
     mount(async () => ({ ok: true }), { communal: false, initialName: "Anna" });
     expect(screen.queryByText("Acting as Anna")).toBeNull();
   });
+
+  it("keeps the label when 'Not me' fails on the server", async () => {
+    clear.mockResolvedValueOnce({ ok: false, error: "forbidden" } as never);
+    mount(async () => ({ ok: true }), { communal: true, initialName: "Anna" });
+    fireEvent.click(screen.getByRole("button", { name: "Not me" }));
+    await waitFor(() => expect(clear).toHaveBeenCalled());
+    expect(screen.getByText("Acting as Anna")).toBeTruthy();
+  });
+
+  it("retries every action that was waiting once a name is chosen", async () => {
+    const first = vi.fn().mockResolvedValueOnce(needsActor).mockResolvedValueOnce({ ok: true });
+    const second = vi.fn().mockResolvedValueOnce(needsActor).mockResolvedValueOnce({ ok: true });
+    render(
+      h(
+        NextIntlClientProvider,
+        { locale: "en", messages },
+        h(
+          ActingProvider,
+          { communal: true, choices, initialName: null },
+          h(Probe, { call: first }),
+          h(Probe, { call: second }),
+        ),
+      ),
+    );
+    const [a, b] = screen.getAllByRole("button", { name: /go:/ });
+    fireEvent.click(a!);
+    fireEvent.click(b!);
+    fireEvent.click(await screen.findByRole("button", { name: "Anna" }));
+    await waitFor(() => expect(screen.getAllByText('go:{"ok":true}')).toHaveLength(2));
+    expect(first).toHaveBeenCalledTimes(2);
+    expect(second).toHaveBeenCalledTimes(2);
+  });
+
+  it("asks again when the retry still needs an actor", async () => {
+    const call = vi
+      .fn()
+      .mockResolvedValueOnce(needsActor)
+      .mockResolvedValueOnce(needsActor)
+      .mockResolvedValueOnce({ ok: true });
+    mount(call, { communal: true });
+    fireEvent.click(screen.getByRole("button", { name: /go:/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Anna" }));
+    await waitFor(() => expect(call).toHaveBeenCalledTimes(2));
+    fireEvent.click(await screen.findByRole("button", { name: "Bruno" }));
+    await screen.findByText('go:{"ok":true}');
+    expect(call).toHaveBeenCalledTimes(3);
+  });
 });

@@ -6,7 +6,8 @@ import { UndoButton } from "./undo-button";
 
 interface Props {
   entries: ActivityEntry[];
-  viewer: Viewer;
+  /** Null on a communal tablet while nobody is acting: no one to undo for (ADR 0024). */
+  viewer: Viewer | null;
 }
 
 /** The latest actions for the whole venue, with Undo where this viewer may use it (ADR 0013). */
@@ -139,6 +140,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
                 {entry.undone ? (
                   <span className="text-gray-600 dark:text-gray-400">{t("undone")}</span>
                 ) : (
+                  viewer &&
                   mayUndo(entry, viewer, now) && (
                     <UndoButton entryId={entry.id} label={t("undoLabel", { text })} />
                   )
