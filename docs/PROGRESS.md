@@ -9,11 +9,11 @@
   `docs/plans/communal-accounts.md`): flag at account creation, 30-day session, "Who is doing this?"
   pop-up (first action, then after 2 min idle), actions and Undo per chosen person. 1207 tests
   pass; security and reviewer agents ran, findings fixed. Not merged yet.
-- Missing: Playwright e2e at tablet and phone width (pop-up, chosen name recorded, idle re-prompt).
+- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) passes locally
+  with system Chrome; the full e2e suite passed too, bar one order-dependent login test (language).
 
 ## Next up
-0. Merge `feat/communal-accounts` after CI is green and the e2e above is added; then tick the
-   ROADMAP line and release.
+0. Merge `feat/communal-accounts` after CI is green; then tick the ROADMAP line and release.
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.

@@ -184,6 +184,7 @@ function ChooseDialog({
   return (
     <dialog
       ref={dialog}
+      data-testid="acting-dialog"
       onCancel={() => onDone(null)}
       aria-labelledby="acting-title"
       className="m-auto w-full max-w-md rounded border p-4"
@@ -200,6 +201,7 @@ function ChooseDialog({
               <button
                 type="button"
                 disabled={pending}
+                data-testid="acting-choice"
                 onClick={() => choose(choice)}
                 className="min-h-11 rounded border px-4 py-2 font-medium disabled:opacity-50"
               >
@@ -233,7 +235,12 @@ export function ActingBadge() {
   return (
     <span className="flex min-h-11 items-center gap-2" data-testid="acting-as">
       {t("actingAs", { name: actingName })}
-      <button type="button" onClick={clear} className="min-h-11 rounded border px-3 py-2">
+      <button
+        type="button"
+        data-testid="acting-not-me"
+        onClick={clear}
+        className="min-h-11 rounded border px-3 py-2"
+      >
         {t("notMe")}
       </button>
     </span>

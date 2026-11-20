@@ -25,3 +25,26 @@ export async function ensureBeach(page: Page): Promise<void> {
   await setup.locator('button[type="submit"]').click();
   await page.waitForURL("/", { timeout: 15_000 });
 }
+
+const SIGN_IN_TRIES = 5;
+const SIGN_IN_WAIT_MS = 15_000;
+
+/**
+ * Signs in a given user. Sign-in is limited to 5 per minute per address and the other specs use
+ * most of them, so a refused attempt waits and tries again.
+ */
+export async function logInAs(page: Page, username: string, password: string): Promise<void> {
+  for (let attempt = 1; ; attempt += 1) {
+    await page.goto("/login");
+    await page.locator('input[name="username"]').fill(username);
+    await page.locator('input[name="password"]').fill(password);
+    await page.locator('button[type="submit"]').click();
+    try {
+      await page.waitForURL("/", { timeout: 5_000 });
+      return;
+    } catch (error) {
+      if (attempt >= SIGN_IN_TRIES) throw error;
+      await page.waitForTimeout(SIGN_IN_WAIT_MS);
+    }
+  }
+}

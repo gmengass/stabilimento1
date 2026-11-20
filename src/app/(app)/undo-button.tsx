@@ -68,6 +68,7 @@ export function UndoButton({ entryId, label }: { entryId: number; label: string 
         onClick={onUndo}
         disabled={pending}
         aria-label={label}
+        data-testid="undo"
         className="min-h-11 rounded border px-3 py-2 font-medium disabled:opacity-50"
       >
         {pending ? t("undoing") : t("undoButton")}
