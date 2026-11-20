@@ -1,6 +1,6 @@
 # 0013. Activity stream and undo
 
-- Status: Accepted (owner, 2026-11-16)
+- Status: Accepted (owner, 2026-11-16); the "10 latest" rule is amended by [ADR 0024](0024-activity-today.md)
 - Date: 2026-11-16
 - Details: implements the AuditLog of [ADR 0004](0004-booking-model.md) and adds undo
 

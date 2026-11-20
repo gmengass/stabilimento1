@@ -374,7 +374,7 @@ describe("createBooking: deckchairs (ADR 0020)", () => {
   it("mentions the deckchairs in the book entry when there are some", async () => {
     await createBooking(db, USER, booking({ deckchairs: 2 }));
     await createBooking(db, USER, booking({ spots: [{ spotId: spot[201], sunbeds: 2 }] }));
-    const [none, two] = await listActivity(db);
+    const [none, two] = await listActivity(db, new Date(0), 500);
     expect(two).toMatchObject({ action: "book", detail: { deckchairs: 2 } });
     expect(none).toMatchObject({ action: "book", detail: {} });
     expect(none.detail).not.toHaveProperty("deckchairs");

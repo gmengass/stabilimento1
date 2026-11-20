@@ -2,8 +2,8 @@ import { sql, type Kysely } from "kysely";
 import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import type { Role } from "@/lib/auth/rules";
 
-/** The map lists this many entries, and only these can be undone (ADR 0013). */
-export const ACTIVITY_SIZE = 10;
+/** The map lists at most this many of today's entries, newest first (ADR 0024). */
+export const ACTIVITY_CAP = 500;
 /** Staff may undo their own entries for this long; admins any time. */
 export const UNDO_WINDOW_MS = 30 * 60_000;
 
@@ -131,10 +131,11 @@ export interface ActivityEntry {
   undone: boolean;
 }
 
-/** The latest entries for the whole venue, newest first. */
+/** The entries from `since` on for the whole venue, newest first, at most `cap` (ADR 0024). */
 export async function listActivity(
   db: Kysely<DB>,
-  limit = ACTIVITY_SIZE,
+  since: Date,
+  cap = ACTIVITY_CAP,
 ): Promise<ActivityEntry[]> {
   const rows = await db
     .selectFrom("audit_log as a")
@@ -164,8 +165,9 @@ export async function listActivity(
         .where("bs.current", "=", true)
         .as("spots"),
     ])
+    .where("a.created_at", ">=", since)
     .orderBy("a.id", "desc")
-    .limit(limit)
+    .limit(cap)
     .execute();
   return rows.map((row) => ({
     ...row,

@@ -8,6 +8,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   default. Checked in, it is never flagged as a no-show at the hold time. Multi-day bookings and
   season passes are not checked in at creation (ADR 0015 amendment).
 
+### Changed
+- The activity list on the map shows everything that happened today, not only the last 10
+  actions, and any of today's actions can be undone (staff: their own within 30 minutes; admins:
+  any). At most the latest 500 are listed (ADR 0024).
+
 ## [0.13.0] - 2026-11-19
 ### Added
 - Nightly backups: every night at 03:30 the box backs up the database, checks it restores,

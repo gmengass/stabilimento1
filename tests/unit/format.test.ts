@@ -8,6 +8,7 @@ import {
   formatWeekdayDate,
   isBookingDate,
   venueClock,
+  venueDayStart,
   venueToday,
 } from "@/i18n/format";
 
@@ -140,6 +141,35 @@ describe("venueToday", () => {
     expect(venueToday(new Date("2026-07-01T22:30:00Z"))).toBe("2026-07-02");
     expect(venueToday(new Date("2026-12-31T22:59:00Z"))).toBe("2026-12-31");
     expect(venueToday(new Date("2026-12-31T23:00:00Z"))).toBe("2027-01-01");
+  });
+});
+
+describe("venueDayStart", () => {
+  it.each([
+    ["2026-01-15", "2026-01-14T23:00:00.000Z"],
+    ["2026-07-15", "2026-07-14T22:00:00.000Z"],
+    ["2026-03-29", "2026-03-28T23:00:00.000Z"],
+    ["2026-03-30", "2026-03-29T22:00:00.000Z"],
+    ["2026-10-25", "2026-10-24T22:00:00.000Z"],
+    ["2026-10-26", "2026-10-25T23:00:00.000Z"],
+  ])("is 00:00 in Rome on %s, as the UTC instant %s", (date, utc) => {
+    expect(venueDayStart(date).toISOString()).toBe(utc);
+  });
+
+  it("makes the spring-forward day 23 hours and the fall-back day 25", () => {
+    const hours = (from: string, to: string) =>
+      (venueDayStart(to).getTime() - venueDayStart(from).getTime()) / 3_600_000;
+    expect(hours("2026-03-29", "2026-03-30")).toBe(23);
+    expect(hours("2026-10-25", "2026-10-26")).toBe(25);
+    expect(hours("2026-07-15", "2026-07-16")).toBe(24);
+  });
+
+  it("agrees with venueToday at the edges of the day", () => {
+    for (const date of ["2026-03-29", "2026-10-25", "2026-07-15", "2026-12-31"]) {
+      const start = venueDayStart(date);
+      expect(venueToday(start)).toBe(date);
+      expect(venueToday(new Date(start.getTime() - 1))).not.toBe(date);
+    }
   });
 });
 

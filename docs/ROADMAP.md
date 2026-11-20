@@ -48,8 +48,10 @@ Each item ships something staff can use on the box.
       booking goes over (owner, 2026-11-19, ADR 0021)
 - [x] Map tiles show sunbeds and deckchairs beyond the default: `+L`, `-L`, `+S` (owner,
       2026-11-19, ADR 0023)
-- [ ] Check in at creation: a one-day booking for today can be checked in as it is made
+- [x] Check in at creation: a one-day booking for today can be checked in as it is made
       (owner, 2026-11-19, ADR 0015 amendment)
+- [x] Activity stream and undo cover the whole day, not only the last 10 entries (owner,
+      2026-11-20, ADR 0024)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the
