@@ -14,18 +14,20 @@ function spotButton(page: Page, number: string) {
   return page.getByTestId("beach-map").locator("ol button", { has: label });
 }
 
-async function firstFree(page: Page): Promise<string> {
+// The other specs that book on today's map take the first free umbrella, so this one takes the
+// last: two specs never read the same umbrella while the other is still booking it.
+async function lastFree(page: Page): Promise<string> {
   const free = page
     .getByTestId("beach-map")
     .locator("ol button", { hasNot: page.locator("span.truncate") })
-    .first();
+    .last();
   return (await free.locator("span[aria-hidden]").first().innerText()).trim();
 }
 
 test("staff check a booking in from the map and can take it back", async ({ page }) => {
   const customer = `Check-in ${Date.now()}`;
   await page.goto("/");
-  const number = await firstFree(page);
+  const number = await lastFree(page);
   const panel = page.locator("aside");
   await spotButton(page, number).click();
   await panel.locator('input[name="customerName"]').fill(customer);
@@ -51,7 +53,7 @@ test("staff check a booking in from the map and can take it back", async ({ page
 test("a one-day booking for today is checked in as it is made", async ({ page }) => {
   const customer = `Walk-in ${Date.now()}`;
   await page.goto("/");
-  const number = await firstFree(page);
+  const number = await lastFree(page);
   const panel = page.locator("aside");
   await spotButton(page, number).click();
   await expect(panel.getByTestId("booking-check-in")).toBeChecked();
@@ -68,7 +70,7 @@ test("a one-day booking for today is checked in as it is made", async ({ page })
 
 test("the check-in choice is hidden when the booking is not for today alone", async ({ page }) => {
   await page.goto("/");
-  const number = await firstFree(page);
+  const number = await lastFree(page);
   const panel = page.locator("aside");
   await spotButton(page, number).click();
   await expect(panel.getByTestId("booking-check-in")).toBeVisible();

@@ -33,7 +33,7 @@
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; 101+201 over 101+103; `formatEur` cents; per-tablet space/session; search/admin not live; e2e restore; FK restrict; "Ripristina" undo; initials for cancelled names.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
-- `check-in.spec` picks "first free umbrella today" and races other specs with 2 workers (fails
-  locally in full runs, passes alone and in CI with its retry): give it its own umbrella if it fails in CI.
+- `check-in.spec` now takes the last free umbrella (the others take the first); not run locally
+  (sessions can't run Playwright): if it still fails in CI, give it a dedicated umbrella.
 - Sessions can't pull images, reach Google Maven, get Playwright or push tags. `live-route` test
   fails without `.env` (CI passes); `next dev` re-creates AGENTS.md.
