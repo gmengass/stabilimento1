@@ -183,6 +183,8 @@ export function NewBookingForm(props: NewProps) {
   const [startDate, setStartDate] = useState(draft?.startDate ?? date);
   const [endDate, setEndDate] = useState(draft && !draft.asPass ? draft.endDate : date);
   const season = asPass ? openSeason : null;
+  const [checkIn, setCheckIn] = useState(true);
+  const startsToday = !season && startDate === today && endDate === today;
   const maxDeckchairs = spots.length * MAX_DECKCHAIRS_PER_UMBRELLA;
   // Controlled and clamped: removing an umbrella lowers the cap, and the choice follows it.
   const [deckchairs, setDeckchairs] = useState(draft?.deckchairs ?? 0);
@@ -222,7 +224,7 @@ export function NewBookingForm(props: NewProps) {
         const result =
           seasonId !== undefined
             ? await createSeasonPassAction({ ...booking, seasonId })
-            : await createBookingAction(booking);
+            : await createBookingAction({ ...booking, checkIn: startsToday && checkIn });
         if (result.ok) onDone();
         else if (result.error === "stock") {
           setFailure(null);
@@ -375,6 +377,18 @@ export function NewBookingForm(props: NewProps) {
             />
           </label>
         </div>
+      )}
+      {startsToday && (
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={checkIn}
+            onChange={(e) => setCheckIn(e.target.checked)}
+            data-testid="booking-check-in"
+            className="size-5"
+          />
+          {t("checkInNow")}
+        </label>
       )}
       <label className="flex flex-col gap-1 text-sm">
         {t("notes")}
