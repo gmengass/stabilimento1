@@ -14,6 +14,7 @@ import { checkIn } from "@/lib/booking/check-in";
 import { applyHoldRule } from "@/lib/booking/hold";
 import { moveBooking } from "@/lib/booking/move";
 import { undoEntry } from "@/lib/booking/undo";
+import { stampToday } from "./audit-clock";
 import { testDatabaseUrl } from "./test-database";
 
 const MIGRATIONS = path.join(import.meta.dirname, "../../src/db/migrations");
@@ -165,6 +166,7 @@ describe("map_changed: one notification per committed change", () => {
   it("undoing", async () => {
     await book();
     const [entry] = await listActivity(db, new Date(0), 1);
+    await stampToday(db, entry.id, TODAY);
     const work = () => expectOk(undoEntry(db, ANNA, { entryId: entry.id }, TODAY, new Date()));
     expect(await notificationsDuring(work)).toBe(1);
   });

@@ -5,7 +5,7 @@ import { createMigrator, runMigrations } from "@/db/migrator";
 import type { DB } from "@/db/types";
 import { addDays, venueDayStart } from "@/i18n/format";
 import { loadBeach, setupBeach } from "@/lib/beach/layout";
-import { listActivity, UNDO_WINDOW_MS, writeEntry, type Viewer } from "@/lib/booking/audit";
+import { listActivity, writeEntry, type Viewer } from "@/lib/booking/audit";
 import { cancelBooking, createBooking, type CreateBookingInput } from "@/lib/booking/bookings";
 import { createSeasonPass, endSeasonPass, releaseDays, restoreDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
@@ -114,8 +114,11 @@ function undoAsStamped(entryId: number, by: Viewer, now: Date) {
   return undoEntry(db, by, { entryId }, TODAY, now);
 }
 
+let stampedCount = 0;
+
 async function stampedEntry(by: Viewer, at: Date): Promise<number> {
-  await book(by);
+  const day = addDays(TODAY, 1 + stampedCount++);
+  await book(by, { startDate: day, endDate: day });
   const id = await latestId();
   await stampEntry(db, id, at);
   return id;

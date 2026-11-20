@@ -843,6 +843,7 @@ describe("system entries in the activity stream (AC 9)", () => {
       undoable: false,
       detail: { date: TODAY, bookings: 1, umbrellas: 1 },
     });
+    await stampToday(db, entry.id, TODAY);
     const before = await snapshot();
     expect(await undo(entry.id, ADMIN)).toEqual({ ok: false, error: "invalid" });
     expect(await snapshot()).toEqual(before);

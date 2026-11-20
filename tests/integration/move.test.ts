@@ -921,6 +921,7 @@ describe("moves after earlier moves, and older entries undone after a move", () 
     });
     const lastDayEntry = await latestId();
     expect(await move({ bookingId: pass, spots: [to(201, 205)] })).toEqual({ ok: true });
+    await stampToday(db, lastDayEntry, TODAY);
     const before = await snapshot();
     expect(await undo(lastDayEntry, ADMIN)).toEqual({ ok: false, error: "changed" });
     expect(await snapshot()).toEqual(before);
