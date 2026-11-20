@@ -15,7 +15,11 @@ export default async function StaffPage() {
   const t = await getTranslations("staff");
   const users = await listUsers(getDb());
   return (
-    <main id="main-content" className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-6">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="focus:outline-none mx-auto flex w-full max-w-4xl flex-col gap-8 p-6"
+    >
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <table className="w-full text-left text-sm">
         <thead>

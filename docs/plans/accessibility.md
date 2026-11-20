@@ -34,6 +34,10 @@ Sessions cannot run Playwright: component-level axe runs here, e2e axe runs in C
 12. **e2e axe** (`@axe-core/playwright`, tags wcag2a/aa/22aa) on main pages, both themes, tablet
     and phone. CI only; needs its own `ownSignInBucket` if it signs in.
 
+## Status
+Done: axe on beach board + login (it/en, light), contrast test, skip link, page titles.
+Gap: axe on open booking panel, acting dialog, admin forms and dark theme; items 5, 6-9, 11, 12.
+
 ## Acceptance criteria
 - Axe: zero violations on map, login, panel, acting dialog, admin pages (it + en, light + dark).
 - Keyboard only: sign in, change date, open tile, book, cancel, undo.

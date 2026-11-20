@@ -27,7 +27,11 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
   if (beach) {
     const areas = await listAreas(getDb());
     return (
-      <main id="main-content" className="flex w-full flex-col gap-6 p-4">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="focus:outline-none flex w-full flex-col gap-6 p-4"
+      >
         <div className="flex flex-wrap items-baseline gap-4">
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -61,7 +65,11 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
     );
   }
   return (
-    <main id="main-content" className="mx-auto flex w-full max-w-xl flex-col gap-6 p-6">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="focus:outline-none mx-auto flex w-full max-w-xl flex-col gap-6 p-6"
+    >
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <p>{t("intro")}</p>
       <BeachSetupForm />

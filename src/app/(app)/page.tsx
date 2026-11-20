@@ -40,7 +40,11 @@ export default async function Home(props: PageProps<"/">) {
 
   if (!beach) {
     return (
-      <main id="main-content" className="mx-auto flex w-full max-w-xl flex-col gap-4 p-6">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="focus:outline-none mx-auto flex w-full max-w-xl flex-col gap-4 p-6"
+      >
         <h1 className="text-2xl font-semibold">{t("emptyTitle")}</h1>
         {user.role === "admin" ? (
           <Link href="/admin/beach" className="underline">

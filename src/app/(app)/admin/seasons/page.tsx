@@ -20,7 +20,11 @@ export default async function SeasonsPage() {
   const current = openSeason(seasons, today);
   const locale = await getLocale();
   return (
-    <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="focus:outline-none mx-auto flex w-full max-w-2xl flex-col gap-6 p-6"
+    >
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <p className="text-sm text-gray-700 dark:text-gray-300">{t("intro")}</p>
       {seasons.length === 0 ? (

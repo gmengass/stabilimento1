@@ -5,7 +5,7 @@ import { cleanup, render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { axe } from "vitest-axe";
 import en from "../../messages/en.json";
-import it_ from "../../messages/it.json";
+import itMessages from "../../messages/it.json";
 
 vi.mock("@/app/(app)/booking-actions", () => ({}));
 
@@ -13,7 +13,8 @@ import { BeachBoard } from "@/app/(app)/beach-board";
 import { LoginForm } from "@/app/login/login-form";
 
 // jsdom has no layout, so contrast and target size are not checked here (e2e axe and the
-// token test cover them). This catches names, roles, labels and ARIA misuse.
+// token test cover them). This catches names, roles, labels and ARIA misuse. Not covered yet:
+// open booking panel, acting dialog, admin forms (see docs/plans/accessibility.md).
 
 const spot = (id: number) =>
   ({
@@ -45,7 +46,7 @@ const booking = {
 
 const locales = [
   ["en", en],
-  ["it", it_],
+  ["it", itMessages],
 ] as const;
 
 window.matchMedia = ((query: string) => ({
