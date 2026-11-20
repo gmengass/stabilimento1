@@ -54,7 +54,9 @@ async function expectBottomSheet(page: Page, panel: Locator): Promise<void> {
 /** Every visible control smaller than MIN_TAP×MIN_TAP, described for the assertion message. */
 async function smallTapTargets(page: Page): Promise<string[]> {
   return page.evaluate((min) => {
-    const selector = 'button, a[href], input:not([type="hidden"]), select, textarea, summary';
+    // The skip link is visually hidden until it takes focus, where it is 44px tall.
+    const selector =
+      'button, a[href]:not([data-skip-link]), input:not([type="hidden"]), select, textarea, summary';
     const offenders: string[] = [];
     for (const control of document.querySelectorAll<HTMLElement>(selector)) {
       if (!control.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;

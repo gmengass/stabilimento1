@@ -66,8 +66,8 @@ function SeasonFields({ season, datesFixed = false }: FieldsProps) {
         {t("name")}
         <input name="name" required maxLength={60} defaultValue={season?.name} className={field} />
       </label>
-      <div className="flex gap-2">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+      <div className="flex flex-wrap gap-2">
+        <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm">
           {t("startDate")}
           <input
             name="startDate"
@@ -78,7 +78,7 @@ function SeasonFields({ season, datesFixed = false }: FieldsProps) {
             className={field}
           />
         </label>
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm">
           {t("endDate")}
           <input
             name="endDate"

@@ -136,4 +136,12 @@ describe("booking panel as a phone sheet", () => {
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(document.activeElement).not.toBe(document.body);
   });
+
+  it("closes a free-umbrella pick onto Quick book, not a tile", () => {
+    setPhone(true);
+    renderBoard();
+    fireEvent.click(tile(1));
+    fireEvent.keyDown(screen.getByRole("complementary"), { key: "Escape" });
+    expect(document.activeElement).toBe(screen.getByTestId("quick-book-open"));
+  });
 });

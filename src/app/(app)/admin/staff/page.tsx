@@ -21,33 +21,35 @@ export default async function StaffPage() {
       className="focus:outline-none mx-auto flex w-full max-w-4xl flex-col gap-8 p-6"
     >
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="py-2">{t("columns.username")}</th>
-            <th>{t("columns.name")}</th>
-            <th>{t("columns.role")}</th>
-            <th>{t("columns.status")}</th>
-            <th>{t("columns.actions")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-b align-top">
-              <td className="py-2">{user.username}</td>
-              <td>
-                {user.name}
-                {user.communal && t("communalBadge")}
-              </td>
-              <td>{t(`roles.${user.role}`)}</td>
-              <td>{user.banned ? t("status.disabled") : t("status.active")}</td>
-              <td className="py-2">
-                <StaffRowActions user={user} isSelf={user.id === actor.id} />
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b">
+              <th className="py-2">{t("columns.username")}</th>
+              <th>{t("columns.name")}</th>
+              <th>{t("columns.role")}</th>
+              <th>{t("columns.status")}</th>
+              <th>{t("columns.actions")}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="border-b align-top">
+                <td className="py-2">{user.username}</td>
+                <td>
+                  {user.name}
+                  {user.communal && t("communalBadge")}
+                </td>
+                <td>{t(`roles.${user.role}`)}</td>
+                <td>{user.banned ? t("status.disabled") : t("status.active")}</td>
+                <td className="py-2">
+                  <StaffRowActions user={user} isSelf={user.id === actor.id} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <CreateStaffForm />
     </main>
   );

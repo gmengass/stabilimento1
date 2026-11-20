@@ -197,10 +197,12 @@ export function BeachBoard({
   }
 
   function onSpotClick(spot: MapSpot) {
-    lastSpotId.current = spot.id;
     setNotice(null);
     if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
+    // Only a booking opened from its tile gives focus back to that tile; picking free umbrellas
+    // closes onto Quick book, as before.
+    lastSpotId.current = occupant ? spot.id : null;
     if (occupant) {
       setSelected([]);
       setPick(null);

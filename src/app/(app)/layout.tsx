@@ -22,7 +22,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <ActingProvider communal={user.communal} choices={choices} initialName={acting?.name ?? null}>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-30 focus:m-2 focus:rounded focus:bg-background focus:px-3 focus:py-2"
+        data-skip-link
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-30 focus:inline-flex focus:min-h-11 focus:items-center focus:m-2 focus:rounded focus:bg-background focus:px-3 focus:py-2"
       >
         {t("skipToContent")}
       </a>
