@@ -19,6 +19,9 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Android app for club tablets: WebView wrapper that bundles the club's root certificate,
       built on the box by `scripts/build-android.sh`, screen pinning (ADR 0010);
       falls back to the box's Tailscale address off the club network (ADR 0011)
+- [ ] Communal accounts for shared tablets: a staff account flagged communal, "who is doing this?"
+      pop-up on the first action and after 2 minutes idle, actions recorded under the person
+      chosen (owner, 2026-11-20, ADR 0024)
 - [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones in a plain browser):
       Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
