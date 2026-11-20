@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The activity list on the map shows everything that happened today, not only the last 10
+  actions, and any of today's actions can be undone (staff: their own within 30 minutes; admins:
+  any). At most the latest 500 are listed (ADR 0024).
 
 ## [0.13.0] - 2026-11-19
 ### Added
