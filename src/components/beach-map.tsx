@@ -83,9 +83,10 @@ export function BeachMap({
                   <li key={spot.id} style={{ gridColumn: spot.position }}>
                     <button
                       type="button"
+                      data-spot-id={spot.id}
                       onClick={() => onSpotClick(spot)}
                       aria-pressed={view === "selected" || view === "open"}
-                      className={`relative flex h-14 w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
+                      className={`relative flex h-14 focus-visible:outline-offset-[-3px] w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
                     >
                       <span aria-hidden>{spot.number}</span>
                       {caption && (

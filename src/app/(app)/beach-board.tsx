@@ -72,6 +72,7 @@ export function BeachBoard({
   const [shownKey, setShownKey] = useState<string | null>(null);
   const quickBookButton = useRef<HTMLButtonElement>(null);
   const mapArea = useRef<HTMLDivElement>(null);
+  const lastSpotId = useRef<number | null>(null);
   const contentId = useId();
   const ts = useTranslations("sheet");
   const tb = useTranslations("booking");
@@ -193,6 +194,7 @@ export function BeachBoard({
   }
 
   function onSpotClick(spot: MapSpot) {
+    lastSpotId.current = spot.id;
     setNotice(null);
     if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
@@ -372,13 +374,19 @@ export function BeachBoard({
 
   // Phones: the header above the map is taller than the room the sheet leaves, so bring the map up.
   useEffect(() => {
-    if (sheetOpen && window.matchMedia(PHONE).matches) mapArea.current?.scrollIntoView();
+    if (!sheetOpen || !window.matchMedia(PHONE).matches) return;
+    mapArea.current?.scrollIntoView();
+    // Keyboard and switch users land in the sheet, not behind it.
+    document.querySelector<HTMLElement>("[data-sheet-toggle]")?.focus();
   }, [sheetOpen]);
 
   function closePanel() {
     setOpenBooking(null);
     reset();
-    quickBookButton.current?.focus();
+    const tile = mapArea.current?.querySelector<HTMLElement>(
+      `[data-spot-id="${lastSpotId.current}"]`,
+    );
+    (tile ?? quickBookButton.current)?.focus();
   }
 
   function onPanelKeyDown(event: KeyboardEvent<HTMLElement>) {

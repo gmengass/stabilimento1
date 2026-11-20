@@ -42,3 +42,21 @@ body {
   color: var(--foreground);
   font-family: system-ui, sans-serif;
 }
+
+/* Keyboard focus: a 2px ring that shows on the light and the dark background (WCAG 2.4.7). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+
+  :root[data-theme="dark"] :focus-visible {
+    outline-color: #93c5fd;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] :focus-visible {
+      outline-color: #93c5fd;
+    }
+  }
+}
