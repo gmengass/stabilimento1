@@ -13,6 +13,10 @@ const PHONE = { width: 390, height: 844 };
 const MIN_TAP = 44;
 
 const stamp = Date.now().toString(36);
+// Sign-in is limited to 5 a minute per address and the other specs use them all. Caddy overwrites
+// `x-real-ip` in production, but the e2e server has no proxy, so this gives the tablet its own
+// bucket without touching the app's limit.
+const TABLET_IP = `10.77.${Date.now() % 250}.${(Date.now() >> 8) % 250}`;
 const accounts = {
   tablet: { username: `tablet_${stamp}`, name: `Tablet ${stamp}` },
   anna: { username: `anna_${stamp}`, name: `Anna ${stamp}` },
@@ -75,7 +79,10 @@ async function signedInTablet(browser: Browser): Promise<Page> {
   await createAccount(adminPage, accounts.tablet, true);
   await admin.close();
 
-  const context = await browser.newContext({ viewport: TABLET });
+  const context = await browser.newContext({
+    viewport: TABLET,
+    extraHTTPHeaders: { "x-real-ip": TABLET_IP },
+  });
   const page = await context.newPage();
   await logInAs(page, accounts.tablet.username, PASSWORD);
   return page;
@@ -86,6 +93,7 @@ test.describe.serial("shared tablet account", () => {
   let tablet: Page;
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(120_000);
     tablet = await signedInTablet(browser);
   });
 
@@ -96,6 +104,7 @@ test.describe.serial("shared tablet account", () => {
   test("asks who is doing it, records that person, then stops asking", async () => {
     const dialog = tablet.getByTestId("acting-dialog");
     const activity = tablet.getByTestId("activity").locator("li");
+    const entry = (customer: string) => activity.filter({ hasText: `${customer} ${stamp}` });
 
     await submitBooking(tablet, `Tablet first ${stamp}`);
     await expect(dialog).toBeVisible();
@@ -103,22 +112,23 @@ test.describe.serial("shared tablet account", () => {
     await expect(dialog).toHaveCount(0);
     await expect(tablet.locator("aside")).toHaveCount(0);
 
-    await expect(activity.first()).toContainText(`Tablet first ${stamp}`);
-    await expect(activity.first()).toContainText(accounts.anna.name);
-    await expect(activity.first()).not.toContainText(accounts.tablet.name);
+    await expect(entry("Tablet first")).toContainText(accounts.anna.name);
+    await expect(entry("Tablet first")).not.toContainText(accounts.tablet.name);
     await expect(tablet.getByTestId("acting-as")).toContainText(accounts.anna.name);
 
     await submitBooking(tablet, `Tablet second ${stamp}`);
     await expect(tablet.locator("aside")).toHaveCount(0);
     await expect(dialog).toHaveCount(0);
-    await expect(activity.first()).toContainText(`Tablet second ${stamp}`);
-    await expect(activity.first()).toContainText(accounts.anna.name);
+    await expect(entry("Tablet second")).toContainText(accounts.anna.name);
   });
 
   test("the person acting can undo their own action, and nobody can once it is cleared", async () => {
     await tablet.goto(`/?date=${DATE}`);
-    const activity = tablet.getByTestId("activity").locator("li");
-    await expect(activity.first().getByTestId("undo")).toBeVisible();
+    const mine = tablet
+      .getByTestId("activity")
+      .locator("li")
+      .filter({ hasText: `Tablet second ${stamp}` });
+    await expect(mine.getByTestId("undo")).toBeVisible();
 
     await tablet.getByTestId("acting-not-me").click();
     await expect(tablet.getByTestId("acting-as")).toHaveCount(0);
@@ -138,9 +148,11 @@ test.describe.serial("shared tablet account", () => {
     await expect(dialog).toBeVisible();
     await dialog.getByTestId("acting-choice").filter({ hasText: accounts.bruno.name }).click();
     await expect(tablet.locator("aside")).toHaveCount(0);
-    const latest = tablet.getByTestId("activity").locator("li").first();
-    await expect(latest).toContainText(`Tablet fourth ${stamp}`);
-    await expect(latest).toContainText(accounts.bruno.name);
+    const fourth = tablet
+      .getByTestId("activity")
+      .locator("li")
+      .filter({ hasText: `Tablet fourth ${stamp}` });
+    await expect(fourth).toContainText(accounts.bruno.name);
   });
 
   test("cancelling the pop-up books nothing", async () => {
