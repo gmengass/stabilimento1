@@ -2,8 +2,9 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `main` is at the merge of #69 (tile extras), tagged up to `v0.13.3` (deploy unconfirmed; PR #70 docs open). Branch `feat/auto-checkin`
-  has an open PR (e2e added, not run here; `security` found nothing). Backup setup on the box not done.
+- `v0.13.3` released and deployed (tile marks, #69; earlier `v0.13.2` live map limits, `v0.13.1`
+  stale-state fix, `v0.13.0` backups). Branch `feat/auto-checkin` has an open PR (e2e added, not
+  run here; `security` found nothing). Backup setup on the box not done yet.
 
 ## Done this session
 - Check in at creation (branch `feat/auto-checkin`, ADR 0015 amendment, plan
@@ -14,8 +15,10 @@
 
 ## Next up
 1. Merge `feat/auto-checkin` once CI (incl. the new e2e) is green; then tag the release.
-2. Owner: RUNBOOK "Backups" setup on the box; enter lettini/sdraie stock in Beach settings.
-3. Prices, payments at the desk, daily cash-up (Milestone 2).
+2. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
+   heartbeat, test run). Until then no nightly backups run.
+3. Owner: enter the lettini/sdraie stock in Beach settings.
+4. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in:
@@ -23,7 +26,7 @@
   to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test;
   "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
-- Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021): no warning on
+- Deckchairs: edit on a booking (audited, undo)? Stock (ADR 0021): no warning on
   undo/restore/lowering it; date moves warn on all days, not only added; per space? Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no
   e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
