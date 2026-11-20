@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { Client } from "pg";
 
-import { ADMIN_STATE, logInAs } from "./helpers";
+import { ADMIN_STATE, SIGN_IN_ADDRESS, logInAs, ownSignInBucket } from "./helpers";
 
 // Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2092).
 // Selectors avoid translated text: another test switches the shared admin's language.
@@ -13,11 +13,6 @@ const PHONE = { width: 390, height: 844 };
 const MIN_TAP = 44;
 
 const stamp = Date.now().toString(36);
-// Sign-in is limited to 5 a minute per address and the other specs use them all. Caddy overwrites
-// `x-real-ip` in production, but the e2e server has no proxy, so this gives the tablet its own
-// bucket without touching the app's limit. It must be a valid address: anything else falls
-// back to the shared bucket.
-const TABLET_IP = "10.77.0.1";
 const accounts = {
   tablet: { username: `tablet_${stamp}`, name: `Tablet ${stamp}` },
   anna: { username: `anna_${stamp}`, name: `Anna ${stamp}` },
@@ -82,7 +77,7 @@ async function signedInTablet(browser: Browser): Promise<Page> {
 
   const context = await browser.newContext({
     viewport: TABLET,
-    extraHTTPHeaders: { "x-real-ip": TABLET_IP },
+    ...ownSignInBucket(SIGN_IN_ADDRESS.tablet),
   });
   const page = await context.newPage();
   await logInAs(page, accounts.tablet.username, PASSWORD);
