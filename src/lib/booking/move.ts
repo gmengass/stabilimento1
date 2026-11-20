@@ -379,7 +379,14 @@ async function moveIn(tx: Kysely<DB>, userId: string, move: Move, today: string)
       sunbeds: current.some((r) => r.sunbeds > 0),
       deckchairs: booking.deckchairs > 0,
     };
-    overStockDays = await checkStock(tx, dates.startDate, dates.endDate, uses, move.allowOverStock);
+    overStockDays = await checkStock(
+      tx,
+      move.bookingId,
+      dates.startDate,
+      dates.endDate,
+      uses,
+      move.allowOverStock,
+    );
   }
 
   const { kind, startDate, endDate } = booking;

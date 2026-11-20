@@ -191,7 +191,7 @@
     "areaNameHint": "Potrai aggiungere altri spazi spiaggia in seguito, ognuno con le sue file e i suoi ombrelloni.",
     "sunbedStock": "Lettini in magazzino",
     "deckchairStock": "Sdraie in magazzino",
-    "stockHint": "Quanti ne ha il lido per tutta la spiaggia. La mappa mostra quanti ne restano ogni giorno, e il personale viene avvisato prima che una prenotazione li superi. Lascia vuoto per non contarli."
+    "stockHint": "Quanti ne ha il lido per questo spazio. La mappa mostra quanti ne restano ogni giorno, e il personale viene avvisato prima che una prenotazione li superi. Lascia vuoto per non contarli."
   },
   "booking": {
     "newTitle": "Nuova prenotazione · {area}",
@@ -413,7 +413,7 @@
     "hold": "{user} ha segnato un arrivo in ritardo per {name}: tenuto fino alle {time}",
     "holdCleared": "{user} ha rimesso l'orario normale per {name}",
     "noShow": "Sistema: {bookings, plural, one {# prenotazione non arrivata} other {# prenotazioni non arrivate}} entro l'orario, {umbrellas, plural, one {# ombrellone liberato} other {# ombrelloni liberati}}",
-    "beachStock": "{user} ha impostato la scorta: lettini {sunbeds}, sdraie {deckchairs}",
+    "beachStock": "{user} ha impostato la scorta di {area}: lettini {sunbeds}, sdraie {deckchairs}",
     "stockOff": "non contati",
     "overStock": "{text} (oltre la scorta)"
   },

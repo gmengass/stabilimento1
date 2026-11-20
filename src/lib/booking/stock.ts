@@ -2,7 +2,7 @@ import { sql, type Kysely } from "kysely";
 import type { DB } from "@/db/types";
 import type { FreeOfTotal } from "./counts";
 
-/** The venue's stock left on one day, or null for an item that isn't tracked (ADR 0021). */
+/** A beach space's stock left on one day, or null for an item that isn't tracked (ADR 0021). */
 export interface StockDay {
   sunbeds: FreeOfTotal | null;
   deckchairs: FreeOfTotal | null;
@@ -30,18 +30,25 @@ interface UseRow {
 }
 
 /**
- * Sunbeds and deckchairs in use each day from `from` to `to`, venue-wide, with the stock. Only
+ * Sunbeds and deckchairs in use each day from `from` to `to` in one space, with its stock. Only
  * `booked` days use stock; a booking's deckchairs count once a day however many umbrellas it has.
  */
-async function loadUse(db: Kysely<DB>, from: string, to: string): Promise<UseRow[]> {
+async function loadUse(
+  db: Kysely<DB>,
+  areaId: number,
+  from: string,
+  to: string,
+): Promise<UseRow[]> {
   const { rows } = await sql<UseRow>`
     with venue as (
-      select sunbed_stock, deckchair_stock from venue order by id limit 1
+      select sunbed_stock, deckchair_stock from area where id = ${areaId}
     ), used as (
       select sd.date, bs.booking_id, sum(bs.sunbeds)::int as sunbeds
       from spot_day sd
       join booking_spot bs on bs.id = sd.booking_spot_id
-      where sd.state = 'booked' and sd.date between ${from}::date and ${to}::date
+      join spot s on s.id = sd.spot_id
+      where sd.state = 'booked' and s.area_id = ${areaId}
+        and sd.date between ${from}::date and ${to}::date
       group by sd.date, bs.booking_id
     )
     select to_char(d, 'YYYY-MM-DD') as date,
@@ -63,8 +70,12 @@ const left = (stock: number | null, used: number): FreeOfTotal | null =>
   stock === null ? null : { free: stock - used, total: stock };
 
 /** Free / stock of sunbeds and deckchairs on one day; free is below 0 when over the stock. */
-export async function loadStockDay(db: Kysely<DB>, date: string): Promise<StockDay> {
-  const [row] = await loadUse(db, date, date);
+export async function loadStockDay(
+  db: Kysely<DB>,
+  areaId: number,
+  date: string,
+): Promise<StockDay> {
+  const [row] = await loadUse(db, areaId, date, date);
   if (!row) return { sunbeds: null, deckchairs: null };
   return {
     sunbeds: left(row.sunbedStock, row.sunbeds),
@@ -81,12 +92,13 @@ const over = (tracked: boolean, stock: number | null, used: number) =>
  */
 export async function overStock(
   db: Kysely<DB>,
+  areaId: number,
   from: string,
   to: string,
   uses: StockUse,
 ): Promise<OverStockDay[]> {
   if (!uses.sunbeds && !uses.deckchairs) return [];
-  const rows = await loadUse(db, from, to);
+  const rows = await loadUse(db, areaId, from, to);
   return rows
     .map((row) => ({
       date: row.date,
@@ -94,4 +106,15 @@ export async function overStock(
       deckchairs: over(uses.deckchairs, row.deckchairStock, row.deckchairs),
     }))
     .filter((day) => day.sunbeds > 0 || day.deckchairs > 0);
+}
+
+/** The beach space a booking is in: a booking never spans two spaces (ADR 0004). */
+export async function areaOfBooking(db: Kysely<DB>, bookingId: number): Promise<number> {
+  const row = await db
+    .selectFrom("booking_spot")
+    .innerJoin("spot", "spot.id", "booking_spot.spot_id")
+    .select("spot.area_id")
+    .where("booking_spot.booking_id", "=", bookingId)
+    .executeTakeFirstOrThrow();
+  return row.area_id;
 }

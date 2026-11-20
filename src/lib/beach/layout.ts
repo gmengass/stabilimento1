@@ -26,7 +26,7 @@ export interface BeachLayout {
   venueName: string;
   /** The venue's check-in time for day bookings, "HH:MM" (ADR 0018). */
   defaultHoldUntil: string;
-  /** Sunbeds and deckchairs the venue owns, or null when not tracked (ADR 0021). */
+  /** Sunbeds and deckchairs this space has, or null when not tracked (ADR 0021, ADR 0026). */
   sunbedStock: number | null;
   deckchairStock: number | null;
   areaId: number;
@@ -73,8 +73,8 @@ export async function loadBeach(db: Kysely<DB>, areaId?: number): Promise<BeachL
       "area.name",
       "venue.name as venueName",
       sql<string>`to_char(venue.default_hold_until, 'HH24:MI')`.as("defaultHoldUntil"),
-      "venue.sunbed_stock as sunbedStock",
-      "venue.deckchair_stock as deckchairStock",
+      "area.sunbed_stock as sunbedStock",
+      "area.deckchair_stock as deckchairStock",
     ])
     .where("area.id", "=", picked.id)
     .executeTakeFirstOrThrow();

@@ -4,7 +4,7 @@ import type { BookingKind, DB, SpotDayState } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
 import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
-import { overStock, type OverStockDay } from "./stock";
+import { areaOfBooking, overStock, type OverStockDay } from "./stock";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -165,12 +165,13 @@ export class OverStock extends Error {
  */
 export async function checkStock(
   tx: Kysely<DB>,
+  bookingId: number,
   from: string,
   to: string,
   uses: { sunbeds: boolean; deckchairs: boolean },
   allowed = false,
 ): Promise<number> {
-  const days = await overStock(tx, from, to, uses);
+  const days = await overStock(tx, await areaOfBooking(tx, bookingId), from, to, uses);
   if (days.length > 0 && !allowed) throw new OverStock(days);
   return days.length;
 }
@@ -245,6 +246,7 @@ async function insertBooking(db: Kysely<DB>, userId: string, booking: BookingToW
     const sunbeds = booking.spots.some((s) => s.sunbeds > 0);
     const overStockDays = await checkStock(
       tx,
+      id,
       startDate,
       endDate,
       { sunbeds, deckchairs: deckchairs > 0 },

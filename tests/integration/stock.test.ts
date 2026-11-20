@@ -20,6 +20,8 @@ let migrated = false;
 /** Spot id by umbrella number, in the first space. */
 let spot: Record<number, number>;
 let seasonId: number;
+/** The first space, whose stock most tests set. */
+let area: number;
 const TODAY = "2027-06-20";
 const TOMORROW = addDays(TODAY, 1);
 const USER = "u-anna";
@@ -44,6 +46,7 @@ beforeEach(async () => {
   await setupBeach(db, { venueName: "Lido", areaName: "Main", lines: 2, umbrellasPerLine: 5 });
   const beach = await loadBeach(db);
   if (!beach) throw new Error("no beach");
+  area = beach.areaId;
   spot = Object.fromEntries(beach.lines.flatMap((l) => l.spots.map((s) => [s.number, s.id])));
   await createSeason(db, { name: "Estate 2027", startDate: "2027-06-01", endDate: "2027-09-15" });
   seasonId = (await listSeasons(db))[0].id;
@@ -77,7 +80,7 @@ async function book(overrides: Partial<CreateBookingInput> = {}) {
 }
 
 async function stock(sunbedStock: number | null, deckchairStock: number | null = null) {
-  const result = await setStock(db, { sunbedStock, deckchairStock });
+  const result = await setStock(db, { areaId: area, sunbedStock, deckchairStock });
   if (!result.ok) throw new Error(`stock failed: ${result.error}`);
 }
 
@@ -93,26 +96,28 @@ const bookingCount = async () =>
 
 describe("setStock", () => {
   it("starts untracked, saves numbers, answers old and new, and blank clears", async () => {
-    expect(await loadStockDay(db, TODAY)).toEqual({ sunbeds: null, deckchairs: null });
-    expect(await setStock(db, { sunbedStock: 20, deckchairStock: 4 })).toEqual({
+    expect(await loadStockDay(db, area, TODAY)).toEqual({ sunbeds: null, deckchairs: null });
+    expect(await setStock(db, { areaId: area, sunbedStock: 20, deckchairStock: 4 })).toEqual({
       ok: true,
+      areaName: "Main",
       from: { sunbedStock: null, deckchairStock: null },
       to: { sunbedStock: 20, deckchairStock: 4 },
     });
     expect((await loadBeach(db))?.sunbedStock).toBe(20);
-    expect(await setStock(db, { sunbedStock: "", deckchairStock: 0 })).toEqual({
+    expect(await setStock(db, { areaId: area, sunbedStock: "", deckchairStock: 0 })).toEqual({
       ok: true,
+      areaName: "Main",
       from: { sunbedStock: 20, deckchairStock: 4 },
       to: { sunbedStock: null, deckchairStock: 0 },
     });
-    expect(await loadStockDay(db, TODAY)).toEqual({
+    expect(await loadStockDay(db, area, TODAY)).toEqual({
       sunbeds: null,
       deckchairs: { free: 0, total: 0 },
     });
   });
 
   it.each([-1, 1.5, 10_000, "12", "x", true, undefined])("rejects %s", async (value) => {
-    expect(await setStock(db, { sunbedStock: value, deckchairStock: null })).toEqual({
+    expect(await setStock(db, { areaId: area, sunbedStock: value, deckchairStock: null })).toEqual({
       ok: false,
       error: "invalid",
     });
@@ -120,22 +125,21 @@ describe("setStock", () => {
   });
 
   it("accepts the limits 0 and 9999", async () => {
-    expect((await setStock(db, { sunbedStock: 0, deckchairStock: 9999 })).ok).toBe(true);
+    expect((await setStock(db, { areaId: area, sunbedStock: 0, deckchairStock: 9999 })).ok).toBe(
+      true,
+    );
   });
 
   it("is refused by the database outside 0..9999", async () => {
-    await expect(sql`update venue set sunbed_stock = 10000`.execute(db)).rejects.toMatchObject({
+    await expect(sql`update area set sunbed_stock = 10000`.execute(db)).rejects.toMatchObject({
       code: "23514",
     });
   });
 });
 
 describe("loadStockDay", () => {
-  it("subtracts the sunbeds and deckchairs booked that day, across every space", async () => {
+  it("subtracts the sunbeds and deckchairs booked that day in the space", async () => {
     await stock(20, 4);
-    const north = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
-    if (!north.ok) throw new Error("no area");
-    const northSpot = (await loadBeach(db, north.areaId))!.lines[0].spots[0].id;
     await book({
       spots: [
         { spotId: spot[101], sunbeds: 3 },
@@ -143,17 +147,49 @@ describe("loadStockDay", () => {
       ],
       deckchairs: 2,
     });
+    expect(await loadStockDay(db, area, TODAY)).toEqual({
+      sunbeds: { free: 16, total: 20 },
+      deckchairs: { free: 2, total: 4 },
+    });
+  });
+
+  it("keeps each space's stock and use apart", async () => {
+    await stock(2, 1);
+    const north = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
+    if (!north.ok) throw new Error("no area");
+    const northSpot = (await loadBeach(db, north.areaId))!.lines[0].spots[0].id;
+    expect(
+      (await setStock(db, { areaId: north.areaId, sunbedStock: 10, deckchairStock: "" })).ok,
+    ).toBe(true);
     await book({ spots: [{ spotId: northSpot, sunbeds: 2 }], deckchairs: 1 });
-    expect(await loadStockDay(db, TODAY)).toEqual({
-      sunbeds: { free: 14, total: 20 },
-      deckchairs: { free: 1, total: 4 },
+    expect(await loadStockDay(db, north.areaId, TODAY)).toEqual({
+      sunbeds: { free: 8, total: 10 },
+      deckchairs: null,
+    });
+    expect(await loadStockDay(db, area, TODAY)).toEqual({
+      sunbeds: { free: 2, total: 2 },
+      deckchairs: { free: 1, total: 1 },
+    });
+    const result = await createBooking(
+      db,
+      USER,
+      input({ spots: [{ spotId: spot[101], sunbeds: 2 }] }),
+      TODAY,
+    );
+    expect(result.ok).toBe(true);
+  });
+
+  it("refuses a space that is not in the venue", async () => {
+    expect(await setStock(db, { areaId: 9999, sunbedStock: 1, deckchairStock: 1 })).toEqual({
+      ok: false,
+      error: "notFound",
     });
   });
 
   it("counts a booking only on its own days (range boundaries)", async () => {
     await stock(10, 2);
     await book({ startDate: TOMORROW, endDate: addDays(TODAY, 2), deckchairs: 2 });
-    const free = async (date: string) => (await loadStockDay(db, date)).sunbeds?.free;
+    const free = async (date: string) => (await loadStockDay(db, area, date)).sunbeds?.free;
     expect(await free(TODAY)).toBe(10);
     expect(await free(TOMORROW)).toBe(8);
     expect(await free(addDays(TODAY, 2))).toBe(8);
@@ -163,7 +199,7 @@ describe("loadStockDay", () => {
   it("goes below 0 when over the stock", async () => {
     await stock(1, 0);
     await book({ deckchairs: 1 });
-    expect(await loadStockDay(db, TODAY)).toEqual({
+    expect(await loadStockDay(db, area, TODAY)).toEqual({
       sunbeds: { free: -1, total: 1 },
       deckchairs: { free: -1, total: 0 },
     });
@@ -189,14 +225,14 @@ describe("loadStockDay", () => {
       { bookingId: pass.bookingId, startDate: TOMORROW, endDate: TOMORROW },
       TODAY,
     );
-    expect((await loadStockDay(db, TOMORROW)).sunbeds?.free).toBe(10);
+    expect((await loadStockDay(db, area, TOMORROW)).sunbeds?.free).toBe(10);
 
     await book({ spots: [{ spotId: spot[101], sunbeds: 2 }] });
     const kept = await book({ spots: [{ spotId: spot[102], sunbeds: 2 }] });
     await checkIn(db, USER, { bookingId: kept, date: TODAY }, TODAY);
     await applyHoldRule(db, new Date(`${TODAY}T12:00:00+02:00`));
     // The pass (never freed) and the checked-in booking stay; the no-show gives its 2 back.
-    expect((await loadStockDay(db, TODAY)).sunbeds?.free).toBe(6);
+    expect((await loadStockDay(db, area, TODAY)).sunbeds?.free).toBe(6);
   });
 });
 
@@ -249,7 +285,7 @@ describe("booking over the stock", () => {
 
     const saved = await createBooking(db, USER, { ...request, allowOverStock: true }, TODAY);
     expect(saved.ok).toBe(true);
-    expect((await loadStockDay(db, TOMORROW)).sunbeds).toEqual({ free: -1, total: 3 });
+    expect((await loadStockDay(db, area, TOMORROW)).sunbeds).toEqual({ free: -1, total: 3 });
   });
 
   it("warns about deckchairs only for a booking that asks for them", async () => {
@@ -440,27 +476,32 @@ describe("overStock", () => {
   it("checks nothing for a booking that uses no stock", async () => {
     await stock(0, 0);
     await book({ deckchairs: 1 });
-    expect(await overStock(db, TODAY, TODAY, { sunbeds: false, deckchairs: false })).toEqual([]);
+    expect(await overStock(db, area, TODAY, TODAY, { sunbeds: false, deckchairs: false })).toEqual(
+      [],
+    );
   });
 });
 
-describe("0012_venue_stock migration", () => {
-  it("rolls back and up again; existing venues read untracked", async () => {
+describe("0014_area_stock migration", () => {
+  it("rolls back to the venue's sum and up again onto the first space", async () => {
     await stock(20, 4);
+    const north = await addArea(db, { areaName: "North", lines: 1, umbrellasPerLine: 2 });
+    if (!north.ok) throw new Error("no area");
+    await setStock(db, { areaId: north.areaId, sunbedStock: 5, deckchairStock: "" });
     try {
-      const down = await createMigrator(db).migrateTo("0011_booking_deckchairs");
+      const down = await createMigrator(db).migrateTo("0013_communal");
       if (down.error) throw down.error;
-      const { rows } = await sql<{
-        n: number;
-      }>`select count(*)::int as n from information_schema.columns
-        where table_name = 'venue' and column_name in ('sunbed_stock', 'deckchair_stock')`.execute(
-        db,
-      );
-      expect(rows[0].n).toBe(0);
+      const { rows } = await sql<{ s: number; d: number }>`
+        select sunbed_stock as s, deckchair_stock as d from venue`.execute(db);
+      expect(rows[0]).toEqual({ s: 25, d: 4 });
     } finally {
       const up = await runMigrations(db, "up");
       if (up.error) throw up.error;
     }
-    expect(await loadStockDay(db, TODAY)).toEqual({ sunbeds: null, deckchairs: null });
+    expect(await loadStockDay(db, area, TODAY)).toEqual({
+      sunbeds: { free: 25, total: 25 },
+      deckchairs: { free: 4, total: 4 },
+    });
+    expect((await loadStockDay(db, north.areaId, TODAY)).sunbeds).toBeNull();
   });
 });

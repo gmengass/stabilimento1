@@ -56,13 +56,14 @@ export async function setDefaultHoldAction(
   );
 }
 
-/** Logged with the old and new numbers: the counts and booking warnings use them (ADR 0021). */
+/** Logged with the space and the old and new numbers: counts and warnings use them (ADR 0026). */
 export async function setStockAction(input: unknown): Promise<edit.SetStockResult | Forbidden> {
   return asAdmin(
     "setStock",
     () => edit.setStock(getDb(), input),
     // The log holds strings and numbers: "" stands for "not tracked".
-    ({ from, to }) => ({
+    ({ areaName, from, to }) => ({
+      area: areaName,
       fromSunbeds: from.sunbedStock ?? "",
       toSunbeds: to.sunbedStock ?? "",
       fromDeckchairs: from.deckchairStock ?? "",

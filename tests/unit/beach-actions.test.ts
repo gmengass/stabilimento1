@@ -12,6 +12,7 @@ const { actor, audit, layout, edit } = vi.hoisted(() => {
       setDefaultHold: ok(),
       setStock: vi.fn(async () => ({
         ok: true as const,
+        areaName: "Main",
         from: { sunbedStock: null, deckchairStock: null },
         to: { sunbedStock: 20, deckchairStock: 4 },
       })),
@@ -120,9 +121,9 @@ describe("setDefaultHoldAction", () => {
 });
 
 describe("setStockAction", () => {
-  it("logs the old and the new stock, with blank for not tracked", async () => {
+  it("logs the space and the old and new stock, with blank for not tracked", async () => {
     actor.current = user("admin");
-    await actions.setStockAction({ sunbedStock: 20, deckchairStock: 4 });
+    await actions.setStockAction({ areaId: 1, sunbedStock: 20, deckchairStock: 4 });
     expect(audit.writeEntry).toHaveBeenCalledWith(
       {},
       {
@@ -130,6 +131,7 @@ describe("setStockAction", () => {
         action: "beach",
         detail: {
           what: "setStock",
+          area: "Main",
           fromSunbeds: "",
           toSunbeds: 20,
           fromDeckchairs: "",

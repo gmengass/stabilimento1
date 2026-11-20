@@ -99,6 +99,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
         if (detail.what === "setStock") {
           return t("beachStock", {
             user,
+            area: String(detail.area ?? ""),
             sunbeds: stockText(detail.toSunbeds),
             deckchairs: stockText(detail.toDeckchairs),
           });
