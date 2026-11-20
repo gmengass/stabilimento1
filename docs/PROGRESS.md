@@ -3,15 +3,15 @@
 ## Current state
 - `main` is at the merge of #79, last tag `v0.14.0` (released, owner, 2026-11-20; stock per
   space #77). Backup setup on the box
-  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR open, e2e axe unrun.
+  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR #80, CI green, ready to merge.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
 - Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
   axe checks (board, panels, dialog, login; it/en), contrast tests incl. focus ring, skip link,
   page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
-  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e not run.
+  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e green in CI (a11y spec: axe, 320px reflow).
 ## Next up
-1. Accessibility PR: read the first CI run of `e2e/a11y.spec.ts` (written, never run: expect findings on contrast, target size, 320px reflow of admin pages), fix, merge.
+1. Owner: merge PR #80 (accessibility); ships in the next release. Then Milestone 2.
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions

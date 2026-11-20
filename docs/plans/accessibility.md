@@ -28,11 +28,11 @@ Sessions cannot run Playwright: component-level axe runs here, e2e axe runs in C
 8. **Tap targets**: padding gives every input and button more than 24px. Raised to 44px:
    login controls, tap-to-call phone links, admin "open map" link. Done.
 9. **Zoom/reflow**: viewport does not block scaling; the Android wrapper sets no zoom limits.
-   `e2e/a11y.spec.ts` checks no sideways page scroll at 320px on every page. Written, not run.
+   `e2e/a11y.spec.ts` checks no sideways page scroll at 320px on every page. Passes in CI (fixed
+   Seasons date row and Staff table).
 10. **e2e axe** (`e2e/a11y.spec.ts`, `@axe-core/playwright`, wcag2a/aa/21/22aa): map, search,
     admin pages, open panel, login; light + dark; tablet + phone. Uses the saved admin session, so
-    no sign-in bucket. Written, not run (no Playwright browsers in sessions): the first CI run
-    may report real findings (contrast, target size, 320px reflow on admin pages) to fix.
+    no sign-in bucket. Passes in CI: axe found no violations (contrast and target size included).
 
 Dropped: reduced motion (the app has no animations).
 
