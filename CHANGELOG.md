@@ -4,6 +4,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-20
+### Changed
+- Sunbed and deckchair stock is now set per beach space, in each space's panel in Beach settings.
+  Counts, over-stock warnings and the activity log use that space (ADR 0026).
+- Migration `0014` moves the old venue-wide stock to the first space, so enter the real stock for
+  every space after updating. Rolling back (`down`) adds the spaces' stock together, capped at 9999.
+
 ## [0.13.4] - 2026-11-20
 ### Added
 - Check in at creation: a one-day booking for today shows a "Check in now" checkbox, ticked by
