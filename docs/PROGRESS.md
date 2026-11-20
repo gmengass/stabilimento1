@@ -2,23 +2,18 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `main` is at the merge of #73 (activity stream and undo cover the whole day, ADR 0024), after
-  #71 (check in at creation) and `v0.13.3` (released and deployed). Branch `feat/communal-accounts`
-  (PR #72) is rebased onto it. Backup setup on the box not done yet.
-
-## Done this session
-- Communal (shared tablet) accounts (ADR 0025, plan `docs/plans/communal-accounts.md`): flag at
-  account creation, 30-day session, "Who is doing this?" pop-up (first action, then after 2 min
-  idle), actions and Undo per chosen person. ADR renumbered 0024 to 0025 (clash with #73).
-- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) passed
-  locally with system Chrome before the merge with main; rerun in CI.
+- `main` is at the merge of #72 (communal accounts, ADR 0025), after #73 (whole-day activity,
+  ADR 0024), #71 (check in at creation) and `v0.13.3` (released and deployed). Untagged since:
+  #71, #73, #72. Backup setup on the box not done yet.
+- E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`).
 
 ## Next up
-0. Merge `feat/communal-accounts` after CI is green; then tick the ROADMAP line and release.
-1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
+1. Tag the release for #71, #73, #72 (suggest `v0.14.0`), update CHANGELOG, owner deploys.
+2. Owner: try one communal tablet with real staff (no PIN: watch for wrong names).
+3. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
-2. Owner: enter the lettini/sdraie stock in Beach settings.
-3. Prices, payments at the desk, daily cash-up (Milestone 2).
+4. Owner: enter the lettini/sdraie stock in Beach settings.
+5. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
@@ -35,8 +30,10 @@
 - Android supply chain (Gradle verification, image digests, plugin 9.x). No CSP from Caddy, no `Cache-Control: no-store`. `picomatch` ReDoS in dev tooling (`npm audit`): upgrade in a chore.
 - Owner: cancelled names shown to all staff? No rate limits (booking, suggest, move, undo, check-in, live). Minor: "retire" umbrellas with past bookings; quick book "Another suggestion" resets the form; venue name takes control chars; setup numbers take `true`/`1e1`.
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; 101+201 over 101+103; `formatEur` cents; per-tablet space/session; search/admin not live; e2e restore; FK restrict; "Ripristina" undo; initials for cancelled names.
-- Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). E2E uses all 5 sign-ins/minute.
+- Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 
 ## Known issues
+- `check-in.spec` picks "first free umbrella today" and races other specs with 2 workers (fails
+  locally in full runs, passes alone and in CI with its retry): give it its own umbrella if it fails in CI.
 - Sessions can't pull images, reach Google Maven, get Playwright or push tags. `live-route` test
   fails without `.env` (CI passes); `next dev` re-creates AGENTS.md.

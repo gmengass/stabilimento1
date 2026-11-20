@@ -1,9 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import enMessages from "../messages/en.json";
 import itMessages from "../messages/it.json";
+import { SIGN_IN_ADDRESS, ownSignInBucket } from "./helpers";
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin-pass-123";
+
+// Four sign-ins here, five with a retry: keep them out of the shared bucket the other specs use.
+test.use(ownSignInBucket(SIGN_IN_ADDRESS.login));
 
 async function logIn(page: Page, username: string, password: string): Promise<void> {
   await page.goto("/login");
