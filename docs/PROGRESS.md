@@ -10,11 +10,11 @@
   `vitest-axe` checks on beach board + login (it/en), text-contrast test, skip link, per-page titles.
   Lint, types, format clean; unit tests pass except `live-route` (needs `.env`); e2e not run.
 ## Next up
-1. Accessibility rest (owner chose it before Milestone 2): panel focus, form errors, axe on panel/dialog/admin/dark, CI e2e axe; open PR.
+1. Accessibility rest (owner chose it before Milestone 2): panel focus, form errors, axe on panel/dialog/admin/dark, CI e2e axe; open PR (no screen-reader work).
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, tag v0.14 and enter stock per space.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
-- Accessibility: tile screen-reader support required for v1.0, or keyboard + contrast + targets enough? Contrast/palette changes need owner OK (ADR 0017). TalkBack/WebView zoom untestable here.
+- Accessibility: screen readers out of scope (owner, 2026-11-20). Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in: each day they'd be flagged `no_show`. Apply the hold rule to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
