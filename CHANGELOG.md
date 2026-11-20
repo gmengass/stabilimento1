@@ -4,8 +4,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
-- Stock per beach space: lettini and sdraie stock are set in each space's panel in Beach settings
-  (ADR 0026, migration 0014; old venue stock moves to the first space).
 - Accessibility: a "Skip to content" link, a distinct page title per page, a clearer keyboard focus
   ring, and on phones the booking sheet takes keyboard focus and gives it back to the tile.
   Login fields and tap-to-call phone numbers are larger to tap.

@@ -1,9 +1,9 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #78 (security review; stock per space #77), last tag `v0.13.4`
-  (released and deployed, owner, 2026-11-20). #77 is merged, untagged. Backup setup on the box
-  not done. Branch `feat/accessibility` (pushed, no PR yet): Milestone 3 accessibility pass, nearly done.
+- `main` is at the merge of #79, last tag `v0.14.0` (released, owner, 2026-11-20; stock per
+  space #77). Backup setup on the box
+  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR open, e2e axe unrun.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
 - Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
@@ -11,8 +11,8 @@
   page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
   Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e not run.
 ## Next up
-1. Accessibility: CI e2e axe (tablet + phone, light + dark; admin pages), real 200%/320px check, then open the PR from `feat/accessibility`.
-2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, tag v0.14 and enter stock per space.
+1. Accessibility PR: read the first CI run of `e2e/a11y.spec.ts` (written, never run: expect findings on contrast, target size, 320px reflow of admin pages), fix, merge.
+2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
 - Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: a badge is deferred (owner, 2026-11-20), future item. Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
