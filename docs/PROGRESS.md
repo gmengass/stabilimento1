@@ -1,8 +1,9 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #76, last tag `v0.13.4` (released and deployed, owner, 2026-11-20).
-  Backup setup on the box not done yet. Branch `feat/stock-per-space` is open (PR, not merged).
+- `main` is at the merge of #78 (security review, stock per space #77), last tag `v0.13.4`
+  (released and deployed, owner, 2026-11-20). #77 is merged, untagged. Backup setup on the box
+  not done. Current branch `feat/accessibility`: Milestone 3 accessibility pass, not merged.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
 - Stock per beach space (ADR 0026, owner 2026-11-20): `area.sunbed_stock` / `deckchair_stock`
