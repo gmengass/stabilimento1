@@ -495,7 +495,10 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
     >
       <p>{t("noShowBy", { name: noShow.customerName, time: noShow.holdTime })}</p>
       {date === today && noShow.customerPhone && (
-        <a href={`tel:${noShow.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
+        <a
+          href={`tel:${noShow.customerPhone.replace(/[^\d+]/g, "")}`}
+          className="inline-flex min-h-11 items-center underline"
+        >
           {noShow.customerPhone}
         </a>
       )}
@@ -808,7 +811,10 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         </button>
       </div>
       {occupant.customerPhone && (
-        <a href={`tel:${occupant.customerPhone.replace(/[^\d+]/g, "")}`} className="underline">
+        <a
+          href={`tel:${occupant.customerPhone.replace(/[^\d+]/g, "")}`}
+          className="inline-flex min-h-11 items-center underline"
+        >
           {occupant.customerPhone}
         </a>
       )}

@@ -37,7 +37,10 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t("summary", { name: beach.venueName, areas: areas.length })}
           </p>
-          <Link href={`/?area=${beach.areaId}`} className="ml-auto underline">
+          <Link
+            href={`/?area=${beach.areaId}`}
+            className="ml-auto inline-flex min-h-11 items-center underline"
+          >
             {t("openMap")}
           </Link>
         </div>
