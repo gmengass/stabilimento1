@@ -38,7 +38,8 @@
     "staff": "Staff",
     "signedInAs": "Signed in as {name}",
     "logout": "Log out",
-    "seasons": "Seasons"
+    "seasons": "Seasons",
+    "skipToContent": "Skip to content"
   },
   "staff": {
     "title": "Staff accounts",

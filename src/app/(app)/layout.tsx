@@ -20,6 +20,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const acting = await currentActing(getDb(), user);
   return (
     <ActingProvider communal={user.communal} choices={choices} initialName={acting?.name ?? null}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-30 focus:m-2 focus:rounded focus:bg-background focus:px-3 focus:py-2"
+      >
+        {t("skipToContent")}
+      </a>
       <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm">
         <Link href="/" className="flex min-h-11 items-center">
           {t("map")}
