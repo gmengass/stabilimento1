@@ -15,8 +15,9 @@ const MIN_TAP = 44;
 const stamp = Date.now().toString(36);
 // Sign-in is limited to 5 a minute per address and the other specs use them all. Caddy overwrites
 // `x-real-ip` in production, but the e2e server has no proxy, so this gives the tablet its own
-// bucket without touching the app's limit.
-const TABLET_IP = `10.77.${Date.now() % 250}.${(Date.now() >> 8) % 250}`;
+// bucket without touching the app's limit. It must be a valid address: anything else falls
+// back to the shared bucket.
+const TABLET_IP = "10.77.0.1";
 const accounts = {
   tablet: { username: `tablet_${stamp}`, name: `Tablet ${stamp}` },
   anna: { username: `anna_${stamp}`, name: `Anna ${stamp}` },
