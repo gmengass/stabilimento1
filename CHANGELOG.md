@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.13.4] - 2026-11-20
 ### Added
 - Check in at creation: a one-day booking for today shows a "Check in now" checkbox, ticked by
   default. Checked in, it is never flagged as a no-show at the hold time. Multi-day bookings and
@@ -16,6 +18,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - The activity list on the map shows everything that happened today, not only the last 10
   actions, and any of today's actions can be undone (staff: their own within 30 minutes; admins:
   any). At most the latest 500 are listed (ADR 0024).
+
+## [0.13.3] - 2026-11-19
+### Added
+- Map tiles show sunbeds and deckchairs beyond the default: `+L` / `-L` for sunbeds against the
+  umbrella's included ones, `+S` for the booking's deckchairs on its first umbrella. Default
+  bookings show nothing (ADR 0023).
+
+## [0.13.2] - 2026-11-19
+### Changed
+- Live map: each user may hold 10 open streams (more get 429 with Retry-After), and a steady
+  stream of changes can no longer postpone the refresh: the map refreshes at least every 2 s
+  (updates ADR 0019).
+
+## [0.13.1] - 2026-11-19
+### Fixed
+- Live map: a spot booked elsewhere and then freed no longer comes back selected, and a move in
+  progress drops targets whose booking was cancelled elsewhere, with a notice saying why.
+- Live map: a new day starts with a blank selection, quick-book pick and move.
 
 ## [0.13.0] - 2026-11-19
 ### Added
