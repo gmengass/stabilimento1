@@ -26,6 +26,8 @@ const user = (role: CurrentUser["role"]): CurrentUser => ({
   name: "Anna",
   role,
   locale: "it",
+  communal: false,
+  sessionId: "s1",
 });
 
 const actions = [

@@ -69,11 +69,13 @@
       "name": "Name",
       "password": "Password",
       "role": "Role",
-      "submit": "Create account"
+      "submit": "Create account",
+      "communal": "Shared tablet account"
     },
     "hints": {
       "username": "3–30 characters: letters, digits, . and _",
-      "password": "At least 10 characters"
+      "password": "At least 10 characters",
+      "communal": "For a tablet several people use: staff pick their name before booking. Cannot be changed later."
     },
     "done": {
       "created": "Account created.",
@@ -88,7 +90,8 @@
       "lastAdmin": "At least one admin must stay active.",
       "notFound": "Account not found.",
       "generic": "Something went wrong. Try again."
-    }
+    },
+    "communalBadge": " (shared tablet)"
   },
   "map": {
     "line": "Line {number}",
@@ -427,5 +430,13 @@
     "back": "← Back to the map",
     "kind": "{kind, select, day {Day booking} multi_day {Multi-day booking} season {Season pass} other {A booking}}",
     "umbrellas": "{count, plural, one {Umbrella {numbers}} other {Umbrellas {numbers}}}"
+  },
+  "acting": {
+    "title": "Who is doing this?",
+    "actingAs": "Acting as {name}",
+    "notMe": "Not me",
+    "cancel": "Cancel",
+    "empty": "There are no staff accounts to choose from.",
+    "failed": "Could not choose. Try again."
   }
 }

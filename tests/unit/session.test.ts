@@ -53,6 +53,11 @@ describe.each([
     await expect(read()).resolves.toBeNull();
   });
 
+  it("carries the communal flag and the session id (ADR 0024)", async () => {
+    getSession.mockResolvedValue(sessionFor({ ...anna, communal: true }));
+    await expect(read()).resolves.toMatchObject({ communal: true, sessionId: "s1" });
+  });
+
   it("passes the request headers to getSession", async () => {
     await read();
     expect(getSession).toHaveBeenCalledWith(expect.objectContaining({ headers: requestHeaders }));
@@ -60,7 +65,7 @@ describe.each([
 
   it("returns only the public user fields", async () => {
     getSession.mockResolvedValue(sessionFor(anna));
-    await expect(read()).resolves.toEqual(anna);
+    await expect(read()).resolves.toEqual({ ...anna, communal: false, sessionId: "s1" });
   });
 
   it("falls back to staff and the default locale for unexpected values", async () => {
@@ -76,7 +81,7 @@ describe("requireUser", () => {
 
   it.each([anna, boss])("returns $role users", async (user) => {
     getSession.mockResolvedValue(sessionFor(user));
-    await expect(requireUser()).resolves.toEqual(user);
+    await expect(requireUser()).resolves.toEqual({ ...user, communal: false, sessionId: "s1" });
   });
 });
 
@@ -92,6 +97,6 @@ describe("requireAdmin", () => {
 
   it("returns an admin", async () => {
     getSession.mockResolvedValue(sessionFor(boss));
-    await expect(requireAdmin()).resolves.toEqual(boss);
+    await expect(requireAdmin()).resolves.toEqual({ ...boss, communal: false, sessionId: "s1" });
   });
 });

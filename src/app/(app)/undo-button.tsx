@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
+import { useActing } from "@/components/acting";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
 import type { Clash } from "@/lib/booking/bookings";
@@ -24,7 +25,10 @@ interface Failure {
   clashes?: Clash[];
 }
 
-type UndoFailure = Exclude<Awaited<ReturnType<typeof undoAction>>, { ok: true }>;
+type UndoFailure = Exclude<
+  Awaited<ReturnType<typeof undoAction>>,
+  { ok: true } | { error: "needsActor" }
+>;
 
 /** A lost race whose winner is already gone has no clash to name. */
 function toFailure(result: UndoFailure): Failure {
@@ -38,6 +42,7 @@ export function UndoButton({ entryId, label }: { entryId: number; label: string 
   const t = useTranslations("activity");
   const tBooking = useTranslations("booking.errors");
   const locale = useLocale();
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const formatDate = (date: string) =>
@@ -47,7 +52,8 @@ export function UndoButton({ entryId, label }: { entryId: number; label: string 
     setFailure(null);
     startTransition(async () => {
       try {
-        const result = await undoAction({ entryId });
+        const result = await run(() => undoAction({ entryId }));
+        if (!result) return;
         if (!result.ok) setFailure(toFailure(result));
       } catch {
         setFailure({ key: "generic" });

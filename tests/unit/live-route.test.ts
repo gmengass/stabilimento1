@@ -22,7 +22,15 @@ vi.mock("@/lib/live/listener", async (importOriginal) => ({
 const { GET, MAX_STREAMS_PER_USER } = await import("@/app/api/live/route");
 const { subscriberCount, startListener } = await import("@/lib/live/listener");
 
-const ANNA: CurrentUser = { id: "u1", username: "anna", name: "Anna", role: "staff", locale: "it" };
+const ANNA: CurrentUser = {
+  id: "u1",
+  username: "anna",
+  name: "Anna",
+  role: "staff",
+  locale: "it",
+  communal: false,
+  sessionId: "s1",
+};
 
 function liveRequest(signal?: AbortSignal) {
   return new Request("http://localhost:3000/api/live", { signal });

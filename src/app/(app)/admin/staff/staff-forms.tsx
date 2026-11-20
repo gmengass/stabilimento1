@@ -54,7 +54,8 @@ export function CreateStaffForm() {
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const input = Object.fromEntries(new FormData(form));
+    const data = new FormData(form);
+    const input = { ...Object.fromEntries(data), communal: data.get("communal") === "on" };
     submit(
       () => createStaffAction(input),
       "created",
@@ -94,6 +95,13 @@ export function CreateStaffForm() {
             </option>
           ))}
         </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="flex items-center gap-2">
+          <input name="communal" type="checkbox" className="size-5" />
+          {t("create.communal")}
+        </span>
+        <span className="text-xs text-gray-600 dark:text-gray-400">{t("hints.communal")}</span>
       </label>
       <FeedbackLine feedback={feedback} />
       <button

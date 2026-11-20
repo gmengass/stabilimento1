@@ -17,6 +17,7 @@ export interface StaffRow {
   name: string;
   role: Role;
   banned: boolean;
+  communal: boolean;
 }
 
 const createSchema = z.object({
@@ -24,7 +25,10 @@ const createSchema = z.object({
   name: z.string().trim().min(1).max(100),
   password: passwordSchema,
   role: z.enum(roles).default("staff"),
+  communal: z.boolean().default(false),
 });
+
+const createCheck = createSchema.refine((v) => !(v.communal && v.role === "admin"));
 
 const disableSchema = z.object({ userId: z.string().min(1), disabled: z.boolean() });
 
@@ -68,7 +72,7 @@ async function run(call: () => Promise<unknown>): Promise<StaffResult> {
 export async function listUsers(db: Kysely<DB>): Promise<StaffRow[]> {
   const rows = await db
     .selectFrom("user")
-    .select(["id", "username", "name", "role", "banned"])
+    .select(["id", "username", "name", "role", "banned", "communal"])
     .orderBy("username")
     .execute();
   return rows.map((row) => ({ ...row, role: row.role === "admin" ? "admin" : "staff" }));
@@ -79,13 +83,19 @@ export async function createStaff(
   headers: Headers,
   input: unknown,
 ): Promise<StaffResult> {
-  const parsed = createSchema.safeParse(input);
+  const parsed = createCheck.safeParse(input);
   if (!parsed.success) return fail("invalid");
-  const { username, name, password, role } = parsed.data;
+  const { username, name, password, role, communal } = parsed.data;
   return run(() =>
     auth.api.createUser({
       headers,
-      body: { email: placeholderEmail(username), password, name, role, data: { username } },
+      body: {
+        email: placeholderEmail(username),
+        password,
+        name,
+        role,
+        data: { username, communal },
+      },
     }),
   );
 }
@@ -123,7 +133,10 @@ export async function setDisabled(
   return db.transaction().execute(async (trx) => {
     await sql`select pg_advisory_xact_lock(${DISABLE_LOCK_KEY})`.execute(trx);
     if (!(await hasOtherActiveAdmin(trx, userId))) return fail("lastAdmin");
-    return run(() => auth.api.banUser({ headers, body: { userId } }));
+    const result = await run(() => auth.api.banUser({ headers, body: { userId } }));
+    if (result.ok)
+      await trx.deleteFrom("acting_staff").where("staff_user_id", "=", userId).execute();
+    return result;
   });
 }
 

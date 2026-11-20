@@ -16,8 +16,7 @@ const {
   actor: { current: null as CurrentUser | null },
   acting: {
     result: { ok: false, error: "needsActor" } as
-      | { ok: true; actorId: string }
-      | { ok: false; error: "needsActor" },
+      { ok: true; actorId: string } | { ok: false; error: "needsActor" },
     choose: vi.fn(async () => ({ ok: true as const })),
     clear: vi.fn(async () => undefined),
   },
@@ -254,7 +253,10 @@ describe("communal sessions (ADR 0024)", () => {
   });
 
   it("no action passes the session user's id to the booking code directly", async () => {
-    const source = await readFile(new URL("../../src/app/(app)/booking-actions.ts", import.meta.url), "utf8");
+    const source = await readFile(
+      new URL("../../src/app/(app)/booking-actions.ts", import.meta.url),
+      "utf8",
+    );
     expect(source).not.toMatch(/\buser\.id\b/);
   });
 });

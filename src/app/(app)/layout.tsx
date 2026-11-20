@@ -1,9 +1,12 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { getDb } from "@/db/client";
+import { ActingBadge, ActingProvider } from "@/components/acting";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { UserMenu } from "@/components/user-menu";
+import { currentActing, listActingChoices } from "@/lib/auth/acting";
 import { logout } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/session";
 import { THEME_COOKIE, resolveTheme } from "@/theme/config";
@@ -13,8 +16,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations("appShell");
   const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const choices = user.communal ? await listActingChoices(getDb()) : [];
+  const acting = await currentActing(getDb(), user);
   return (
-    <>
+    <ActingProvider communal={user.communal} choices={choices} initialName={acting?.name ?? null}>
       <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm">
         <Link href="/" className="flex min-h-11 items-center">
           {t("map")}
@@ -38,6 +43,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <ThemeSwitcher current={theme} />
           </div>
         </UserMenu>
+        <ActingBadge />
         <form action={logout}>
           <button type="submit" className="min-h-11 rounded border px-3 py-2">
             {t("logout")}
@@ -45,6 +51,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </form>
       </nav>
       {children}
-    </>
+    </ActingProvider>
   );
 }

@@ -6,6 +6,7 @@ import type { DB } from "@/db/types";
 import {
   ACTING_IDLE_MS,
   chooseActing,
+  currentActing,
   clearActing,
   listActingChoices,
   resolveActor,
@@ -78,7 +79,9 @@ describe("schema (ADR 0024)", () => {
     const down = await createMigrator(db).migrateTo("0012_venue_stock");
     expect(down.error).toBeUndefined();
     const columns = await sql<{ column_name: string }>`select column_name
-      from information_schema.columns where table_name = 'user' and column_name = 'communal'`.execute(db);
+      from information_schema.columns where table_name = 'user' and column_name = 'communal'`.execute(
+      db,
+    );
     expect(columns.rows).toEqual([]);
     const up = await runMigrations(db, "up");
     expect(up.error).toBeUndefined();
@@ -129,7 +132,10 @@ describe("resolveActor", () => {
     const t0 = new Date("2027-07-10T09:00:00Z");
     await chooseActing(db, sessionId(), anna, t0);
     const edge = new Date(t0.getTime() + ACTING_IDLE_MS);
-    await expect(resolveActor(db, tablet.actor, edge)).resolves.toEqual({ ok: true, actorId: anna });
+    await expect(resolveActor(db, tablet.actor, edge)).resolves.toEqual({
+      ok: true,
+      actorId: anna,
+    });
   });
 
   it("refreshes the idle time on every action", async () => {
@@ -137,7 +143,10 @@ describe("resolveActor", () => {
     await chooseActing(db, sessionId(), anna, t0);
     await resolveActor(db, tablet.actor, new Date(t0.getTime() + 90_000));
     const later = new Date(t0.getTime() + 180_000);
-    await expect(resolveActor(db, tablet.actor, later)).resolves.toEqual({ ok: true, actorId: anna });
+    await expect(resolveActor(db, tablet.actor, later)).resolves.toEqual({
+      ok: true,
+      actorId: anna,
+    });
   });
 
   it("does not let a refused action refresh a stale selection", async () => {
@@ -167,7 +176,11 @@ describe("resolveActor", () => {
   });
 
   it("keeps the two tablets' selections apart", async () => {
-    const second = await loggedIn(auth, { username: "tablet2", password: PASSWORD, communal: true });
+    const second = await loggedIn(auth, {
+      username: "tablet2",
+      password: PASSWORD,
+      communal: true,
+    });
     await chooseActing(db, sessionId(), anna);
     await chooseActing(db, second.actor.sessionId, bruno);
     await expect(resolveActor(db, tablet.actor)).resolves.toMatchObject({ actorId: anna });
@@ -283,7 +296,34 @@ describe("session length (ADR 0024)", () => {
 
 describe("communal accounts and the HTTP surface", () => {
   it("cannot set the flag over HTTP", async () => {
-    const response = await post(auth, "/update-user", { communal: false }, { headers: tablet.headers });
+    const response = await post(
+      auth,
+      "/update-user",
+      { communal: false },
+      { headers: tablet.headers },
+    );
     expect(response.status).toBeGreaterThanOrEqual(400);
+  });
+});
+
+describe("currentActing", () => {
+  it("names the fresh selection without refreshing it", async () => {
+    const t0 = new Date("2027-07-10T09:00:00Z");
+    await chooseActing(db, sessionId(), anna, t0);
+    const soon = new Date(t0.getTime() + 60_000);
+    await expect(currentActing(db, tablet.actor, soon)).resolves.toEqual({
+      id: anna,
+      name: "Anna",
+    });
+    const stale = new Date(t0.getTime() + ACTING_IDLE_MS + 1);
+    await expect(currentActing(db, tablet.actor, stale)).resolves.toBeNull();
+  });
+
+  it("is null for a normal account and for a banned choice", async () => {
+    const own = await loggedIn(auth, { username: "marco", password: PASSWORD });
+    await expect(currentActing(db, own.actor)).resolves.toBeNull();
+    await chooseActing(db, sessionId(), anna);
+    await db.updateTable("user").set({ banned: true }).where("id", "=", anna).execute();
+    await expect(currentActing(db, tablet.actor)).resolves.toBeNull();
   });
 });
