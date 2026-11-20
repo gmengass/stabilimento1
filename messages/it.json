@@ -368,8 +368,9 @@
     "expand": "Espandi"
   },
   "activity": {
-    "title": "Attività recenti",
-    "empty": "Ancora niente. Qui compariranno prenotazioni e modifiche.",
+    "title": "Attività di oggi",
+    "empty": "Ancora niente oggi. Qui compariranno prenotazioni e modifiche.",
+    "capped": "Ultime {count} di oggi.",
     "spots": "{count, plural, one {ombrellone {numbers}} other {ombrelloni {numbers}}}",
     "range": "{from} – {to}",
     "book": "{user} ha prenotato {spots} per {name}, {dates}",
