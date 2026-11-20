@@ -1,9 +1,8 @@
 import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { DB, SpotDayState } from "@/db/types";
-import { venueToday } from "@/i18n/format";
+import { venueDayStart, venueToday } from "@/i18n/format";
 import {
-  ACTIVITY_SIZE,
   mayUndo,
   writeEntry,
   type BookingState,
@@ -293,19 +292,15 @@ async function undoIn(
   today: string,
   now: Date,
 ): Promise<UndoResult> {
-  const latest = await tx
-    .selectFrom("audit_log")
-    .select("id")
-    .orderBy("id", "desc")
-    .limit(ACTIVITY_SIZE)
-    .execute();
-  if (!latest.some((row) => row.id === entryId)) return { ok: false, error: "notFound" };
   const entry = await tx
     .selectFrom("audit_log")
     .select(["user_id", "created_at", "booking_id", "change", "undone_by_id", "undoes_id"])
     .where("id", "=", entryId)
     .forUpdate()
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
+  // Only today's entries can be undone (ADR 0024).
+  if (!entry || new Date(entry.created_at) < venueDayStart(today))
+    return { ok: false, error: "notFound" };
   const change = entry.change as RecordedChange | null;
   if (!change || entry.booking_id === null) return { ok: false, error: "invalid" };
   if (entry.undone_by_id !== null) return { ok: false, error: "undone" };

@@ -54,7 +54,7 @@ afterAll(async () => {
 const sessionId = () => tablet.actor.sessionId;
 const rows = () => db.selectFrom("acting_staff").selectAll().execute();
 
-describe("schema (ADR 0024)", () => {
+describe("schema (ADR 0025)", () => {
   it("defaults communal to false", async () => {
     const row = await db
       .selectFrom("user")
@@ -217,7 +217,7 @@ describe("chooseActing / clearActing", () => {
   });
 });
 
-describe("disabling staff (ADR 0024)", () => {
+describe("disabling staff (ADR 0025)", () => {
   it("removes their acting selections", async () => {
     const admin = await loggedIn(auth, { username: "boss", password: PASSWORD, role: "admin" });
     await chooseActing(db, sessionId(), anna);
@@ -258,7 +258,7 @@ describe("creating communal accounts", () => {
   });
 });
 
-describe("session length (ADR 0024)", () => {
+describe("session length (ADR 0025)", () => {
   const HOUR = 3_600_000;
 
   async function lifetime(username: string): Promise<number> {

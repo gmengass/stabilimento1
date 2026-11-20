@@ -196,6 +196,7 @@
   "booking": {
     "newTitle": "New booking · {area}",
     "sunbeds": "Sunbeds",
+    "checkInNow": "Check in now",
     "deckchairs": "Deckchairs",
     "remove": "Remove",
     "removeSpot": "Remove umbrella {number}",
@@ -371,11 +372,13 @@
     "expand": "Expand"
   },
   "activity": {
-    "title": "Recent activity",
-    "empty": "Nothing yet. Bookings and changes will show here.",
+    "title": "Today's activity",
+    "empty": "Nothing today yet. Bookings and changes will show here.",
+    "capped": "Showing the latest {count} of today.",
     "spots": "{count, plural, one {umbrella {numbers}} other {umbrellas {numbers}}}",
     "range": "{from} – {to}",
     "book": "{user} booked {spots} for {name}, {dates}",
+    "checkedIn": "{text}, checked in",
     "withDeckchairs": "{text}, with {count, plural, one {# deckchair} other {# deckchairs}}",
     "sellPass": "{user} sold a season pass for {spots} to {name}, from {from}",
     "cancel": "{user} cancelled the booking of {name} ({spots})",

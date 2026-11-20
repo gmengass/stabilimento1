@@ -93,7 +93,7 @@ export async function currentActing(
 
 /**
  * Who the activity panel shows Undo for: a normal account itself, a communal tablet the person
- * currently acting (as staff), and no one when nobody is (ADR 0024).
+ * currently acting (as staff), and no one when nobody is (ADR 0025).
  */
 export function viewerFor(
   user: Pick<CurrentUser, "id" | "role" | "communal">,

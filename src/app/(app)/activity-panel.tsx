@@ -1,16 +1,16 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate, formatTimestamp } from "@/i18n/format";
-import { mayUndo, type ActivityEntry, type Viewer } from "@/lib/booking/audit";
+import { ACTIVITY_CAP, mayUndo, type ActivityEntry, type Viewer } from "@/lib/booking/audit";
 import { UndoButton } from "./undo-button";
 
 interface Props {
   entries: ActivityEntry[];
-  /** Null on a communal tablet while nobody is acting: no one to undo for (ADR 0024). */
+  /** Null on a communal tablet while nobody is acting: no one to undo for (ADR 0025). */
   viewer: Viewer | null;
 }
 
-/** The latest actions for the whole venue, with Undo where this viewer may use it (ADR 0013). */
+/** Today's actions for the whole venue, with Undo where this viewer may use it (ADR 0024). */
 export async function ActivityPanel({ entries, viewer }: Props) {
   const t = await getTranslations("activity");
   const requested = await getLocale();
@@ -38,7 +38,10 @@ export async function ActivityPanel({ entries, viewer }: Props) {
             ? t("sellPass", { user, spots, name, from: day(entry.startDate) })
             : t("book", { user, spots, name, dates: range(entry.startDate, entry.endDate) });
         const deckchairs = Number(detail.deckchairs ?? 0);
-        return overStock(deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text);
+        const withChairs = deckchairs > 0 ? t("withDeckchairs", { text, count: deckchairs }) : text;
+        return overStock(
+          Number(detail.checkedIn ?? 0) > 0 ? t("checkedIn", { text: withChairs }) : withChairs,
+        );
       }
       case "cancel":
         return t("cancel", { user, name, spots });
@@ -116,39 +119,48 @@ export async function ActivityPanel({ entries, viewer }: Props) {
       {entries.length === 0 ? (
         <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{t("empty")}</p>
       ) : (
-        <ol className="mt-2 flex flex-col divide-y">
-          {entries.map((entry) => {
-            const text = describe(entry);
-            return (
-              <li
-                key={entry.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
-              >
-                <time
-                  dateTime={entry.at.toISOString()}
-                  className="text-gray-600 dark:text-gray-400 tabular-nums"
+        <>
+          {entries.length >= ACTIVITY_CAP && (
+            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+              {t("capped", { count: ACTIVITY_CAP })}
+            </p>
+          )}
+          <ol className="mt-2 flex max-h-[60vh] flex-col divide-y overflow-y-auto">
+            {entries.map((entry) => {
+              const text = describe(entry);
+              return (
+                <li
+                  key={entry.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
                 >
-                  {formatTimestamp(entry.at, locale)}
-                </time>
-                <span
-                  className={
-                    entry.undone ? "flex-1 text-gray-500 dark:text-gray-400 line-through" : "flex-1"
-                  }
-                >
-                  {text}
-                </span>
-                {entry.undone ? (
-                  <span className="text-gray-600 dark:text-gray-400">{t("undone")}</span>
-                ) : (
-                  viewer &&
-                  mayUndo(entry, viewer, now) && (
-                    <UndoButton entryId={entry.id} label={t("undoLabel", { text })} />
-                  )
-                )}
-              </li>
-            );
-          })}
-        </ol>
+                  <time
+                    dateTime={entry.at.toISOString()}
+                    className="text-gray-600 dark:text-gray-400 tabular-nums"
+                  >
+                    {formatTimestamp(entry.at, locale)}
+                  </time>
+                  <span
+                    className={
+                      entry.undone
+                        ? "flex-1 text-gray-500 dark:text-gray-400 line-through"
+                        : "flex-1"
+                    }
+                  >
+                    {text}
+                  </span>
+                  {entry.undone ? (
+                    <span className="text-gray-600 dark:text-gray-400">{t("undone")}</span>
+                  ) : (
+                    viewer &&
+                    mayUndo(entry, viewer, now) && (
+                      <UndoButton entryId={entry.id} label={t("undoLabel", { text })} />
+                    )
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </>
       )}
     </details>
   );

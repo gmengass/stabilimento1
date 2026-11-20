@@ -11,7 +11,7 @@ export interface CurrentUser {
   name: string;
   role: Role;
   locale: Locale;
-  /** A shared-tablet account: actions are recorded under the staff member chosen (ADR 0024). */
+  /** A shared-tablet account: actions are recorded under the staff member chosen (ADR 0025). */
   communal: boolean;
   sessionId: string;
 }

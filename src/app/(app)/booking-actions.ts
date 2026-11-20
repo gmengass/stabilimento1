@@ -20,7 +20,7 @@ import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-b
 import { undoEntry, type UndoResult } from "@/lib/booking/undo";
 
 type Forbidden = { ok: false; error: "forbidden" };
-/** A communal tablet has no fresh "who is acting" choice yet (ADR 0024): ask, then retry. */
+/** A communal tablet has no fresh "who is acting" choice yet (ADR 0025): ask, then retry. */
 type NeedsActor = { ok: false; error: "needsActor" };
 type Refused = Forbidden | NeedsActor;
 

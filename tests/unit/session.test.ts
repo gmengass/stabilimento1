@@ -53,7 +53,7 @@ describe.each([
     await expect(read()).resolves.toBeNull();
   });
 
-  it("carries the communal flag and the session id (ADR 0024)", async () => {
+  it("carries the communal flag and the session id (ADR 0025)", async () => {
     getSession.mockResolvedValue(sessionFor({ ...anna, communal: true }));
     await expect(read()).resolves.toMatchObject({ communal: true, sessionId: "s1" });
   });

@@ -13,6 +13,7 @@ import {
   formatShortWeekdayDate,
   formatWeekdayDate,
   isBookingDate,
+  venueDayStart,
   venueToday,
 } from "@/i18n/format";
 import { currentActing, viewerFor } from "@/lib/auth/acting";
@@ -57,7 +58,7 @@ export default async function Home(props: PageProps<"/">) {
   const noShows = await loadNoShows(getDb(), beach.areaId, date);
   const openSeason = await loadOpenSeason(getDb(), today);
   const areas = await listAreas(getDb());
-  const activity = await listActivity(getDb());
+  const activity = await listActivity(getDb(), venueDayStart(today));
   // From a search result: open that booking's panel, if it is on this day.
   const initialBooking =
     typeof booking === "string" && /^\d{1,9}$/.test(booking) ? Number(booking) : null;

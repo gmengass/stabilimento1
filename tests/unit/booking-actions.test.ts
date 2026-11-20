@@ -210,7 +210,7 @@ describe("undoAction", () => {
   });
 });
 
-describe("communal sessions (ADR 0024)", () => {
+describe("communal sessions (ADR 0025)", () => {
   const all = [...actions, ...dayActions] as const;
 
   it.each(all)("%s asks who is acting and changes nothing", async (_name, action, operation) => {

@@ -78,7 +78,7 @@ export interface NewUser {
   password: string;
   role?: Role;
   name?: string;
-  /** A shared-tablet account (ADR 0024). */
+  /** A shared-tablet account (ADR 0025). */
   communal?: boolean;
 }
 

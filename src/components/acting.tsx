@@ -25,7 +25,7 @@ interface ActingContext {
   clear: () => Promise<void>;
   /**
    * Runs a booking action. When a communal tablet doesn't know who is acting, asks first and
-   * retries once. Returns null if nobody was chosen: nothing was done (ADR 0024).
+   * retries once. Returns null if nobody was chosen: nothing was done (ADR 0025).
    */
   run: <T>(call: () => Promise<T>) => Promise<Exclude<T, NeedsActor> | null>;
 }

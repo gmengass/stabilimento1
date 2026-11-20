@@ -1,4 +1,4 @@
-# 0024. Communal accounts: shared tablets, "who is acting?"
+# 0025. Communal accounts: shared tablets, "who is acting?"
 
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-20

@@ -63,7 +63,7 @@ function mount(call: () => Promise<unknown>, props: { communal: boolean; initial
 
 const needsActor = { ok: false, error: "needsActor" };
 
-describe("ActingProvider (ADR 0024)", () => {
+describe("ActingProvider (ADR 0025)", () => {
   it("runs an action straight through when no one needs to be asked", async () => {
     const call = vi.fn(async () => ({ ok: true }));
     mount(call, { communal: false });

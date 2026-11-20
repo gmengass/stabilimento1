@@ -4,10 +4,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
+- Check in at creation: a one-day booking for today shows a "Check in now" checkbox, ticked by
+  default. Checked in, it is never flagged as a no-show at the hold time. Multi-day bookings and
+  season passes are not checked in at creation (ADR 0015 amendment).
 - Shared tablets: an admin can create a staff account flagged "shared tablet". It stays logged in
   for 30 days. The first booking, move, cancel or check-in asks "Who is doing this?", and again
   after 2 minutes idle. Actions are recorded under the person chosen, so Undo works per person
-  (ADR 0024).
+  (ADR 0025).
+
+### Changed
+- The activity list on the map shows everything that happened today, not only the last 10
+  actions, and any of today's actions can be undone (staff: their own within 30 minutes; admins:
+  any). At most the latest 500 are listed (ADR 0024).
 
 ## [0.13.0] - 2026-11-19
 ### Added

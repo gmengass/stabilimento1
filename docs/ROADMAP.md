@@ -21,7 +21,7 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
       falls back to the box's Tailscale address off the club network (ADR 0011)
 - [ ] Communal accounts for shared tablets: a staff account flagged communal, "who is doing this?"
       pop-up on the first action and after 2 minutes idle, actions recorded under the person
-      chosen (owner, 2026-11-20, ADR 0024)
+      chosen (owner, 2026-11-20, ADR 0025)
 - [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones in a plain browser):
       Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
@@ -51,6 +51,10 @@ Each item ships something staff can use on the box.
       booking goes over (owner, 2026-11-19, ADR 0021)
 - [x] Map tiles show sunbeds and deckchairs beyond the default: `+L`, `-L`, `+S` (owner,
       2026-11-19, ADR 0023)
+- [x] Check in at creation: a one-day booking for today can be checked in as it is made
+      (owner, 2026-11-19, ADR 0015 amendment)
+- [x] Activity stream and undo cover the whole day, not only the last 10 entries (owner,
+      2026-11-20, ADR 0024)
 
 ## Milestone 2 — Business features
 - [ ] Prices, payments recorded at the desk, daily cash-up report. Season passes are paid at the

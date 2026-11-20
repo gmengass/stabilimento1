@@ -24,5 +24,5 @@ export function placeholderEmail(name: string): string {
   return `${name}@staff.invalid`;
 }
 
-/** A communal tablet's "who is acting" choice goes stale after this long idle (ADR 0024). */
+/** A communal tablet's "who is acting" choice goes stale after this long idle (ADR 0025). */
 export const ACTING_IDLE_MS = 2 * 60 * 1000;

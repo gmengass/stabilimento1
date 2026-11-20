@@ -1,6 +1,6 @@
 import { sql, type Kysely } from "kysely";
 
-// Communal (shared tablet) accounts and who is acting on them (ADR 0024). `acting_staff` holds
+// Communal (shared tablet) accounts and who is acting on them (ADR 0025). `acting_staff` holds
 // at most one chosen staff member per session and goes with the session.
 
 export async function up(db: Kysely<unknown>): Promise<void> {

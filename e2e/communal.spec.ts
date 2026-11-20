@@ -3,7 +3,7 @@ import { Client } from "pg";
 
 import { ADMIN_STATE, logInAs } from "./helpers";
 
-// Shared tablet accounts (ADR 0024). A year no other spec books in (they use 2090 to 2092).
+// Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2092).
 // Selectors avoid translated text: another test switches the shared admin's language.
 
 const DATE = "2093-07-01";

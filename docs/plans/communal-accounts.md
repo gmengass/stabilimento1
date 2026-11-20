@@ -1,4 +1,4 @@
-# Plan: communal accounts (ADR 0024)
+# Plan: communal accounts (ADR 0025)
 
 ## Acceptance criteria
 1. Admin can create a staff account flagged communal; admins can't flag admins; the flag can't be

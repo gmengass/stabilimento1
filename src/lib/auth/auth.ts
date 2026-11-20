@@ -93,7 +93,7 @@ export function createAuth({ db, secret, baseURL, rateLimit = true, trustedOrigi
     },
     // Absolute, no sliding refresh: Server Components can't extend the cookie anyway. The cookie
     // lasts as long as the longest session; the database row decides (see the hook below):
-    // 12 h for normal accounts, 30 days for communal tablets (ADR 0024).
+    // 12 h for normal accounts, 30 days for communal tablets (ADR 0025).
     session: { expiresIn: COMMUNAL_SESSION_SECONDS, disableSessionRefresh: true },
     databaseHooks: {
       session: {
