@@ -332,11 +332,13 @@ function stockValue(value: FormDataEntryValue | undefined): number | "" {
   return text === "" ? "" : Number(text);
 }
 
-/** The venue's sunbed and deckchair stock; blank means not tracked (ADR 0021). */
+/** One space's sunbed and deckchair stock; blank means not tracked (ADR 0021, ADR 0026). */
 export function StockForm({
+  areaId,
   sunbeds,
   deckchairs,
 }: {
+  areaId: number;
   sunbeds: number | null;
   deckchairs: number | null;
 }) {
@@ -347,6 +349,7 @@ export function StockForm({
     const input = formInput(event);
     run(() =>
       setStockAction({
+        areaId,
         sunbedStock: stockValue(input.sunbedStock),
         deckchairStock: stockValue(input.deckchairStock),
       }),

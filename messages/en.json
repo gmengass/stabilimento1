@@ -191,7 +191,7 @@
     "areaNameHint": "You can add more beach spaces later, each with its own lines and umbrellas.",
     "sunbedStock": "Sunbeds in stock (lettini)",
     "deckchairStock": "Deckchairs in stock (sdraie)",
-    "stockHint": "How many the club owns for the whole beach. The map shows how many are left each day, and staff are warned before a booking goes over. Leave blank to not track it."
+    "stockHint": "How many the club owns for this beach space. The map shows how many are left each day, and staff are warned before a booking goes over. Leave blank to not track it."
   },
   "booking": {
     "newTitle": "New booking · {area}",
@@ -413,7 +413,8 @@
     "hold": "{user} set a late arrival for {name}: kept until {time}",
     "holdCleared": "{user} set the usual hold time for {name}",
     "noShow": "System: {bookings, plural, one {# booking} other {# bookings}} not checked in by the hold time, {umbrellas, plural, one {# umbrella} other {# umbrellas}} freed",
-    "beachStock": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
+    "beachStock": "{user} set the stock of {area}: sunbeds {sunbeds}, deckchairs {deckchairs}",
+    "beachStockVenue": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "stockOff": "not tracked",
     "overStock": "{text} (over the stock)"
   },

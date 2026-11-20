@@ -97,8 +97,9 @@ export async function ActivityPanel({ entries, viewer }: Props) {
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":
         if (detail.what === "setStock") {
-          return t("beachStock", {
+          return t(detail.area === undefined ? "beachStockVenue" : "beachStock", {
             user,
+            area: String(detail.area ?? ""),
             sunbeds: stockText(detail.toSunbeds),
             deckchairs: stockText(detail.toDeckchairs),
           });

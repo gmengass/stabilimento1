@@ -33,7 +33,6 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
         </div>
         <VenueNameForm name={beach.venueName} />
         <DefaultHoldForm time={beach.defaultHoldUntil} />
-        <StockForm sunbeds={beach.sunbedStock} deckchairs={beach.deckchairStock} />
         <section className="flex flex-col gap-4 rounded border border-sky-800 dark:border-sky-400 p-4">
           <AreaTabs
             areas={areas}
@@ -43,6 +42,11 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
           <AreaBanner name={beach.areaName} />
           <div key={beach.areaId} className="flex flex-col gap-4">
             <CurrentAreaForm areaId={beach.areaId} name={beach.areaName} />
+            <StockForm
+              areaId={beach.areaId}
+              sunbeds={beach.sunbedStock}
+              deckchairs={beach.deckchairStock}
+            />
             <LayoutEditor beach={beach} />
           </div>
         </section>

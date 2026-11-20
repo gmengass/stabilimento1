@@ -77,7 +77,7 @@ export default async function Home(props: PageProps<"/">) {
   };
   const [counts, stock] = await Promise.all([
     loadDayCounts(getDb(), beach.areaId, date),
-    loadStockDay(getDb(), date),
+    loadStockDay(getDb(), beach.areaId, date),
   ]);
   const occupants = Object.values(occupancy);
   const passes = occupants.filter((o) => o.kind === "season").length;

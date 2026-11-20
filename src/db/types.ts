@@ -55,10 +55,12 @@ export interface ActingStaff {
 
 export interface Area {
   created_at: Generated<Timestamp>;
+  deckchair_stock: number | null;
   id: Generated<number>;
   name: string;
   slug: string;
   sort_order: Generated<number>;
+  sunbed_stock: number | null;
   updated_at: Generated<Timestamp>;
   venue_id: number;
 }
@@ -184,12 +186,10 @@ export interface User {
 
 export interface Venue {
   created_at: Generated<Timestamp>;
-  deckchair_stock: number | null;
   default_hold_until: Generated<string>;
   id: Generated<number>;
   name: string;
   slug: string;
-  sunbed_stock: number | null;
   updated_at: Generated<Timestamp>;
 }
 

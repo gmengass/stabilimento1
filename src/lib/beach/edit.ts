@@ -160,38 +160,47 @@ const stockCount = z
   .union([z.literal(""), z.null(), z.number().int().min(0).max(MAX_STOCK)])
   .transform((n) => (n === "" ? null : n));
 
-const stockSchema = z.object({ sunbedStock: stockCount, deckchairStock: stockCount });
+const stockSchema = z.object({
+  areaId: z.number().int().positive(),
+  sunbedStock: stockCount,
+  deckchairStock: stockCount,
+});
 
 export interface Stock {
   sunbedStock: number | null;
   deckchairStock: number | null;
 }
 
-export type SetStockResult = { ok: true; from: Stock; to: Stock } | { ok: false; error: EditError };
+export type SetStockResult =
+  { ok: true; areaName: string; from: Stock; to: Stock } | { ok: false; error: EditError };
 
 /**
- * Sets the venue's sunbed and deckchair stock (ADR 0021). Bookings already made stay; the
- * counts and the next booking's warning use the new numbers. Answers old and new for the log.
+ * Sets one beach space's sunbed and deckchair stock (ADR 0026). Bookings already made stay; the
+ * counts and the next booking's warning use the new numbers. Answers the space's name and old and
+ * new numbers for the log.
  */
 export async function setStock(db: Kysely<DB>, input: unknown): Promise<SetStockResult> {
   const parsed = stockSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const to = parsed.data;
+  const { areaId, ...to } = parsed.data;
   let from: Stock = { sunbedStock: null, deckchairStock: null };
-  const result = await inVenue(db, async (tx, venueId) => {
-    from = await tx
-      .selectFrom("venue")
-      .select(["sunbed_stock as sunbedStock", "deckchair_stock as deckchairStock"])
-      .where("id", "=", venueId)
+  let areaName = "";
+  const result = await edit(db, areaId, async (tx, id) => {
+    const area = await tx
+      .selectFrom("area")
+      .select(["name", "sunbed_stock as sunbedStock", "deckchair_stock as deckchairStock"])
+      .where("id", "=", id)
       .executeTakeFirstOrThrow();
+    areaName = area.name;
+    from = { sunbedStock: area.sunbedStock, deckchairStock: area.deckchairStock };
     await tx
-      .updateTable("venue")
+      .updateTable("area")
       .set({ sunbed_stock: to.sunbedStock, deckchair_stock: to.deckchairStock })
-      .where("id", "=", venueId)
+      .where("id", "=", id)
       .execute();
     return done;
   });
-  return result.ok ? { ok: true, from, to } : result;
+  return result.ok ? { ok: true, areaName, from, to } : result;
 }
 
 const defaultHoldSchema = z.object({
