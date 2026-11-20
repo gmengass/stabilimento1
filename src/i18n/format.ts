@@ -45,6 +45,17 @@ export function venueToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
 }
 
+/** The UTC instant at which a booking day starts at the venue: 00:00 in Europe/Rome, DST-safe. */
+export function venueDayStart(date: string): Date {
+  const midnightUtc = parseBookingDate(date).getTime();
+  for (const offsetHours of [1, 2]) {
+    const candidate = new Date(midnightUtc - offsetHours * 3_600_000);
+    if (venueToday(candidate) === date && venueToday(new Date(candidate.getTime() - 1)) !== date)
+      return candidate;
+  }
+  throw new Error(`No venue day start for ${date}`);
+}
+
 /** The venue's wall-clock time "HH:MM" at `now`. */
 export function venueClock(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-GB", {
