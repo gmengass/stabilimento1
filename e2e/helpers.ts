@@ -3,6 +3,18 @@ import type { Page } from "@playwright/test";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin-pass-123";
 
+/**
+ * Sign-in is limited to 5 a minute per client address (src/lib/auth/auth.ts) and a spec that
+ * signs in several times can use them all. Caddy overwrites `x-real-ip` in production, but the e2e
+ * server has no proxy, so a spec can claim its own bucket with `test.use(ownSignInBucket(...))`.
+ * Addresses must be valid and different: anything else falls back to the shared bucket.
+ */
+export const SIGN_IN_ADDRESS = { login: "10.77.0.2", tablet: "10.77.0.1" } as const;
+
+export function ownSignInBucket(address: string) {
+  return { extraHTTPHeaders: { "x-real-ip": address } };
+}
+
 /** Saved session of the admin, written by admin.setup.ts. */
 export const ADMIN_STATE = "playwright/.auth/admin.json";
 
