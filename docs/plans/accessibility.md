@@ -18,7 +18,7 @@ Sessions cannot run Playwright: component-level axe runs here, e2e axe runs in C
 3. **Contrast**: token test of tile, status, notice and tab colours (`tests/unit/contrast.test.ts`);
    all pass, no palette change needed. Done.
 4. **Tile state not by colour alone**: each state has a text or shape cue except season vs
-   normal booking (colour only; both show a name). Open question for the owner.
+   normal booking (colour only; both show a name). Deferred by the owner, see Open questions.
 5. **Phone sheet focus**: focus moves into the sheet on open, returns to the tile on Close and
    Escape. Done, tested (`tests/unit/panel-focus.test.ts`).
 6. **Focus ring**: global 2px blue ring (light and dark, tested at 3:1); tiles get an inset
@@ -46,5 +46,6 @@ Dropped: reduced motion (the app has no animations).
 Android WebView zoom, e2e axe (CI only).
 
 ## Open questions
-- Season tiles differ from normal bookings by colour only: add a text cue (a badge)? Owner decides.
+- Season tiles differ from normal bookings by colour only. A text cue (a badge) is deferred by the
+  owner (2026-11-20) to a future item; not part of this pass.
 - Contrast fixes may alter the palette (ADR 0017): owner approves any visible colour change.

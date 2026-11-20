@@ -15,7 +15,7 @@
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, tag v0.14 and enter stock per space.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
-- Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: add a badge? Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
+- Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: a badge is deferred (owner, 2026-11-20), future item. Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in: each day they'd be flagged `no_show`. Apply the hold rule to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
