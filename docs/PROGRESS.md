@@ -3,18 +3,19 @@
 ## Current state
 - `main` is at the merge of #78 (security review; stock per space #77), last tag `v0.13.4`
   (released and deployed, owner, 2026-11-20). #77 is merged, untagged. Backup setup on the box
-  not done. Branch `feat/accessibility` (3 commits, pushed, no PR yet): Milestone 3 accessibility pass, first slice.
+  not done. Branch `feat/accessibility` (pushed, no PR yet): Milestone 3 accessibility pass, nearly done.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
-- Docs synced after #77/#78. Accessibility pass, first slice (plan: `docs/plans/accessibility.md`):
-  `vitest-axe` checks on beach board + login (it/en), text-contrast test, skip link, per-page titles.
-  Lint, types, format clean; unit tests pass except `live-route` (needs `.env`); e2e not run.
+- Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
+  axe checks (board, panels, dialog, login; it/en), contrast tests incl. focus ring, skip link,
+  page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
+  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e not run.
 ## Next up
-1. Accessibility rest (owner chose it before Milestone 2): panel focus, form errors, axe on panel/dialog/admin/dark, CI e2e axe; open PR (no screen-reader work).
+1. Accessibility: CI e2e axe (tablet + phone, light + dark; admin pages), real 200%/320px check, then open the PR from `feat/accessibility`.
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, tag v0.14 and enter stock per space.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
-- Accessibility: screen readers out of scope (owner, 2026-11-20). Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
+- Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: add a badge? Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in: each day they'd be flagged `no_show`. Apply the hold rule to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.

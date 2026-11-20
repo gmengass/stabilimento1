@@ -32,19 +32,25 @@ const booking = {
   usualHoldTime: "11:00",
 };
 
-function renderBoard() {
-  const board = createElement(BeachBoard, {
-    today: "2026-11-19",
-    areaId: 1,
-    areaName: "Sea",
-    date: "2026-11-19",
-    lines,
-    occupancy: { 2: booking } as never,
-    released: {},
-    noShows: {},
-    openSeason: null,
-  });
-  render(createElement(NextIntlClientProvider, { locale: "en", messages } as never, board));
+const boardFor = (occupancy: Record<number, unknown>) =>
+  createElement(
+    NextIntlClientProvider,
+    { locale: "en", messages } as never,
+    createElement(BeachBoard, {
+      today: "2026-11-19",
+      areaId: 1,
+      areaName: "Sea",
+      date: "2026-11-19",
+      lines,
+      occupancy: occupancy as never,
+      released: {},
+      noShows: {},
+      openSeason: null,
+    }),
+  );
+
+function renderBoard(occupancy: Record<number, unknown> = { 2: booking }) {
+  return render(boardFor(occupancy));
 }
 
 const tile = (id: number) =>
@@ -92,5 +98,42 @@ describe("booking panel as a phone sheet", () => {
     tile(2).focus();
     fireEvent.click(tile(2));
     expect(document.activeElement).toBe(tile(2));
+  });
+
+  it("keeps focus on the map while umbrellas are still being picked", () => {
+    setPhone(true);
+    renderBoard();
+    tile(1).focus();
+    fireEvent.click(tile(1));
+    expect(document.activeElement).toBe(tile(1));
+  });
+
+  it("does not take focus back on a live refresh of an open sheet", () => {
+    setPhone(true);
+    const view = renderBoard();
+    fireEvent.click(tile(2));
+    tile(1).focus();
+    view.rerender(boardFor({ 2: { ...booking } }));
+    expect(document.activeElement).toBe(tile(1));
+  });
+
+  it("returns to Quick book, not an old tile, after Quick book is closed", () => {
+    setPhone(true);
+    renderBoard();
+    fireEvent.click(tile(2));
+    fireEvent.click(document.querySelector("[data-sheet-close]")!);
+    fireEvent.click(screen.getByTestId("quick-book-open"));
+    fireEvent.click(document.querySelector("[data-sheet-close]")!);
+    expect(document.activeElement).toBe(screen.getByTestId("quick-book-open"));
+  });
+
+  it("falls back to Quick book when the booking is cancelled elsewhere and its tile is gone", () => {
+    setPhone(true);
+    const view = renderBoard();
+    fireEvent.click(tile(2));
+    view.rerender(boardFor({}));
+    view.rerender(boardFor({}));
+    expect(screen.queryByRole("complementary")).toBeNull();
+    expect(document.activeElement).not.toBe(document.body);
   });
 });

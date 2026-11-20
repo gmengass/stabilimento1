@@ -73,6 +73,7 @@ export function BeachBoard({
   const quickBookButton = useRef<HTMLButtonElement>(null);
   const mapArea = useRef<HTMLDivElement>(null);
   const lastSpotId = useRef<number | null>(null);
+  const sheet = useRef<HTMLElement>(null);
   const contentId = useId();
   const ts = useTranslations("sheet");
   const tb = useTranslations("booking");
@@ -118,6 +119,7 @@ export function BeachBoard({
   const spotById = new Map(lines.flatMap((line) => line.spots.map((s) => [s.id, s])));
 
   function showSuggestion(next: QuickBookPick, index: number) {
+    lastSpotId.current = null;
     setNotice(null);
     const spots = next.suggestions[index].spots.flatMap((s) =>
       occupancy[s.spotId] ? [] : (spotById.get(s.spotId) ?? []),
@@ -130,6 +132,7 @@ export function BeachBoard({
   }
 
   function openQuickBook() {
+    lastSpotId.current = null;
     setNotice(null);
     setSelected([]);
     setPick(null);
@@ -374,19 +377,36 @@ export function BeachBoard({
 
   // Phones: the header above the map is taller than the room the sheet leaves, so bring the map up.
   useEffect(() => {
-    if (!sheetOpen || !window.matchMedia(PHONE).matches) return;
-    mapArea.current?.scrollIntoView();
-    // Keyboard and switch users land in the sheet, not behind it.
-    document.querySelector<HTMLElement>("[data-sheet-toggle]")?.focus();
+    if (sheetOpen && window.matchMedia(PHONE).matches) mapArea.current?.scrollIntoView();
+  }, [sheetOpen]);
+
+  // Keyboard and switch users land in a sheet they opened on purpose (a booking, quick book), not
+  // in one that only shows the umbrellas they are still picking.
+  const opensSheet = panelKey !== null && !panelKey.startsWith("new-");
+  useEffect(() => {
+    if (opensSheet && window.matchMedia(PHONE).matches)
+      sheet.current?.querySelector<HTMLElement>("[data-sheet-toggle]")?.focus();
+  }, [opensSheet, panelKey]);
+
+  function returnFocus() {
+    const id = lastSpotId.current;
+    const tile =
+      id === null ? null : mapArea.current?.querySelector<HTMLElement>(`[data-spot-id="${id}"]`);
+    (tile ?? quickBookButton.current)?.focus();
+  }
+
+  // However the sheet goes away (Close, Escape, the booking vanishing, another day), focus does not
+  // fall to the page.
+  const wasSheetOpen = useRef(false);
+  useEffect(() => {
+    if (wasSheetOpen.current && !sheetOpen && window.matchMedia(PHONE).matches) returnFocus();
+    wasSheetOpen.current = sheetOpen;
   }, [sheetOpen]);
 
   function closePanel() {
     setOpenBooking(null);
     reset();
-    const tile = mapArea.current?.querySelector<HTMLElement>(
-      `[data-spot-id="${lastSpotId.current}"]`,
-    );
-    (tile ?? quickBookButton.current)?.focus();
+    returnFocus();
   }
 
   function onPanelKeyDown(event: KeyboardEvent<HTMLElement>) {
@@ -431,6 +451,7 @@ export function BeachBoard({
       )}
       {panel && (
         <aside
+          ref={sheet}
           aria-label={ts("label")}
           data-sheet={collapsed ? "collapsed" : "open"}
           onKeyDown={onPanelKeyDown}

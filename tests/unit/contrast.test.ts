@@ -53,6 +53,23 @@ const text: [string, string, string][] = [
   ["info, dark", "#93c5fd", DARK],
 ];
 
+// WCAG 1.4.11: the focus ring needs 3:1 against what it sits on. Tiles use a black line with a
+// white band inside it (beach-map.tsx), so the ring shows on every tile colour.
+const ring: [string, string, string][] = [
+  ["ring, light page", "#1d4ed8", LIGHT],
+  ["ring, dark page", "#93c5fd", DARK],
+];
+
+describe("focus ring contrast", () => {
+  it.each(ring)("%s is at least 3:1", (_name, fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(3);
+  });
+
+  it.each(tiles)("tile %s: black or white ring contrasts at least 3:1", (_name, _fg, bg) => {
+    expect(Math.max(contrast("#000000", bg), contrast("#ffffff", bg))).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe("text contrast", () => {
   it.each([...tiles, ...text])("%s is at least 4.5:1", (_name, fg, bg) => {
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);

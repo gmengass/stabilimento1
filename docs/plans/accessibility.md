@@ -21,8 +21,8 @@ Sessions cannot run Playwright: component-level axe runs here, e2e axe runs in C
    normal booking (colour only; both show a name). Open question for the owner.
 5. **Phone sheet focus**: focus moves into the sheet on open, returns to the tile on Close and
    Escape. Done, tested (`tests/unit/panel-focus.test.ts`).
-6. **Focus ring**: global 2px ring, light and dark, inset on tiles so the map's scroll area
-   does not clip it. Done.
+6. **Focus ring**: global 2px blue ring (light and dark, tested at 3:1); tiles get an inset
+   black line with a white band so it shows on every tile colour and is not clipped. Done.
 7. **Forms**: labels, `autocomplete` and `role="alert"` errors already present; paste allowed.
    No change needed.
 8. **Tap targets**: padding gives every input and button more than 24px. Raised to 44px:
@@ -35,11 +35,11 @@ Sessions cannot run Playwright: component-level axe runs here, e2e axe runs in C
 Dropped: reduced motion (the app has no animations).
 
 ## Acceptance criteria
-- Axe: zero violations on map, login, panel, acting dialog, admin pages (it + en, light + dark).
+- Axe: zero violations on map, login, panel, acting dialog (it + en; jsdom). Admin pages and
+  light/dark runs: CI e2e axe only.
 - Keyboard only: sign in, change date, open tile, book, cancel, undo.
-- Acting dialog and panel: focus moves in, stays in, returns on close.
-- Form error: first invalid field focused, error shown next to it.
-- Reduced motion: no sheet or toast animation.
+- Phone sheet: focus moves in for a booking or quick book, returns to the tile (or Quick book) on close. Acting dialog is a native modal `<dialog>`.
+- Form errors are labelled and announced next to the form (existing `role="alert"`).
 - Contrast ratios computed in a test: text >= 4.5, UI parts >= 3.
 
 ## Not testable in sessions

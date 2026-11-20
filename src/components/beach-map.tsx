@@ -86,7 +86,7 @@ export function BeachMap({
                       data-spot-id={spot.id}
                       onClick={() => onSpotClick(spot)}
                       aria-pressed={view === "selected" || view === "open"}
-                      className={`relative flex h-14 focus-visible:outline-offset-[-3px] w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
+                      className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
                     >
                       <span aria-hidden>{spot.number}</span>
                       {caption && (
