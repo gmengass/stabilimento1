@@ -78,6 +78,8 @@ export interface NewUser {
   password: string;
   role?: Role;
   name?: string;
+  /** A shared-tablet account (ADR 0025). */
+  communal?: boolean;
 }
 
 export async function addUser(auth: Auth, user: NewUser): Promise<string> {
@@ -87,7 +89,7 @@ export async function addUser(auth: Auth, user: NewUser): Promise<string> {
       password: user.password,
       name: user.name ?? user.username,
       role: user.role ?? "staff",
-      data: { username: user.username },
+      data: { username: user.username, communal: user.communal ?? false },
     },
   });
   return created.user.id;
@@ -101,6 +103,9 @@ export async function loggedIn(
   const id = await addUser(auth, user);
   const response = await signIn(auth, user.username, user.password);
   if (response.status !== 200) throw new Error(`sign-in failed: ${response.status}`);
+  const headers = sessionHeaders(response);
+  const session = await auth.api.getSession({ headers });
+  if (!session) throw new Error("no session after sign-in");
   return {
     actor: {
       id,
@@ -108,8 +113,10 @@ export async function loggedIn(
       name: user.name ?? user.username,
       role: user.role ?? "staff",
       locale: "it",
+      communal: user.communal ?? false,
+      sessionId: session.session.id,
     },
-    headers: sessionHeaders(response),
+    headers,
   };
 }
 

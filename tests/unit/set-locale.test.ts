@@ -43,7 +43,15 @@ const { setLocale } = await import("@/i18n/actions");
 
 const ONE_YEAR = 31_536_000;
 
-const anna: CurrentUser = { id: "u1", username: "anna", name: "Anna", role: "staff", locale: "it" };
+const anna: CurrentUser = {
+  id: "u1",
+  username: "anna",
+  name: "Anna",
+  role: "staff",
+  locale: "it",
+  communal: false,
+  sessionId: "s1",
+};
 
 beforeEach(() => {
   set.mockClear();

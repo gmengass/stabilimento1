@@ -47,6 +47,12 @@ export interface Account {
   user_id: string;
 }
 
+export interface ActingStaff {
+  last_used_at: Generated<Timestamp>;
+  session_id: string;
+  staff_user_id: string;
+}
+
 export interface Area {
   created_at: Generated<Timestamp>;
   id: Generated<number>;
@@ -162,6 +168,7 @@ export interface User {
   ban_expires: Timestamp | null;
   ban_reason: string | null;
   banned: Generated<boolean>;
+  communal: Generated<boolean>;
   created_at: Generated<Timestamp>;
   display_username: string | null;
   email: string;
@@ -197,6 +204,7 @@ export interface Verification {
 
 export interface DB {
   account: Account;
+  acting_staff: ActingStaff;
   area: Area;
   area_line: AreaLine;
   audit_log: AuditLog;

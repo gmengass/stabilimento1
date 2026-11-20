@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useActing } from "@/components/acting";
 import { useState, useTransition, type FormEvent } from "react";
 import type { Occupant } from "@/lib/booking/bookings";
 import { moveBookingAction } from "./booking-actions";
@@ -29,7 +30,10 @@ interface Props {
   onDone: () => void;
 }
 
-type MoveFailure = Exclude<Awaited<ReturnType<typeof moveBookingAction>>, { ok: true }>;
+type MoveFailure = Exclude<
+  Awaited<ReturnType<typeof moveBookingAction>>,
+  { ok: true } | { error: "needsActor" }
+>;
 
 function toFailure(result: Exclude<MoveFailure, { error: "stock" }>): Failure {
   if (result.error === "invalid") return { key: "invalidMove" };
@@ -45,6 +49,7 @@ function toFailure(result: Exclude<MoveFailure, { error: "stock" }>): Failure {
 export function MoveForm(props: Props) {
   const { occupant, date, today, targets, activeSpotId, onPickFor, onKeep, onBack, onDone } = props;
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const stock = useStockWarning();
@@ -74,7 +79,8 @@ export function MoveForm(props: Props) {
     const allowOverStock = stock.allows(key);
     startTransition(async () => {
       try {
-        const result = await moveBookingAction({ ...request, allowOverStock });
+        const result = await run(() => moveBookingAction({ ...request, allowOverStock }));
+        if (!result) return;
         if (result.ok) onDone();
         else if (result.error === "stock") {
           setFailure(null);

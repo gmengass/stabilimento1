@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
+import { useActing } from "@/components/acting";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatBookingDate } from "@/i18n/format";
 import type { MapSpot } from "@/lib/beach/layout";
@@ -127,11 +128,17 @@ export function useStockWarning() {
   };
 }
 
-type CreateFailure = Exclude<Awaited<ReturnType<typeof createBookingAction>>, { ok: true }>;
+/** What an action can refuse with once the tablet's "who is acting" pop-up has had its say. */
+type FailureOf<A extends (...args: never[]) => Promise<unknown>> = Exclude<
+  Awaited<ReturnType<A>>,
+  { ok: true } | { error: "needsActor" }
+>;
 
-type DaysFailure = Exclude<Awaited<ReturnType<typeof releaseDaysAction>>, { ok: true }>;
+type CreateFailure = FailureOf<typeof createBookingAction>;
 
-type NoShowFailure = Exclude<Awaited<ReturnType<typeof restoreNoShowAction>>, { ok: true }>;
+type DaysFailure = FailureOf<typeof releaseDaysAction>;
+
+type NoShowFailure = FailureOf<typeof restoreNoShowAction>;
 
 /** A lost race whose winner is already gone has no clash to name: ask to try again. */
 function toFailure(
@@ -176,6 +183,7 @@ function firstPassDay(season: OpenSeason, today: string): string {
 export function NewBookingForm(props: NewProps) {
   const { areaName, date, today, spots, openSeason, initial, onRemove, onDone } = props;
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const draft = initial?.draft;
@@ -221,10 +229,12 @@ export function NewBookingForm(props: NewProps) {
     startTransition(async () => {
       try {
         const { seasonId, ...booking } = { ...request, allowOverStock };
-        const result =
+        const result = await run(() =>
           seasonId !== undefined
-            ? await createSeasonPassAction({ ...booking, seasonId })
-            : await createBookingAction({ ...booking, checkIn: startsToday && checkIn });
+            ? createSeasonPassAction({ ...booking, seasonId })
+            : createBookingAction({ ...booking, checkIn: startsToday && checkIn }),
+        );
+        if (!result) return;
         if (result.ok) onDone();
         else if (result.error === "stock") {
           setFailure(null);
@@ -420,6 +430,7 @@ interface DayProps {
 /** A free umbrella whose holder gave this day back. Past days can't be given back. */
 export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }) {
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
 
@@ -427,7 +438,8 @@ export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }
     startTransition(async () => {
       try {
         const day = { bookingId: pass.bookingId, startDate: date, endDate: date };
-        const result = await restoreDaysAction(day);
+        const result = await run(() => restoreDaysAction(day));
+        if (!result) return;
         if (!result.ok) setFailure(toFailure(result, "invalidDays"));
       } catch {
         setFailure({ key: "generic" });
@@ -459,13 +471,15 @@ export function ReleasedDay({ pass, date, today }: DayProps & { pass: Occupant }
  */
 export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant }) {
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
 
   function restore() {
     startTransition(async () => {
       try {
-        const result = await restoreNoShowAction({ bookingId: noShow.bookingId, date });
+        const result = await run(() => restoreNoShowAction({ bookingId: noShow.bookingId, date }));
+        if (!result) return;
         // Already restored (another tablet got there first): the refreshed map shows it.
         if (!result.ok && result.error !== "unchanged") setFailure(toFailure(result));
       } catch {
@@ -503,6 +517,7 @@ export function NoShowDay({ noShow, date, today }: DayProps & { noShow: Occupant
 /** Today's arrival: check in, or take a mistaken check-in back. */
 function CheckInButton({ occupant, date }: { occupant: Occupant; date: string }) {
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
 
@@ -510,7 +525,8 @@ function CheckInButton({ occupant, date }: { occupant: Occupant; date: string })
     startTransition(async () => {
       try {
         const input = { bookingId: occupant.bookingId, date };
-        const result = await (occupant.checkedIn ? uncheckAction : checkInAction)(input);
+        const result = await run(() => (occupant.checkedIn ? uncheckAction : checkInAction)(input));
+        if (!result) return;
         // Already as wanted (another tablet got there first): the refreshed map shows it.
         if (!result.ok && result.error !== "unchanged") setFailure({ key: result.error });
       } catch {
@@ -548,6 +564,7 @@ function CheckInButton({ occupant, date }: { occupant: Occupant; date: string })
 /** A late arrival: keep the umbrellas past the usual hold time (ADR 0004). */
 function HoldForm({ occupant }: { occupant: Occupant }) {
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [saved, setSaved] = useState(false);
@@ -557,7 +574,8 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
     setFailure(null);
     startTransition(async () => {
       try {
-        const result = await setHoldAction({ bookingId: occupant.bookingId, holdUntil });
+        const result = await run(() => setHoldAction({ bookingId: occupant.bookingId, holdUntil }));
+        if (!result) return;
         if (result.ok || result.error === "unchanged") setSaved(true);
         else setFailure({ key: result.error === "invalid" ? "invalidHold" : result.error });
       } catch {
@@ -617,6 +635,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
 /** Release days of a season pass from today on, starting from the day shown on the map. */
 function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant }) {
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [released, setReleased] = useState<number | null>(null);
@@ -636,7 +655,8 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
     startTransition(async () => {
       try {
         const days = { bookingId: occupant.bookingId, startDate, endDate };
-        const result = await releaseDaysAction(days);
+        const result = await run(() => releaseDaysAction(days));
+        if (!result) return;
         if (result.ok) setReleased(result.days);
         else setFailure(toFailure(result, "invalidDays"));
       } catch {
@@ -692,6 +712,7 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
 function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant }) {
   const first = later(occupant.startDate, addDays(today, -1));
   const t = useTranslations("booking");
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const [saved, setSaved] = useState(false);
@@ -703,7 +724,10 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
     setSaved(false);
     startTransition(async () => {
       try {
-        const result = await endSeasonPassAction({ bookingId: occupant.bookingId, lastDay });
+        const result = await run(() =>
+          endSeasonPassAction({ bookingId: occupant.bookingId, lastDay }),
+        );
+        if (!result) return;
         if (result.ok) setSaved(true);
         else setFailure({ key: result.error === "invalid" ? "invalidLastDay" : result.error });
       } catch {
@@ -751,6 +775,7 @@ interface DetailsProps extends DayProps {
 export function BookingDetails({ occupant, date, today, onClose, onMove }: DetailsProps) {
   const t = useTranslations("booking");
   const formatDate = useDate();
+  const { run } = useActing();
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -760,7 +785,8 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
   function cancel() {
     startTransition(async () => {
       try {
-        const result = await cancelBookingAction({ bookingId: occupant.bookingId });
+        const result = await run(() => cancelBookingAction({ bookingId: occupant.bookingId }));
+        if (!result) return;
         if (result.ok) onClose();
         else setFailure({ key: result.error });
       } catch {

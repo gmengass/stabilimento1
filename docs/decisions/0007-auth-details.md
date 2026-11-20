@@ -21,7 +21,7 @@
 - **Login** is a client form that POSTs to `/sign-in/username`, because Better Auth's rate limit
   (5 attempts per minute per address, IPv6 per address) only applies to HTTP requests.
   A disabled account answers 401 like a wrong password.
-- **Sessions** last an absolute 12 hours (no sliding refresh), cookie cache off, so a ban or
+- **Sessions** last an absolute 12 hours (30 days for communal tablet accounts, [ADR 0025](0025-communal-accounts.md)) (no sliding refresh), cookie cache off, so a ban or
   password reset ends sessions on the next request. Cookies are Secure in production.
 - **Disabling** another admin runs under a Postgres advisory lock and refuses to remove the last
   active admin.

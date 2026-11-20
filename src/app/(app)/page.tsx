@@ -16,6 +16,7 @@ import {
   venueDayStart,
   venueToday,
 } from "@/i18n/format";
+import { currentActing, viewerFor } from "@/lib/auth/acting";
 import { requireUser } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
@@ -157,7 +158,10 @@ export default async function Home(props: PageProps<"/">) {
         noShows={noShows}
         openSeason={openSeason}
       />
-      <ActivityPanel entries={activity} viewer={{ id: user.id, role: user.role }} />
+      <ActivityPanel
+        entries={activity}
+        viewer={viewerFor(user, await currentActing(getDb(), user))}
+      />
     </main>
   );
 }

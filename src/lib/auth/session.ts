@@ -11,6 +11,9 @@ export interface CurrentUser {
   name: string;
   role: Role;
   locale: Locale;
+  /** A shared-tablet account: actions are recorded under the staff member chosen (ADR 0025). */
+  communal: boolean;
+  sessionId: string;
 }
 
 /** Reads the session from the database. Banned users have no session. */
@@ -19,13 +22,15 @@ export async function readCurrentUser(): Promise<CurrentUser | null> {
   const requestHeaders = await headers();
   const session = await getAuth().api.getSession({ headers: requestHeaders });
   if (!session) return null;
-  const { id, username, name, role, locale } = session.user;
+  const { id, username, name, role, locale, communal } = session.user;
   return {
     id,
     username: username ?? "",
     name,
     role: role === "admin" ? "admin" : "staff",
     locale: isLocale(locale) ? locale : defaultLocale,
+    communal: communal === true,
+    sessionId: session.session.id,
   };
 }
 

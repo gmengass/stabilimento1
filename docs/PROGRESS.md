@@ -2,24 +2,28 @@
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 
 ## Current state
-- `main` is at the merge of #71 (check in at creation), after `v0.13.3` (released and deployed).
-  Branch `feat/activity-today` (PR #73): the activity stream and undo cover the whole day
-  (ADR 0024), 500-entry cap. Backup setup on the box not done yet.
+- `main` is at the merge of #73 (activity stream and undo cover the whole day, ADR 0024), after
+  #71 (check in at creation) and `v0.13.3` (released and deployed). Branch `feat/communal-accounts`
+  (PR #72) is rebased onto it. Backup setup on the box not done yet.
 
 ## Done this session
-- Activity stream lists all of today's entries (venue-local day) and undo works on any of them,
-  same author 30 min / admin rules (ADR 0024, amends 0013). `venueDayStart` is DST-safe. No migration.
-- Review approved; security found nothing above Low (stream/undo are not scoped by venue).
-- Merged `main` (#70, #71) into the branch; docs conflicts only.
+- Communal (shared tablet) accounts (ADR 0025, plan `docs/plans/communal-accounts.md`): flag at
+  account creation, 30-day session, "Who is doing this?" pop-up (first action, then after 2 min
+  idle), actions and Undo per chosen person. ADR renumbered 0024 to 0025 (clash with #73).
+- `e2e/communal.spec.ts` (tablet and phone width, idle re-prompt via `DATABASE_URL`) passed
+  locally with system Chrome before the merge with main; rerun in CI.
 
 ## Next up
-0. Merge `feat/activity-today` once CI is green; then tag the release and update CHANGELOG.
+0. Merge `feat/communal-accounts` after CI is green; then tick the ROADMAP line and release.
 1. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
    heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
 2. Owner: enter the lettini/sdraie stock in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 
 ## Open questions
+- Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
+  (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?).
+  Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in:
   they go straight to the umbrella, so each day they'd be flagged `no_show`. Apply the hold rule
   to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.

@@ -25,7 +25,10 @@ export default async function StaffPage() {
           {users.map((user) => (
             <tr key={user.id} className="border-b align-top">
               <td className="py-2">{user.username}</td>
-              <td>{user.name}</td>
+              <td>
+                {user.name}
+                {user.communal && t("communalBadge")}
+              </td>
               <td>{t(`roles.${user.role}`)}</td>
               <td>{user.banned ? t("status.disabled") : t("status.active")}</td>
               <td className="py-2">

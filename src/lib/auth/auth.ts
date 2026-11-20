@@ -11,6 +11,8 @@ import { getEnv, parseAuthEnv } from "@/lib/env";
 import { PASSWORD_MAX, PASSWORD_MIN, USERNAME_MAX, USERNAME_MIN } from "./rules";
 
 const HOUR_SECONDS = 60 * 60;
+const COMMUNAL_SESSION_SECONDS = 30 * 24 * HOUR_SECONDS;
+const SESSION_SECONDS = 12 * HOUR_SECONDS;
 
 const ac = createAccessControl(defaultStatements);
 // Staff get the plugin's plain "user" permissions: no access to any admin endpoint.
@@ -89,9 +91,25 @@ export function createAuth({ db, secret, baseURL, rateLimit = true, trustedOrigi
       minPasswordLength: PASSWORD_MIN,
       maxPasswordLength: PASSWORD_MAX,
     },
-    // Absolute 12 h: shared tablets log out by the next day. Server Components can't extend
-    // the cookie anyway, so a sliding refresh would only move the database row.
-    session: { expiresIn: 12 * HOUR_SECONDS, disableSessionRefresh: true },
+    // Absolute, no sliding refresh: Server Components can't extend the cookie anyway. The cookie
+    // lasts as long as the longest session; the database row decides (see the hook below):
+    // 12 h for normal accounts, 30 days for communal tablets (ADR 0025).
+    session: { expiresIn: COMMUNAL_SESSION_SECONDS, disableSessionRefresh: true },
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const user = await db
+              .selectFrom("user")
+              .select("communal")
+              .where("id", "=", session.userId)
+              .executeTakeFirst();
+            if (user?.communal) return;
+            return { data: { expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000) } };
+          },
+        },
+      },
+    },
     user: {
       additionalFields: {
         locale: {
@@ -100,6 +118,7 @@ export function createAuth({ db, secret, baseURL, rateLimit = true, trustedOrigi
           defaultValue: defaultLocale,
           input: false,
         },
+        communal: { type: "boolean", required: false, defaultValue: false, input: false },
       },
     },
     rateLimit: {

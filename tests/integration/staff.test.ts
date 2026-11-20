@@ -72,9 +72,30 @@ describe("listUsers", () => {
   it("lists every user ordered by username", async () => {
     await addUser(auth, { username: "zeno", password: STAFF_PASSWORD, name: "Zeno" });
     expect(await listUsers(db)).toEqual([
-      { id: staff.actor.id, username: "anna", name: "Anna", role: "staff", banned: false },
-      { id: admin.actor.id, username: "boss", name: "boss", role: "admin", banned: false },
-      { id: expect.any(String), username: "zeno", name: "Zeno", role: "staff", banned: false },
+      {
+        id: staff.actor.id,
+        username: "anna",
+        name: "Anna",
+        role: "staff",
+        banned: false,
+        communal: false,
+      },
+      {
+        id: admin.actor.id,
+        username: "boss",
+        name: "boss",
+        role: "admin",
+        banned: false,
+        communal: false,
+      },
+      {
+        id: expect.any(String),
+        username: "zeno",
+        name: "Zeno",
+        role: "staff",
+        banned: false,
+        communal: false,
+      },
     ]);
   });
 });

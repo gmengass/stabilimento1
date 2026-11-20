@@ -69,11 +69,13 @@
       "name": "Nome",
       "password": "Password",
       "role": "Ruolo",
-      "submit": "Crea account"
+      "submit": "Crea account",
+      "communal": "Account per tablet condiviso"
     },
     "hints": {
       "username": "3–30 caratteri: lettere, cifre, . e _",
-      "password": "Almeno 10 caratteri"
+      "password": "Almeno 10 caratteri",
+      "communal": "Per un tablet usato da più persone: il personale sceglie il proprio nome prima di prenotare. Non modificabile in seguito."
     },
     "done": {
       "created": "Account creato.",
@@ -88,7 +90,8 @@
       "lastAdmin": "Almeno un amministratore deve restare attivo.",
       "notFound": "Account non trovato.",
       "generic": "Qualcosa è andato storto. Riprova."
-    }
+    },
+    "communalBadge": " (tablet condiviso)"
   },
   "map": {
     "line": "Fila {number}",
@@ -430,5 +433,13 @@
     "back": "← Torna alla mappa",
     "kind": "{kind, select, day {Prenotazione giornaliera} multi_day {Più giorni} season {Abbonamento stagionale} other {Una prenotazione}}",
     "umbrellas": "{count, plural, one {Ombrellone {numbers}} other {Ombrelloni {numbers}}}"
+  },
+  "acting": {
+    "title": "Chi sta facendo questa operazione?",
+    "actingAs": "Operatore: {name}",
+    "notMe": "Non sono io",
+    "cancel": "Annulla",
+    "empty": "Non ci sono account del personale tra cui scegliere.",
+    "failed": "Scelta non riuscita. Riprova."
   }
 }

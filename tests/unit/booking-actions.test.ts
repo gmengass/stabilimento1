@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
@@ -10,8 +11,15 @@ const {
   quickBookModule,
   undoModule,
   cache,
+  acting,
 } = vi.hoisted(() => ({
   actor: { current: null as CurrentUser | null },
+  acting: {
+    result: { ok: false, error: "needsActor" } as
+      { ok: true; actorId: string } | { ok: false; error: "needsActor" },
+    choose: vi.fn(async () => ({ ok: true as const })),
+    clear: vi.fn(async () => undefined),
+  },
   bookingsModule: {
     createBooking: vi.fn(async () => ({ ok: true as const, bookingId: 1 })),
     cancelBooking: vi.fn(async () => ({ ok: true as const })),
@@ -36,6 +44,13 @@ const {
   cache: { revalidatePath: vi.fn() },
 }));
 
+vi.mock("@/lib/auth/acting", () => ({
+  resolveActor: vi.fn(async (_db: unknown, user: CurrentUser) =>
+    user.communal ? acting.result : { ok: true, actorId: user.id },
+  ),
+  chooseActing: acting.choose,
+  clearActing: acting.clear,
+}));
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
 vi.mock("@/lib/booking/check-in", () => checkInModule);
@@ -68,7 +83,11 @@ const staff: CurrentUser = {
   name: "Anna",
   role: "staff",
   locale: "it",
+  communal: false,
+  sessionId: "s1",
 };
+
+const tablet: CurrentUser = { ...staff, id: "tablet", communal: true, sessionId: "s-tablet" };
 
 const actions = [
   ["createBookingAction", createBookingAction, bookingsModule.createBooking],
@@ -188,5 +207,63 @@ describe("undoAction", () => {
     undoModule.undoEntry.mockResolvedValueOnce({ ok: false, error: "changed" } as never);
     await expect(undoAction({ entryId: 1 })).resolves.toEqual({ ok: false, error: "changed" });
     expect(cache.revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("communal sessions (ADR 0025)", () => {
+  const all = [...actions, ...dayActions] as const;
+
+  it.each(all)("%s asks who is acting and changes nothing", async (_name, action, operation) => {
+    actor.current = tablet;
+    acting.result = { ok: false, error: "needsActor" };
+    await expect(action({ x: 1 })).resolves.toEqual({ ok: false, error: "needsActor" });
+    expect(operation).not.toHaveBeenCalled();
+    expect(cache.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it.each(all)("%s records the chosen person, not the tablet", async (_name, action, operation) => {
+    actor.current = tablet;
+    acting.result = { ok: true, actorId: "anna-id" };
+    await expect(action({ x: 1 })).resolves.toMatchObject({ ok: true });
+    expect(operation).toHaveBeenCalledWith({}, "anna-id", { x: 1 });
+  });
+
+  it("undo uses the chosen person's id with the staff role", async () => {
+    actor.current = tablet;
+    acting.result = { ok: true, actorId: "anna-id" };
+    await undoAction({ entryId: 1 });
+    expect(undoModule.undoEntry).toHaveBeenCalledWith(
+      {},
+      { id: "anna-id", role: "staff" },
+      { entryId: 1 },
+    );
+  });
+
+  it("undo asks who is acting when no one is", async () => {
+    actor.current = tablet;
+    acting.result = { ok: false, error: "needsActor" };
+    await expect(undoAction({ entryId: 1 })).resolves.toEqual({ ok: false, error: "needsActor" });
+    expect(undoModule.undoEntry).not.toHaveBeenCalled();
+  });
+
+  it("suggesting spots needs no actor, it changes nothing", async () => {
+    actor.current = tablet;
+    acting.result = { ok: false, error: "needsActor" };
+    await expect(suggestQuickBookAction({ x: 1 })).resolves.toMatchObject({ ok: true });
+  });
+
+  it("every action that changes data resolves the actor and never reads the session user's id", async () => {
+    const source = await readFile(
+      new URL("../../src/app/(app)/booking-actions.ts", import.meta.url),
+      "utf8",
+    );
+    expect(source).not.toMatch(/\buser\.id\b|\{[^}]*\bid\b[^}]*\}\s*=\s*user\b/);
+    const actions = source.split(/^export async function /m).slice(1);
+    expect(actions.length).toBeGreaterThan(10);
+    for (const action of actions) {
+      const name = action.slice(0, action.indexOf("("));
+      if (name === "suggestQuickBookAction") continue;
+      expect(action, name).toMatch(/\bactorFor\(\)|\bresolveActor\(/);
+    }
   });
 });
