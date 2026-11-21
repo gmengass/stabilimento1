@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Accessibility: a "Skip to content" link, a distinct page title per page, a clearer keyboard focus
+  ring, and on phones the booking sheet takes keyboard focus and gives it back to the tile.
+  Login fields and tap-to-call phone numbers are larger to tap.
 
 ## [0.14.0] - 2026-11-20
 ### Changed

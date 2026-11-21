@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BookingSearch } from "@/components/booking-search";
@@ -14,6 +15,11 @@ import {
 } from "@/lib/booking/search";
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("search");
+  return { title: t("title") };
+}
 
 export default async function Search(props: PageProps<"/search">) {
   await requireUser();
@@ -33,7 +39,11 @@ export default async function Search(props: PageProps<"/search">) {
     `/?${new URLSearchParams({ area: String(r.areaId), date: r.jumpDate, booking: String(r.bookingId) })}`;
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="focus:outline-none mx-auto flex w-full max-w-2xl flex-col gap-4 p-4"
+    >
       <Link href={mapHref} className="flex min-h-11 items-center self-start underline">
         {t("back")}
       </Link>

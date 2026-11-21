@@ -38,7 +38,8 @@
     "staff": "Personale",
     "signedInAs": "Accesso come {name}",
     "logout": "Esci",
-    "seasons": "Stagioni"
+    "seasons": "Stagioni",
+    "skipToContent": "Vai al contenuto"
   },
   "staff": {
     "title": "Account del personale",

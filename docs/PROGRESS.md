@@ -1,28 +1,23 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #76, last tag `v0.13.4` (released and deployed, owner, 2026-11-20).
-  Backup setup on the box not done yet. Branch `feat/stock-per-space` is open (PR, not merged).
+- `main` is at the merge of #79, last tag `v0.14.0` (released, owner, 2026-11-20; stock per
+  space #77). Backup setup on the box
+  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR #80, CI green, ready to merge.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
-- Stock per beach space (ADR 0026, owner 2026-11-20): `area.sunbed_stock` / `deckchair_stock`
-  replace the venue columns (migration 0014; old venue stock goes to the first space, `down`
-  sums, capped at 9999). Set in each space's panel in Beach settings; counts, warnings and the
-  activity log use that space. Unit + integration tests pass; e2e not run (sessions can't).
+- Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
+  axe checks (board, panels, dialog, login; it/en), contrast tests incl. focus ring, skip link,
+  page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
+  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e green in CI (a11y spec: axe, 320px reflow).
 ## Next up
-1. Owner: try one communal tablet with real staff (no PIN: watch for wrong names).
-2. Owner: RUNBOOK "Backups" setup on the box (install timer, key on PC, rclone OneDrive, SMTP,
-   heartbeat, test run). Until then no nightly backups run. Delete branch `feat/backups`.
-3. Owner: after v0.14 deploys, enter the lettini/sdraie stock for each space in Beach settings
-   (the old venue stock lands on the first space).
-4. Prices, payments at the desk, daily cash-up (Milestone 2).
+1. Owner: merge PR #80 (accessibility); ships in the next release. Then Milestone 2.
+2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
+3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
-- Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments
-  (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?).
-  Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
-- Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in:
-  they go straight to the umbrella, so each day they'd be flagged `no_show`. Apply the hold rule
-  to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
+- Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: a badge is deferred (owner, 2026-11-20), future item. Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
+- Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
+- Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015), but staff don't check them in: each day they'd be flagged `no_show`. Apply the hold rule to one-day bookings only (new ADR)? Owner left this open, 2026-11-19.
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; no TERM test; "last backup" in admin? GDPR (ADR): customers, audit log, no-shows, backups, old db copy.
 - Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021/0026): no warning on undo/restore/ lowering it; date moves warn on all days, not only added; no venue-wide total. Races pass.
 - Search: rate limit, mask phones, `no-store`, `unaccent`? ADR 0018: earlier own hold wins; no e2e for the no-show tile. Owner: yesterday, partial, 1-day hold. Moves: a pass's first day?
@@ -33,7 +28,5 @@
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; 101+201 over 101+103; `formatEur` cents; per-tablet space/session; search/admin not live; e2e restore; FK restrict; "Ripristina" undo; initials for cancelled names.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
-- `check-in.spec` now takes the last free umbrella (the others take the first); not run locally
-  (sessions can't run Playwright): if it still fails in CI, give it a dedicated umbrella.
-- Sessions can't pull images, reach Google Maven, get Playwright or push tags. `live-route` test
-  fails without `.env` (CI passes); `next dev` re-creates AGENTS.md.
+- `check-in.spec` takes the last free umbrella (the others take the first); not run locally: if it still fails in CI, give it a dedicated umbrella.
+- Sessions can't pull images, reach Google Maven, get Playwright or push tags. `live-route` test fails without `.env` (CI passes); `next dev` re-creates AGENTS.md.

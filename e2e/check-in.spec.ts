@@ -74,7 +74,11 @@ test("the check-in choice is hidden when the booking is not for today alone", as
   const panel = page.locator("aside");
   await spotButton(page, number).click();
   await expect(panel.getByTestId("booking-check-in")).toBeVisible();
-  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-  await panel.locator('input[name="endDate"]').fill(tomorrow);
+  // The booking days are Europe/Rome dates (ADR 0004), which differ from UTC late in the evening:
+  // take the day after the form's own start date, not after the runner's UTC date.
+  const start = await panel.locator('input[name="startDate"]').inputValue();
+  const next = new Date(`${start}T12:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  await panel.locator('input[name="endDate"]').fill(next.toISOString().slice(0, 10));
   await expect(panel.getByTestId("booking-check-in")).toHaveCount(0);
 });

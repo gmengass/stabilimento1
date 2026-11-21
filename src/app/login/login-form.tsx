@@ -54,7 +54,7 @@ export function LoginForm() {
           autoComplete="username"
           autoCapitalize="none"
           required
-          className="rounded border px-2 py-1"
+          className="min-h-11 rounded border px-2 py-1"
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -64,7 +64,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          className="rounded border px-2 py-1"
+          className="min-h-11 rounded border px-2 py-1"
         />
       </label>
       {error && (
@@ -75,7 +75,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-black px-3 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="min-h-11 rounded bg-black px-3 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
       >
         {pending ? t("submitting") : t("submit")}
       </button>

@@ -40,7 +40,11 @@ export default async function Home(props: PageProps<"/">) {
 
   if (!beach) {
     return (
-      <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-6">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="focus:outline-none mx-auto flex w-full max-w-xl flex-col gap-4 p-6"
+      >
         <h1 className="text-2xl font-semibold">{t("emptyTitle")}</h1>
         {user.role === "admin" ? (
           <Link href="/admin/beach" className="underline">
@@ -87,7 +91,10 @@ export default async function Home(props: PageProps<"/">) {
   const freeNoShows = Object.keys(noShows).filter((id) => !occupancy[Number(id)]).length;
 
   return (
-    <main className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
+    <main
+      id="main-content"
+      className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]"
+    >
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <AreaTabs
           areas={areas}
