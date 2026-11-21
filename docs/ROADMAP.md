@@ -67,6 +67,7 @@ Each item ships something staff can use on the box.
 
 ## Milestone 3 — Release v1.0
 - [ ] Security review (security agent) and fixes
-- [ ] Accessibility pass
+- [x] Accessibility pass: keyboard, contrast, focus, target size, zoom; screen readers out of scope
+      (owner, 2026-11-21, PR #80)
 - [ ] Self-hosting docs (Docker)
 - [ ] Tag v1.0.0

@@ -1,9 +1,9 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #79, last tag `v0.14.0` (released, owner, 2026-11-20; stock per
-  space #77). Backup setup on the box
-  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR #80, CI green, ready to merge.
+- `main` is at the merge of #80 (accessibility), last tag `v0.14.0`; v0.15.0 (accessibility) is
+  being tagged by the owner, 2026-11-21. Backup setup on the box
+  not done.
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
 - Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
@@ -11,7 +11,7 @@
   page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
   Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e green in CI (a11y spec: axe, 320px reflow).
 ## Next up
-1. Owner: merge PR #80 (accessibility); ships in the next release. Then Milestone 2.
+1. Owner: tag and deploy v0.15.0 (accessibility, PR #80). Then Milestone 2.
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
 3. Prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
