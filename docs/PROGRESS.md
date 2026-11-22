@@ -1,19 +1,19 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #79, last tag `v0.14.0` (released, owner, 2026-11-20; stock per
-  space #77). Backup setup on the box
-  not done. Branch `feat/accessibility`: Milestone 3 accessibility pass, PR #80, CI green, ready to merge.
+- `main` is at the merge of #80 (accessibility), tagged `v0.15.0` (2026-11-21; deploy to the box
+  unconfirmed). Previous: `v0.14.0` (stock per space #77), released by the owner. Backup setup on
+  the box not done. No open PRs known (PR state not checkable from sessions).
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
+- `CHANGELOG.md` still lists the accessibility entry under `[Unreleased]`, no `[0.15.0]` heading.
 ## Done this session
-- Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
-  axe checks (board, panels, dialog, login; it/en), contrast tests incl. focus ring, skip link,
-  page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
-  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e green in CI (a11y spec: axe, 320px reflow).
+- Docs synced after #80 / v0.15.0. Accessibility pass merged (plan + status:
+  `docs/plans/accessibility.md`): axe checks, contrast tests, skip link, page titles, phone-sheet
+  focus, two-tone focus ring, 44px login/phone links. Milestone 3 accessibility ticked.
 ## Next up
-1. Owner: merge PR #80 (accessibility); ships in the next release. Then Milestone 2.
+1. Owner: confirm v0.15.0 is deployed; move its changelog entry to `[0.15.0]`.
 2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
-3. Prices, payments at the desk, daily cash-up (Milestone 2).
+3. Security fixes (Milestone 3, none merged yet), then prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
 - Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: a badge is deferred (owner, 2026-11-20), future item. Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
