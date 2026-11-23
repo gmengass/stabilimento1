@@ -121,6 +121,13 @@ export interface CheckIn {
   date: string;
 }
 
+export interface LoginFailure {
+  failures: number;
+  first_failed_at: Timestamp;
+  key: string;
+  locked_until: Timestamp | null;
+}
+
 export interface Season {
   created_at: Generated<Timestamp>;
   end_date: string;
@@ -211,6 +218,7 @@ export interface DB {
   booking: Booking;
   booking_spot: BookingSpot;
   check_in: CheckIn;
+  login_failure: LoginFailure;
   season: Season;
   session: Session;
   spot: Spot;

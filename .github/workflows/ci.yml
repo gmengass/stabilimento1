@@ -164,6 +164,12 @@ jobs:
         run: |
           body=$(curl -fsS --retry 5 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://127.0.0.1/health)
           test "$body" = '{"status":"ok","db":"ok"}'
+      - name: Security headers, including the app's Content-Security-Policy through Caddy
+        run: |
+          headers=$(curl -fsS -D - -o /dev/null --cacert caddy-root.crt https://localhost/login)
+          echo "$headers"
+          echo "$headers" | grep -qi "^content-security-policy: default-src 'self';.*frame-ancestors 'none'"
+          echo "$headers" | grep -qi '^x-frame-options: DENY'
       - name: App port is not published on the host
         run: "! curl -s --max-time 3 http://localhost:3000/health"
       - name: Caddy overwrites client IP headers (spoofed headers still hit the rate limit)

@@ -12,8 +12,10 @@ const {
   undoModule,
   cache,
   acting,
+  limits,
 } = vi.hoisted(() => ({
   actor: { current: null as CurrentUser | null },
+  limits: { allowed: true, withinLimit: vi.fn() },
   acting: {
     result: { ok: false, error: "needsActor" } as
       { ok: true; actorId: string } | { ok: false; error: "needsActor" },
@@ -52,6 +54,9 @@ vi.mock("@/lib/auth/acting", () => ({
   clearActing: acting.clear,
 }));
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
+vi.mock("@/lib/auth/request-limits", () => ({
+  withinLimit: limits.withinLimit.mockImplementation(async () => limits.allowed),
+}));
 vi.mock("@/lib/booking/bookings", () => bookingsModule);
 vi.mock("@/lib/booking/check-in", () => checkInModule);
 vi.mock("@/lib/booking/move", () => moveModule);
@@ -106,7 +111,10 @@ const dayActions = [
   ["setHoldAction", setHoldAction, checkInModule.setHold],
 ] as const;
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  limits.allowed = true;
+});
 
 describe.each(actions)("%s", (_name, action, operation) => {
   it("is forbidden when logged out", async () => {
@@ -264,6 +272,41 @@ describe("communal sessions (ADR 0025)", () => {
       const name = action.slice(0, action.indexOf("("));
       if (name === "suggestQuickBookAction") continue;
       expect(action, name).toMatch(/\bactorFor\(\)|\bresolveActor\(/);
+    }
+  });
+});
+
+describe("rate limit (security fixes 2026-11-23)", () => {
+  const all = [...actions, ...dayActions] as const;
+
+  it.each(all)("%s is refused when over the limit and changes nothing", async (_n, action, op) => {
+    actor.current = staff;
+    limits.allowed = false;
+    await expect(action({ x: 1 })).resolves.toEqual({ ok: false, error: "rateLimited" });
+    expect(op).not.toHaveBeenCalled();
+    expect(limits.withinLimit).toHaveBeenCalledWith("action", staff);
+  });
+
+  it("refuses undo and suggestions too", async () => {
+    actor.current = staff;
+    limits.allowed = false;
+    await expect(undoAction({ entryId: 1 })).resolves.toEqual({ ok: false, error: "rateLimited" });
+    await expect(suggestQuickBookAction({ x: 1 })).resolves.toEqual({
+      ok: false,
+      error: "rateLimited",
+    });
+    expect(undoModule.undoEntry).not.toHaveBeenCalled();
+    expect(quickBookModule.suggestQuickBook).not.toHaveBeenCalled();
+  });
+
+  it("every action checks the limit", async () => {
+    const source = await readFile(
+      new URL("../../src/app/(app)/booking-actions.ts", import.meta.url),
+      "utf8",
+    );
+    for (const action of source.split(/^export async function /m).slice(1)) {
+      const name = action.slice(0, action.indexOf("("));
+      expect(action, name).toMatch(/\bactorFor\(\)|\bwithinLimit\(/);
     }
   });
 });

@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { admin, username } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
@@ -8,6 +9,16 @@ import { getDb } from "@/db/client";
 import type { DB } from "@/db/types";
 import { defaultLocale, locales } from "@/i18n/config";
 import { getEnv, parseAuthEnv } from "@/lib/env";
+import {
+  clearFailures,
+  forgetOld,
+  FROM_ADDRESS,
+  lockedUntil,
+  lockoutKeys,
+  logName,
+  normalizeUsername,
+  recordFailure,
+} from "./lockout";
 import { PASSWORD_MAX, PASSWORD_MIN, USERNAME_MAX, USERNAME_MIN } from "./rules";
 
 const HOUR_SECONDS = 60 * 60;
@@ -57,6 +68,62 @@ export const DISABLED_PATHS = [
   ...ADMIN_ENDPOINTS.map((name) => `/admin/${name}`),
 ];
 
+const SIGN_IN_PATH = "/sign-in/username";
+const UNAUTHORIZED = 401;
+
+function signInUsername(ctx: { path?: string; body?: unknown }): string | null {
+  if (ctx.path !== SIGN_IN_PATH) return null;
+  return normalizeUsername((ctx.body as { username?: unknown } | null)?.username);
+}
+
+/**
+ * Sign-in lockout on top of the per-IP limit (`lockout.ts`): 10 wrong passwords for a username
+ * from one address, or 100 from anywhere, within 15 minutes lock it for 15 minutes, even with
+ * the right password. A correct sign-in resets the counts.
+ */
+function lockoutHooks(db: Kysely<DB>) {
+  const keysOf = (ctx: { path?: string; body?: unknown; headers?: Headers }) => {
+    const name = signInUsername(ctx);
+    return name ? { name, keys: lockoutKeys(name, ctx.headers?.get("x-real-ip") ?? null) } : null;
+  };
+  return {
+    before: createAuthMiddleware(async (ctx) => {
+      const attempt = keysOf(ctx);
+      if (
+        !attempt ||
+        !(await lockedUntil(
+          db,
+          attempt.keys.map(([key]) => key),
+        ))
+      )
+        return;
+      throw new APIError("TOO_MANY_REQUESTS", {
+        code: "ACCOUNT_LOCKED",
+        message: "Too many failed sign-ins, try again later",
+      });
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      const attempt = keysOf(ctx);
+      if (!attempt) return;
+      const returned = ctx.context.returned;
+      if (!isAPIError(returned)) {
+        await clearFailures(db, attempt.name);
+        return;
+      }
+      if (returned.statusCode !== UNAUTHORIZED) return;
+      for (const [key, rule] of attempt.keys) {
+        const locked = await recordFailure(db, key, rule);
+        if (!locked) continue;
+        const scope = rule === FROM_ADDRESS ? "from one address" : "from anywhere";
+        console.warn(
+          `sign-in locked ${scope} for user#${logName(attempt.name)} until ${locked.toISOString()}`,
+        );
+      }
+      await forgetOld(db);
+    }),
+  };
+}
+
 export interface AuthDeps {
   db: Kysely<DB>;
   secret: string;
@@ -75,6 +142,7 @@ export function createAuth({ db, secret, baseURL, rateLimit = true, trustedOrigi
     trustedOrigins,
     database: { db: db.withPlugin(new CamelCasePlugin()), type: "postgres" },
     disabledPaths: DISABLED_PATHS,
+    hooks: lockoutHooks(db),
     advanced: {
       // Secure + __Secure- cookies in production even if APP_URL was left on http; elsewhere
       // Better Auth decides from the APP_URL scheme.

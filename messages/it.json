@@ -29,6 +29,7 @@
     "errors": {
       "invalid": "Nome utente o password errati.",
       "rateLimited": "Troppi tentativi. Attendi un minuto e riprova.",
+      "locked": "Troppe password errate per questo utente. Riprova tra 15 minuti o chiedi a un amministratore di sbloccarlo.",
       "generic": "Qualcosa è andato storto. Riprova."
     }
   },
@@ -56,10 +57,12 @@
     },
     "status": {
       "active": "Attivo",
-      "disabled": "Disattivato"
+      "disabled": "Disattivato",
+      "locked": "Accesso bloccato fino alle {time} (troppe password errate)"
     },
     "disable": "Disattiva",
     "enable": "Riattiva",
+    "unlock": "Sblocca accesso",
     "reset": {
       "label": "Nuova password per {username}",
       "submit": "Reimposta password"
@@ -81,7 +84,8 @@
     "done": {
       "created": "Account creato.",
       "updated": "Account aggiornato.",
-      "passwordReset": "Password reimpostata. L'utente è stato disconnesso."
+      "passwordReset": "Password reimpostata. L'utente è stato disconnesso.",
+      "unlocked": "Accesso sbloccato."
     },
     "errors": {
       "invalid": "Controlla i campi e riprova.",
@@ -241,7 +245,8 @@
       "released": "L'abbonato ha liberato oggi: restituiscigli prima il giorno.",
       "season": "Gli abbonamenti stagionali non vengono mai liberati all'orario di tenuta.",
       "invalidHold": "Scrivi un orario come 13:30.",
-      "stock": "Lettini o sdraie in magazzino non sufficienti."
+      "stock": "Lettini o sdraie in magazzino non sufficienti.",
+      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -363,7 +368,8 @@
       "past": "Non si possono prenotare giorni passati.",
       "invalid": "Controlla i campi: da 1 a 20 ombrelloni, 0 o più lettini e una data di fine uguale o successiva all'inizio.",
       "forbidden": "La sessione è scaduta. Accedi di nuovo.",
-      "generic": "Qualcosa è andato storto. Riprova."
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
     },
     "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
   },
@@ -404,7 +410,8 @@
       "takenNow": "Qualcuno ha appena prenotato uno di questi ombrelloni. Controlla la mappa.",
       "generic": "Qualcosa è andato storto. Riprova.",
       "ended": "Questa prenotazione è già finita: non c'è più niente da ripristinare.",
-      "started": "Le date di questa prenotazione sono già iniziate: lo spostamento non si può più ripristinare."
+      "started": "Le date di questa prenotazione sono già iniziate: lo spostamento non si può più ripristinare.",
+      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
     },
     "move": "{user} ha spostato la prenotazione di {name}: {fromSpots} → {toSpots}, {dates}",
     "system": "Sistema",
@@ -434,7 +441,8 @@
     "state": "{state, select, booked {Oggi: prenotato} checkedIn {Oggi: arrivato} noShow {Oggi: non arrivato} released {Oggi: liberato} other {}}",
     "back": "← Torna alla mappa",
     "kind": "{kind, select, day {Prenotazione giornaliera} multi_day {Più giorni} season {Abbonamento stagionale} other {Una prenotazione}}",
-    "umbrellas": "{count, plural, one {Ombrellone {numbers}} other {Ombrelloni {numbers}}}"
+    "umbrellas": "{count, plural, one {Ombrellone {numbers}} other {Ombrelloni {numbers}}}",
+    "rateLimited": "Troppe ricerche in poco tempo. Attendi un minuto e riprova."
   },
   "acting": {
     "title": "Chi sta facendo questa operazione?",

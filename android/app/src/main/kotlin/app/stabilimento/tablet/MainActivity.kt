@@ -30,7 +30,10 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // FLAG_SECURE keeps customer names and phones out of screenshots and the recents thumbnail.
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or WindowManager.LayoutParams.FLAG_SECURE,
+        )
         setContentView(R.layout.activity_main)
         webView = findViewById(R.id.web_view)
         statusView = findViewById(R.id.status_view)

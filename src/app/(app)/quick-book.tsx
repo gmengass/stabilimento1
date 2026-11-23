@@ -27,7 +27,8 @@ export interface QuickBookPick {
   suggestions: Suggestion[];
 }
 
-type ErrorKey = "noFit" | "tooManySunbeds" | "past" | "invalid" | "forbidden" | "generic";
+type ErrorKey =
+  "noFit" | "tooManySunbeds" | "past" | "invalid" | "forbidden" | "rateLimited" | "generic";
 
 const field = "min-h-11 rounded border px-2 py-2";
 

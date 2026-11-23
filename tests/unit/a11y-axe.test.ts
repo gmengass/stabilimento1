@@ -8,6 +8,7 @@ import en from "../../messages/en.json";
 import itMessages from "../../messages/it.json";
 
 vi.mock("@/app/(app)/booking-actions", () => ({}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => undefined }) }));
 vi.mock("@/app/(app)/acting-actions", () => ({
   chooseActingAction: async () => ({ ok: true }),
   clearActingAction: async () => ({ ok: true }),

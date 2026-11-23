@@ -7,12 +7,17 @@ import type { DB } from "@/db/types";
 export const BASE_URL = "http://localhost:3000";
 const TEST_SECRET = "test-secret-not-for-production-0123456789";
 
-export function testAuth(db: Kysely<DB>, baseURL = BASE_URL, trustedOrigins?: string[]): Auth {
-  return createAuth({ db, secret: TEST_SECRET, baseURL, trustedOrigins });
+export function testAuth(
+  db: Kysely<DB>,
+  baseURL = BASE_URL,
+  trustedOrigins?: string[],
+  rateLimit = true,
+): Auth {
+  return createAuth({ db, secret: TEST_SECRET, baseURL, trustedOrigins, rateLimit });
 }
 
 export async function truncateAuth(db: Kysely<DB>): Promise<void> {
-  await sql`truncate "user", session, account, verification cascade`.execute(db);
+  await sql`truncate "user", session, account, verification, login_failure cascade`.execute(db);
 }
 
 let ipCounter = 0;

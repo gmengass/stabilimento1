@@ -1,5 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import type { BookingKind, DB } from "@/db/types";
+import { stripInvisible } from "@/lib/text";
 
 export const MAX_SEARCH_RESULTS = 20;
 const MIN_LETTERS = 2;
@@ -33,8 +34,8 @@ export interface SearchResult {
  * digits search phones. Too little of either is `short`.
  */
 export function parseQuery(raw: string): SearchQuery {
-  // Control characters (a NUL breaks Postgres text) never match a name or a phone.
-  const text = raw.replace(/\p{Cc}/gu, "").trim();
+  // Control and invisible characters (a NUL breaks Postgres text) never match a name or phone.
+  const text = stripInvisible(raw).trim();
   if (/\p{L}/u.test(text)) {
     const letters = text.match(/\p{L}/gu) ?? [];
     if (letters.length < MIN_LETTERS) return { kind: "short" };

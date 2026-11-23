@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { resolveActor } from "@/lib/auth/acting";
+import { withinLimit } from "@/lib/auth/request-limits";
 import { readCurrentUser } from "@/lib/auth/session";
 import * as bookings from "@/lib/booking/bookings";
 import type { CancelResult, CreateResult } from "@/lib/booking/bookings";
@@ -22,12 +23,17 @@ import { undoEntry, type UndoResult } from "@/lib/booking/undo";
 type Forbidden = { ok: false; error: "forbidden" };
 /** A communal tablet has no fresh "who is acting" choice yet (ADR 0025): ask, then retry. */
 type NeedsActor = { ok: false; error: "needsActor" };
-type Refused = Forbidden | NeedsActor;
+/** Too many actions from this session or address in a minute. */
+type RateLimited = { ok: false; error: "rateLimited" };
+type Refused = Forbidden | NeedsActor | RateLimited;
+
+const rateLimited: RateLimited = { ok: false, error: "rateLimited" };
 
 /** Who the action is recorded under: the session's user, or the person chosen on a tablet. */
 async function actorFor(): Promise<{ ok: true; actorId: string } | Refused> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
+  if (!(await withinLimit("action", user))) return rateLimited;
   return resolveActor(getDb(), user);
 }
 
@@ -131,9 +137,10 @@ export async function setHoldAction(input: unknown): Promise<HoldResult | Refuse
 /** Read-only: suggests free umbrellas. Staff confirm with `createBookingAction` or a pass. */
 export async function suggestQuickBookAction(
   input: unknown,
-): Promise<QuickSuggestResult | Forbidden> {
+): Promise<QuickSuggestResult | Forbidden | RateLimited> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
+  if (!(await withinLimit("action", user))) return rateLimited;
   return suggestQuickBook(getDb(), input);
 }
 
@@ -141,6 +148,7 @@ export async function suggestQuickBookAction(
 export async function undoAction(input: unknown): Promise<UndoResult | Refused> {
   const user = await readCurrentUser();
   if (!user) return { ok: false, error: "forbidden" };
+  if (!(await withinLimit("action", user))) return rateLimited;
   const actor = await resolveActor(getDb(), user);
   if (!actor.ok) return actor;
   const result = await undoEntry(getDb(), { id: actor.actorId, role: user.role }, input);

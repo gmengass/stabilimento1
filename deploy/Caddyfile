@@ -19,6 +19,7 @@
 		Referrer-Policy no-referrer
 		X-Frame-Options DENY
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Content-Security-Policy comes from the app (next.config.ts), so tests run under it.
 		-Server
 	}
 	reverse_proxy app:3000 {

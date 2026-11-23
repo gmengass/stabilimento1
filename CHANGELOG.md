@@ -3,6 +3,24 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Security
+- Sign-in: 10 wrong passwords for one username from one device within 15 minutes lock it on that
+  device for 15 minutes; 100 from all devices lock it everywhere. Admins see the lock on the staff
+  page and can lift it ("Unlock sign-in"); a password reset lifts it too. Migration `0015`
+  (ADR 0027).
+- Searches (30 a minute, 400 a day) and booking actions (60 a minute) are limited per account, per
+  tablet for shared tablet accounts, and per address, to slow copying the customer list.
+- The tablet app blocks screenshots and hides its content in the recent-apps view.
+- A Content-Security-Policy: scripts, styles, images and connections from the app only; no
+  framing, no plugins.
+- Names and notes drop control and invisible characters (a NUL no longer causes an error, a
+  right-to-left override can't disguise a name).
+
+### Fixed
+- Shared tablets: when the person acting changes or goes idle, the Undo buttons follow at once;
+  the "Who is doing this?" names are reloaded, so a disabled person isn't offered; each tablet
+  keeps its own language; many tablets no longer run out of live-map connections.
+- Rolling back migration `0013` logs shared tablets out first.
 
 ## [0.15.0] - 2026-11-21
 ### Added

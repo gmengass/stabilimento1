@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -60,6 +61,7 @@ interface ProviderProps {
 
 /** Shared-tablet accounts: the "Who is doing this?" pop-up and the "Acting as" label. */
 export function ActingProvider({ communal, choices, initialName, children }: ProviderProps) {
+  const router = useRouter();
   const [actingName, setActingName] = useState(initialName);
   const [asking, setAsking] = useState(false);
   const pendingAsk = useRef<{
@@ -68,10 +70,16 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
   } | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // Undo buttons are rendered on the server for whoever is acting: reload them on every change.
+  const forget = useCallback(() => {
+    setActingName(null);
+    router.refresh();
+  }, [router]);
+
   const startIdleTimer = useCallback(() => {
     clearTimeout(idleTimer.current);
-    idleTimer.current = setTimeout(() => setActingName(null), ACTING_IDLE_MS);
-  }, []);
+    idleTimer.current = setTimeout(forget, ACTING_IDLE_MS);
+  }, [forget]);
 
   useEffect(() => {
     if (initialName) startIdleTimer();
@@ -87,9 +95,11 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
       });
       pendingAsk.current = { promise, settle };
       setAsking(true);
+      // The names come with the page: reload them, so someone just disabled isn't offered.
+      router.refresh();
     }
     return pendingAsk.current.promise;
-  }, []);
+  }, [router]);
 
   useEffect(
     () => () => {
@@ -107,9 +117,10 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
       if (chosen) {
         setActingName(chosen.name);
         startIdleTimer();
+        router.refresh();
       }
     },
-    [startIdleTimer],
+    [router, startIdleTimer],
   );
 
   const run = useCallback(
@@ -134,8 +145,8 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
       return;
     }
     clearTimeout(idleTimer.current);
-    setActingName(null);
-  }, []);
+    forget();
+  }, [forget]);
 
   const value = useMemo(
     () => ({ communal, actingName, clear, run }),

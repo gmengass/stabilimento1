@@ -38,6 +38,7 @@ export type ErrorKey =
   | "taken"
   | "takenNow"
   | "forbidden"
+  | "rateLimited"
   | "notFound"
   | "ended"
   | "notSeason"

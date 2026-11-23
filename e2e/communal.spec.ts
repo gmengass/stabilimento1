@@ -3,10 +3,10 @@ import { Client } from "pg";
 
 import { ADMIN_STATE, SIGN_IN_ADDRESS, logInAs, ownSignInBucket } from "./helpers";
 
-// Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2092).
+// Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2095).
 // Selectors avoid translated text: another test switches the shared admin's language.
 
-const DATE = "2093-07-01";
+const DATE = "2096-07-01";
 const PASSWORD = "e2e-tablet-pass-1";
 const TABLET = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
@@ -181,5 +181,48 @@ test.describe.serial("shared tablet account", () => {
     }
     await dialog.getByTestId("acting-choice").filter({ hasText: accounts.anna.name }).click();
     await expect(dialog).toHaveCount(0);
+  });
+
+  test("cannot open the admin pages", async () => {
+    await tablet.setViewportSize(TABLET);
+    for (const path of ["/admin/beach", "/admin/seasons", "/admin/staff"]) {
+      await tablet.goto(path);
+      await expect(tablet, path).toHaveURL(/\/(\?.*)?$/);
+      await expect(tablet.getByTestId("beach-map"), path).toBeVisible();
+    }
+  });
+
+  test("disabling the person acting asks again, and their name is no longer offered", async ({
+    browser,
+  }) => {
+    const dialog = tablet.getByTestId("acting-dialog");
+    // The phone test chose Anna moments ago: clear it, so this booking asks.
+    await tablet.goto(`/?date=${DATE}`);
+    await tablet.getByTestId("acting-not-me").click();
+    await expect(tablet.getByTestId("acting-as")).toHaveCount(0);
+    await submitBooking(tablet, `Tablet before disable ${stamp}`);
+    await dialog.getByTestId("acting-choice").filter({ hasText: accounts.anna.name }).click();
+    await expect(tablet.locator("aside")).toHaveCount(0);
+
+    const admin = await browser.newContext({ storageState: ADMIN_STATE });
+    const adminPage = await admin.newPage();
+    await adminPage.goto("/admin/staff");
+    const row = adminPage.locator("tr", { hasText: accounts.anna.username });
+    await row.locator('button[type="button"]').first().click();
+    await expect(row.locator('[role="status"]')).toBeVisible();
+    await admin.close();
+
+    await submitBooking(tablet, `Tablet after disable ${stamp}`);
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.getByTestId("acting-choice").filter({ hasText: accounts.anna.name }),
+    ).toHaveCount(0);
+    await dialog.getByTestId("acting-choice").filter({ hasText: accounts.bruno.name }).click();
+    await expect(tablet.locator("aside")).toHaveCount(0);
+    const after = tablet
+      .getByTestId("activity")
+      .locator("li")
+      .filter({ hasText: `Tablet after disable ${stamp}` });
+    await expect(after).toContainText(accounts.bruno.name);
   });
 });

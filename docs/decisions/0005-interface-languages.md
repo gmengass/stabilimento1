@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-11 (accepted 2026-11-11, with the switcher available at all times)
+- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (a communal account's language is per tablet, in the cookie)
 
 ## Context
 - The owner wants the interface in both Italian and English (answered 2026-11-11).

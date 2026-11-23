@@ -5,6 +5,7 @@ import { BookingSearch } from "@/components/booking-search";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import { formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
+import { withinLimit } from "@/lib/auth/request-limits";
 import { requireUser } from "@/lib/auth/session";
 import { parseAreaId } from "@/lib/beach/layout";
 import {
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Search(props: PageProps<"/search">) {
-  await requireUser();
+  const user = await requireUser();
   const t = await getTranslations("search");
   const locale = await getLocale();
   const params = await props.searchParams;
@@ -32,7 +33,9 @@ export default async function Search(props: PageProps<"/search">) {
   const date = isBookingDate(requested) ? requested : today;
   const areaId = parseAreaId(first(params.area));
   const short = parseQuery(query).kind === "short";
-  const results = short ? [] : await searchBookings(getDb(), query, today, date);
+  // Searches return names and phones: throttled, so a lost tablet can't copy the whole list.
+  const limited = !short && !(await withinLimit("search", user));
+  const results = short || limited ? [] : await searchBookings(getDb(), query, today, date);
   const day = (d: string) => formatBookingDate(d, isLocale(locale) ? locale : "it");
   const mapHref = `/?${new URLSearchParams({ ...(areaId && { area: String(areaId) }), date })}`;
   const openHref = (r: SearchResult) =>
@@ -51,6 +54,8 @@ export default async function Search(props: PageProps<"/search">) {
       <BookingSearch date={date} areaId={areaId} query={query} />
       {short ? (
         <p>{t("short")}</p>
+      ) : limited ? (
+        <p role="alert">{t("rateLimited")}</p>
       ) : (
         <section aria-label={t("resultsFor", { query })} className="flex flex-col gap-2">
           <h2 className="font-medium">{t("resultsFor", { query })}</h2>

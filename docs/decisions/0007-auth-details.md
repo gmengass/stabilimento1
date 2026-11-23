@@ -2,6 +2,7 @@
 
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-11
+- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (sign-in lockout per username)
 
 ## Context
 - ADR 0002 picks Better Auth (username + password, DB sessions, admin/staff roles).

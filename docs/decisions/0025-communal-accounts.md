@@ -3,6 +3,7 @@
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-20
 - Amends: [ADR 0007](0007-auth-details.md) (sessions), [ADR 0013](0013-activity-and-undo.md) (who is the actor)
+- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (language and live streams per tablet)
 
 ## Context
 - Club tablets are shared ([ADR 0007](0007-auth-details.md), [ADR 0010](0010-android-app.md)). Staff

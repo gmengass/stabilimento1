@@ -6,7 +6,8 @@ import type { DB } from "@/db/types";
 import type { Auth } from "@/lib/auth/auth";
 import { placeholderEmail } from "@/lib/auth/rules";
 import type { CurrentUser } from "@/lib/auth/session";
-import { createStaff, listUsers, resetPassword, setDisabled } from "@/lib/auth/staff";
+import { FROM_ADDRESS, recordFailure } from "@/lib/auth/lockout";
+import { createStaff, listUsers, resetPassword, setDisabled, unlockSignIn } from "@/lib/auth/staff";
 import {
   addUser,
   loggedIn,
@@ -79,6 +80,7 @@ describe("listUsers", () => {
         role: "staff",
         banned: false,
         communal: false,
+        lockedUntil: null,
       },
       {
         id: admin.actor.id,
@@ -87,6 +89,7 @@ describe("listUsers", () => {
         role: "admin",
         banned: false,
         communal: false,
+        lockedUntil: null,
       },
       {
         id: expect.any(String),
@@ -95,6 +98,7 @@ describe("listUsers", () => {
         role: "staff",
         banned: false,
         communal: false,
+        lockedUntil: null,
       },
     ]);
   });
@@ -270,7 +274,7 @@ describe("setDisabled", () => {
 describe("resetPassword", () => {
   it("sets a new password, invalidates the old one and ends sessions", async () => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: staff.actor.id, password: NEW_PASSWORD }),
+      resetPassword(auth, db, admin.headers, { userId: staff.actor.id, password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: true });
 
     expect(await sessionCount(db, staff.actor.id)).toBe(0);
@@ -280,21 +284,71 @@ describe("resetPassword", () => {
 
   it.each(["nine-char", "x".repeat(129)])("rejects password %j as invalid", async (password) => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: staff.actor.id, password }),
+      resetPassword(auth, db, admin.headers, { userId: staff.actor.id, password }),
     ).resolves.toEqual({ ok: false, error: "invalid" });
     expect((await signIn(auth, "anna", STAFF_PASSWORD)).status).toBe(200);
   });
 
   it("is forbidden for a staff actor", async () => {
     await expect(
-      resetPassword(auth, staff.headers, { userId: admin.actor.id, password: NEW_PASSWORD }),
+      resetPassword(auth, db, staff.headers, { userId: admin.actor.id, password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: false, error: "forbidden" });
     expect((await signIn(auth, "boss", ADMIN_PASSWORD)).status).toBe(200);
   });
 
   it("reports an unknown user as notFound", async () => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: "missing", password: NEW_PASSWORD }),
+      resetPassword(auth, db, admin.headers, { userId: "missing", password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: false, error: "notFound" });
+  });
+});
+
+describe("unlockSignIn", () => {
+  async function lockAnna() {
+    for (let i = 0; i < FROM_ADDRESS.failures; i++) {
+      await recordFailure(db, "anna@10.0.0.9", FROM_ADDRESS);
+    }
+  }
+
+  it("shows the lock on the staff list and lets an admin lift it", async () => {
+    await lockAnna();
+    const locked = (await listUsers(db)).find((user) => user.username === "anna");
+    expect(locked?.lockedUntil).toEqual(expect.any(String));
+    await expect(unlockSignIn(db, admin.actor, { userId: staff.actor.id })).resolves.toEqual({
+      ok: true,
+    });
+    const after = (await listUsers(db)).find((user) => user.username === "anna");
+    expect(after?.lockedUntil).toBeNull();
+  });
+
+  it("is for admins only", async () => {
+    await lockAnna();
+    await expect(unlockSignIn(db, staff.actor, { userId: staff.actor.id })).resolves.toEqual({
+      ok: false,
+      error: "forbidden",
+    });
+    const still = (await listUsers(db)).find((user) => user.username === "anna");
+    expect(still?.lockedUntil).not.toBeNull();
+  });
+
+  it("is lifted by a password reset, so the new password works at once", async () => {
+    await lockAnna();
+    await resetPassword(auth, db, admin.headers, {
+      userId: staff.actor.id,
+      password: NEW_PASSWORD,
+    });
+    const after = (await listUsers(db)).find((user) => user.username === "anna");
+    expect(after?.lockedUntil).toBeNull();
+  });
+
+  it("refuses bad input and unknown accounts", async () => {
+    await expect(unlockSignIn(db, admin.actor, {})).resolves.toEqual({
+      ok: false,
+      error: "invalid",
+    });
+    await expect(unlockSignIn(db, admin.actor, { userId: "missing" })).resolves.toEqual({
+      ok: false,
+      error: "notFound",
+    });
   });
 });
