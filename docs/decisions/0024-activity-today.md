@@ -24,5 +24,6 @@ the day.
   on an entry from the previous day reports it is no longer available and changes nothing.
 
 ## Consequences
-- No migration. `audit_log.created_at` already exists.
+- No migration for the decision itself: `audit_log.created_at` already exists. Migration `0016`
+  later indexes it, so the list doesn't read the whole log on every map load.
 - Retention of the log stays part of the open GDPR question.
