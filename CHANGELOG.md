@@ -27,6 +27,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   right-to-left override can't disguise a name).
 
 ### Fixed
+- The map's "Today's activity" list no longer reads the whole audit log on every load: an index
+  on the entry time keeps it fast as the log grows over the season. Migration `0016` (adds an
+  index only; rollback drops it).
 - Keyboard: on tablets and computers, opening a booking or Quick book with Enter moves focus into
   the panel, and focus goes back to the umbrella when it closes. "Skip to content" works on the map.
 - Shared tablets: when the person acting changes or goes idle, the Undo buttons follow at once;

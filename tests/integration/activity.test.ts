@@ -530,3 +530,30 @@ describe("migration 0007 rollback", () => {
     expect((await runMigrations(db, "up")).error).toBeUndefined();
   });
 });
+
+describe("migration 0016 (today's activity index)", () => {
+  // With sequential scans off, the plan shows the index can serve the query; on a tiny test table
+  // the planner would otherwise ignore it.
+  async function planOfTodaysList(): Promise<string> {
+    return db.transaction().execute(async (tx) => {
+      await sql`set local enable_seqscan = off`.execute(tx);
+      const { rows } = await sql<{ "QUERY PLAN": string }>`
+        explain select id from audit_log where created_at >= ${venueDayStart(TODAY)}
+        order by id desc limit 500`.execute(tx);
+      return rows.map((row) => row["QUERY PLAN"]).join("\n");
+    });
+  }
+
+  it("lets today's list read only today's entries, not the whole log", async () => {
+    expect(await planOfTodaysList()).toContain("audit_log_created_at_idx");
+  });
+
+  it("drops the index on rollback and adds it again", async () => {
+    const index = () => sql<{ n: number }>`
+      select count(*)::int as n from pg_indexes where indexname = 'audit_log_created_at_idx'`;
+    expect((await createMigrator(db).migrateTo("0015_login_lockout")).error).toBeUndefined();
+    expect((await index().execute(db)).rows[0].n).toBe(0);
+    expect((await runMigrations(db, "up")).error).toBeUndefined();
+    expect((await index().execute(db)).rows[0].n).toBe(1);
+  });
+});
