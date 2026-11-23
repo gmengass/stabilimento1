@@ -4,6 +4,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Security
+- The app connects to the database with its own account, which can read and write the tables
+  but not change the schema, roles or files. `scripts/update.sh` sets it up; nothing to do.
+- Containers run without extra privileges; the app's files are read-only.
+- Base images and CI actions are pinned; Dependabot proposes updates as PRs.
+- The tablet app trusts only the club's own certificate. Rebuild it with `scripts/build-android.sh`.
+- Optional: `update.sh` installs only signed release tags (RUNBOOK, "Signed release tags").
 - Sign-in: 10 wrong passwords for one username from one device within 15 minutes lock it on that
   device for 15 minutes; 100 from all devices lock it everywhere. Admins see the lock on the staff
   page and can lift it ("Unlock sign-in"); a password reset lifts it too. Migration `0015`

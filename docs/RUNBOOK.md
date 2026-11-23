@@ -212,11 +212,31 @@ Do this once per device.
 Expect a short outage: Caddy shows an error page while the app is stopped. If a step fails, the
 script stops with the app down and prints the rollback command.
 
+**The app's own database account** (ADR 0028): the app connects as `booking_app`, which can read
+and write the tables but not change the schema, roles or files. `update.sh` adds a random
+`APP_DB_PASSWORD` to `.env` the first time it runs a release that needs it, and the migration
+step sets it on the account. Nothing to remember; migrations and backups still use
+`POSTGRES_USER`.
+
+**Signed release tags (optional, recommended)**: with them, someone who gets into the GitHub
+account still can't put code on the box.
+1. On your own computer, once: `git config --global gpg.format ssh` and
+   `git config --global user.signingkey ~/.ssh/id_ed25519.pub` (any SSH key of yours).
+2. Tag releases with `git tag -s vX.Y.Z -m vX.Y.Z` and `git push origin vX.Y.Z`. A tag made on the
+   GitHub website is not signed.
+3. On the box, once: put your public key in `.deploy/allowed_signers` as
+   `you@club ssh-ed25519 AAAA...` (the contents of `id_ed25519.pub` after the name).
+From then on `update.sh` refuses any tag your key didn't sign. Without the file it installs as
+before and prints a warning.
+
 ## Rollback
 `scripts/rollback.sh` returns to the previous release and restores the pre-update dump.
 - It also works after a failed update. Until you run it, `update.sh` refuses to start again, so
   the good dump can't be replaced.
-- The last 3 pre-update dumps are kept, readable by the owner only.
+- The last 3 pre-update dumps are kept, readable by the owner only. They aren't encrypted: a
+  rollback must work without the secret key, which stays off the box. Turn on BitLocker on the
+  Windows box (Settings → Privacy & security → Device encryption), so a stolen PC doesn't give
+  away the customer list.
 - **Everything entered since the update is lost.** The script shows the dump time and asks you to
   type `yes`.
 - Use it right after a bad update. If staff have already entered real bookings since then, export

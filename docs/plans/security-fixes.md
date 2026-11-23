@@ -37,16 +37,19 @@ pop-up reloads its names, ADR 0027. Still open from that review: see "Not closed
   (bounded by 5 a minute per address). Counting in the before-hook would close it.
 - Low: per-address keys assume Caddy sees real client addresses; check on the box (RUNBOOK).
 
-## Batch 2: infrastructure (risky, `/checkpoint` first; RUNBOOK steps for the owner)
-- Med: the app connects to Postgres as superuser (`docker-compose.yml:58`). Add a DML-only app
-  role (init script plus migration with `down`), keep the owner role for `migrate`.
-- Low: container hardening (`no-new-privileges`, `cap_drop`, read-only app fs); stop publishing
-  Postgres on `127.0.0.1:5432` unless the RUNBOOK needs it.
-- Low: pin images and CI actions by digest/SHA; Gradle `verification-metadata.xml`.
-- Low: Android `<domain-config>` pinning the club root for LAN names, a pin-set for `ts.net`.
-- Low: encrypt pre-update dumps to the backup recipients; drop `booking_before_restore` after a
-  successful restore check.
-- Low: `update.sh` verifies a signed tag (needs the owner's signing key; RUNBOOK).
+## Batch 2: infrastructure (done on `feat/security-infra`, ADR 0028)
+- Med, done: the app connects as `<db>_app` (tables only). `migrate up` / `migrate grant` keep
+  its grants; `update.sh` adds `APP_DB_PASSWORD`; e2e runs on that account.
+- Low, done: `no-new-privileges`, `cap_drop: ALL` (Caddy keeps `NET_BIND_SERVICE`), read-only app.
+  Postgres keeps its loopback port (`npm run dev` needs it).
+- Low, done: images pinned by digest, CI actions by commit, Dependabot for both and Gradle.
+- Low, done differently: the APK trusts the club root only. Caddy signs the `ts.net` name, so
+  pinning Let's Encrypt roots would have been wrong.
+- Low, done (opt-in): `update.sh` verifies SSH-signed tags once `.deploy/allowed_signers` exists.
+- Low, not done: encrypting pre-update dumps would break rollback without the off-box key; the
+  RUNBOOK asks for BitLocker instead. `booking_before_restore` stays until the owner drops it
+  (the restore prints the command).
+- Low, not done: Gradle `verification-metadata.xml` needs a networked Gradle run (CI job later).
 
 ## Owner decisions (each blocks only its own item)
 1. **GDPR retention** (Med, new ADR): anonymise name, phone and notes N months after a
