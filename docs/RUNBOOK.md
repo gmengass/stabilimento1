@@ -163,6 +163,12 @@ while): `scripts/build-android.sh`.
 3. To unpin: with buttons, hold Back and Recents (or Back and Home); with gesture navigation,
    swipe up and hold. Then enter the PIN.
 
+**Shared tablet account** (ADR 0025): everyone who uses the tablets knows its password.
+- When someone leaves, reset the tablet account's password on the staff page. That logs every
+  tablet out; sign each one in again with the new password. Disabling the person who left is not
+  enough: with the old password they could sign in from their own phone as the tablet.
+- A lost or stolen tablet: reset the tablet account's password the same way, at once.
+
 **Rebuild and install over the old app** after a new box or a new `caddy_data` (new root), a
 change to `APP_URL`, `TRUSTED_ORIGINS` or `REMOTE_URL`, or a change under `android/`. App releases
 (`update.sh`) need no new APK. Keep the same signing key, and sign-ins and settings stay.
@@ -342,4 +348,10 @@ reminder in your calendar.
   should print `: connected` at once, `: ping` every 25 s, and `event: changed` within a
   second of any booking. 401 means the cookie is wrong; nothing at all means something buffers
   the stream (check `deploy/Caddyfile` still skips `encode` for `/api/live`).
+- **"Too many failed sign-ins"**: 10 wrong passwords for one username within 15 minutes lock it
+  for 15 minutes, even with the right password. The staff page shows the lock; an admin can lift
+  it with "Unlock sign-in". Many locks you can't explain mean someone is guessing: check
+  `docker compose logs app | grep "sign-in locked"`.
+- **"Too many actions" or "Too many searches"**: one tablet or account went over 60 booking actions
+  or 30 searches in a minute. It clears by itself after a minute.
 - **Logs**: `docker compose logs --tail 200 app caddy db`.
