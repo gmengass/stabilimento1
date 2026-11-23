@@ -196,6 +196,22 @@ describe("update.sh with signed release tags (opt-in)", () => {
     }
   });
 
+  it.skipIf(!hasSshKeygen)("refuses an old signed tag object pushed again under a new name", () => {
+    const owner = signingKey("owner");
+    signedRelease("v0.1.0", owner.key);
+    const object = spawnSync("git", ["rev-parse", "refs/tags/v0.1.0"], {
+      cwd: repo,
+      encoding: "utf8",
+    });
+    git("update-ref", "refs/tags/v0.2.0", object.stdout.trim());
+    spawnSync("mkdir", ["-p", join(repo, ".deploy")]);
+    writeFileSync(join(repo, ".deploy", "allowed_signers"), owner.signers);
+    const result = run("update.sh", ["v0.2.0"]);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/carries another release's signed tag/);
+    expect(result.calls).toEqual([]);
+  });
+
   it("without allowed_signers installs as before, with a warning", () => {
     const result = run("update.sh", ["v0.0.1"]);
     expect(result.status).toBe(0);
@@ -204,6 +220,20 @@ describe("update.sh with signed release tags (opt-in)", () => {
 });
 
 describe("update.sh", () => {
+  it("refuses to go back to an older release (rollback.sh does that)", () => {
+    expect(run("update.sh", ["v0.0.2"]).status).toBe(0);
+    const result = run("update.sh", ["v0.0.1"]);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/older than the installed v0\.0\.2/);
+    expect(state("current")).toBe("v0.0.2");
+  });
+
+  it("installs the commit the tag named when checked, even if a branch has the same name", () => {
+    git("branch", "v0.0.1", "HEAD");
+    expect(run("update.sh", ["v0.0.1"]).status).toBe(0);
+    expect(readFileSync(join(repo, "VERSION"), "utf8").trim()).toBe("v0.0.1");
+  });
+
   it("first install: no backup, migrates before starting, records the release", () => {
     const result = run("update.sh", ["v0.0.1"]);
     expect(result.status, result.stderr).toBe(0);
@@ -219,11 +249,13 @@ describe("update.sh", () => {
     expect(existsSync(join(repo, ".deploy", "lock"))).toBe(false);
   });
 
-  it("gives a box set up before ADR 0028 a password for the app's database account", () => {
+  it("gives a box set up before ADR 0028 the app's own database account", () => {
     expect(run("update.sh", ["v0.0.1"]).status).toBe(0);
     const env = readFileSync(join(repo, ".env"), "utf8");
     expect(env).toMatch(/^POSTGRES_PASSWORD=x$/m);
-    expect(env).toMatch(/^APP_DB_PASSWORD=[0-9a-f]{48}$/m);
+    expect(env).toMatch(
+      /^APP_DATABASE_URL=postgresql:\/\/booking_app:[0-9a-f]{48}@db:5432\/booking$/m,
+    );
     expect(run("update.sh", ["v0.0.2"]).status).toBe(0);
     expect(readFileSync(join(repo, ".env"), "utf8")).toBe(env);
   });
@@ -407,6 +439,8 @@ describe("rollback.sh", () => {
     const order = [
       "compose stop app",
       "dropdb",
+      // Creates <db>_app if missing: newer dumps grant to it (ADR 0028).
+      "-d postgres",
       "pg_restore",
       "compose up -d --no-deps app caddy",
     ].map((fragment) => indexOf(result.calls, fragment));
