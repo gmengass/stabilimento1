@@ -61,7 +61,10 @@ export function LoginForm() {
   useEffect(() => {
     const username = usernameRef.current;
     const lastUsername = readLastUsername();
-    if (!username || username.value || !lastUsername) return;
+    // Leave a field the user has already typed in or tapped on alone.
+    if (!username || username.value || document.activeElement === username || !lastUsername) {
+      return;
+    }
     username.value = lastUsername;
     passwordRef.current?.focus();
   }, []);
