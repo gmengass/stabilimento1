@@ -19,7 +19,7 @@ x-owner-url: &owner-url postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWO
 services:
   db:
     logging: *logging
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
     restart: unless-stopped
     # The entrypoint switches to the postgres user itself, so capabilities stay.
     security_opt: ["no-new-privileges:true"]
@@ -84,7 +84,7 @@ services:
 
   caddy:
     logging: *logging
-    image: caddy:2.10-alpine
+    image: caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]

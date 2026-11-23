@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
         env:
           POSTGRES_USER: booking
           POSTGRES_PASSWORD: booking
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
         env:
           POSTGRES_USER: booking
           POSTGRES_PASSWORD: booking
@@ -139,11 +139,6 @@ jobs:
       DEFAULT_SNI: 127.0.0.1
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - name: TEMPORARY image digests for pinning
-        run: |
-          for image in node:24-alpine postgres:17-alpine caddy:2.10-alpine gradle:8.14.3-jdk17; do
-            echo "$image $(docker buildx imagetools inspect "$image" --format '{{json .Manifest.Digest}}')"
-          done
       - name: Validate compose file and Caddyfile
         run: |
           docker compose config -q
@@ -240,7 +235,7 @@ jobs:
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=CI throwaway root" \
             -keyout "$RUNNER_TEMP/ca.key" -out "$RUNNER_TEMP/root.crt"
           docker volume create stabilimento_caddy_data
-          docker run --rm -v stabilimento_caddy_data:/d -v "$RUNNER_TEMP/root.crt:/root.crt:ro" caddy:2.10-alpine \
+          docker run --rm -v stabilimento_caddy_data:/d -v "$RUNNER_TEMP/root.crt:/root.crt:ro" caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d \
             sh -c 'mkdir -p /d/caddy/pki/authorities/local && cp /root.crt /d/caddy/pki/authorities/local/root.crt'
           {
             echo "APP_URL=https://stabilimento.local"

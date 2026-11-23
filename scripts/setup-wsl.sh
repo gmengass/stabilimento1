@@ -20,7 +20,7 @@ tag=${1:-}
 valid_tag "$tag" || die "usage: sh scripts/setup-wsl.sh vX.Y.Z (the release to install)"
 MIN_DOCKER_MAJOR=28
 DOCKER_KEY_FINGERPRINT=9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-CADDY_IMAGE=caddy:2.10-alpine
+CADDY_IMAGE=caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
 export DEPLOY_ROOT
 
 step() { printf '\n== %s\n' "$*" >&2; }
