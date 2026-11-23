@@ -5,7 +5,6 @@
   owner 2026-11-23). Previous: `v0.14.0` (stock per space #77), released by the owner. Backup setup on
   the box not done. No open PRs known (PR state not checkable from sessions).
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
-- `CHANGELOG.md` still lists the accessibility entry under `[Unreleased]`, no `[0.15.0]` heading.
 ## Done this session
 - Docs synced after #80 / v0.15.0. Accessibility pass merged (plan + status:
   `docs/plans/accessibility.md`): axe checks, contrast tests, skip link, page titles, phone-sheet
