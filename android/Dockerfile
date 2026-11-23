@@ -1,6 +1,6 @@
 # Build image for the Android app (ADR 0010), used by scripts/build-android.sh on the box and in
 # CI. Gradle comes with the base image (no wrapper is committed); the Android SDK is pinned here.
-FROM gradle:8.14.3-jdk17@sha256:ce50078d456e497bc86b76d386503e84aa45416d85069ad66bc072bf07566b25
+FROM gradle:9.8.2-jdk17@sha256:55af4a989cc9188c19668b32e52bbd2a0c801da3b849a6e8f5a25e2134845bf5
 
 ARG CMDLINE_TOOLS=11076708
 ARG CMDLINE_TOOLS_SHA256=2d2d50857e4eb553af5a6dc3ad507a17adf43d115264b1afc116f95c92e5e258
