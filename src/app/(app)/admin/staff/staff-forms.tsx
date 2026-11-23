@@ -4,9 +4,14 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import { roles } from "@/lib/auth/rules";
 import type { StaffError, StaffResult, StaffRow } from "@/lib/auth/staff";
-import { createStaffAction, resetPasswordAction, setDisabledAction } from "./actions";
+import {
+  createStaffAction,
+  resetPasswordAction,
+  setDisabledAction,
+  unlockSignInAction,
+} from "./actions";
 
-type Done = "created" | "updated" | "passwordReset";
+type Done = "created" | "updated" | "passwordReset" | "unlocked";
 type Feedback = { kind: "done"; key: Done } | { kind: "error"; key: StaffError | "generic" } | null;
 
 function useStaffAction() {
@@ -123,6 +128,10 @@ export function StaffRowActions({ user, isSelf }: { user: StaffRow; isSelf: bool
     submit(() => setDisabledAction({ userId: user.id, disabled: !user.banned }), "updated");
   }
 
+  function onUnlock() {
+    submit(() => unlockSignInAction({ userId: user.id }), "unlocked");
+  }
+
   function onReset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -139,6 +148,11 @@ export function StaffRowActions({ user, isSelf }: { user: StaffRow; isSelf: bool
       {!isSelf && (
         <button type="button" onClick={onToggle} disabled={pending} className={field}>
           {user.banned ? t("enable") : t("disable")}
+        </button>
+      )}
+      {user.lockedUntil && (
+        <button type="button" onClick={onUnlock} disabled={pending} className={field}>
+          {t("unlock")}
         </button>
       )}
       <form onSubmit={onReset} className="flex flex-wrap items-end gap-2">

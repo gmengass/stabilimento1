@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { getDb } from "@/db/client";
 import { requireAdmin } from "@/lib/auth/session";
 import { listUsers } from "@/lib/auth/staff";
@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function StaffPage() {
   const actor = await requireAdmin();
   const t = await getTranslations("staff");
+  const format = await getFormatter();
   const users = await listUsers(getDb());
   return (
     <main
@@ -41,7 +42,19 @@ export default async function StaffPage() {
                   {user.communal && t("communalBadge")}
                 </td>
                 <td>{t(`roles.${user.role}`)}</td>
-                <td>{user.banned ? t("status.disabled") : t("status.active")}</td>
+                <td>
+                  {user.banned ? t("status.disabled") : t("status.active")}
+                  {user.lockedUntil && (
+                    <span className="block text-xs">
+                      {t("status.locked", {
+                        time: format.dateTime(new Date(user.lockedUntil), {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }),
+                      })}
+                    </span>
+                  )}
+                </td>
                 <td className="py-2">
                   <StaffRowActions user={user} isSelf={user.id === actor.id} />
                 </td>

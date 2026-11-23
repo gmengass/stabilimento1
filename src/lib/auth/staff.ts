@@ -3,6 +3,7 @@ import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
 import type { Auth } from "./auth";
+import { clearFailures, listLocked } from "./lockout";
 import { passwordSchema, placeholderEmail, roles, usernameSchema, type Role } from "./rules";
 import type { CurrentUser } from "./session";
 import { singleLine } from "@/lib/text";
@@ -19,6 +20,8 @@ export interface StaffRow {
   role: Role;
   banned: boolean;
   communal: boolean;
+  /** When a sign-in lock after too many wrong passwords ends (ISO), if one is on now. */
+  lockedUntil: string | null;
 }
 
 const createSchema = z.object({
@@ -34,6 +37,8 @@ const createCheck = createSchema.refine((v) => !(v.communal && v.role === "admin
 const disableSchema = z.object({ userId: z.string().min(1), disabled: z.boolean() });
 
 const resetSchema = z.object({ userId: z.string().min(1), password: passwordSchema });
+
+const unlockSchema = z.object({ userId: z.string().min(1) });
 
 const fail = (error: StaffError): StaffResult => ({ ok: false, error });
 
@@ -71,12 +76,38 @@ async function run(call: () => Promise<unknown>): Promise<StaffResult> {
 }
 
 export async function listUsers(db: Kysely<DB>): Promise<StaffRow[]> {
-  const rows = await db
+  const [rows, locked] = await Promise.all([
+    db
+      .selectFrom("user")
+      .select(["id", "username", "name", "role", "banned", "communal"])
+      .orderBy("username")
+      .execute(),
+    listLocked(db),
+  ]);
+  return rows.map((row) => ({
+    ...row,
+    role: row.role === "admin" ? "admin" : "staff",
+    lockedUntil: locked.get(row.username)?.toISOString() ?? null,
+  }));
+}
+
+/** Lifts a sign-in lock early, e.g. once the admin knows it was the user mistyping. */
+export async function unlockSignIn(
+  db: Kysely<DB>,
+  actor: CurrentUser,
+  input: unknown,
+): Promise<StaffResult> {
+  const parsed = unlockSchema.safeParse(input);
+  if (!parsed.success) return fail("invalid");
+  if (actor.role !== "admin") return fail("forbidden");
+  const user = await db
     .selectFrom("user")
-    .select(["id", "username", "name", "role", "banned", "communal"])
-    .orderBy("username")
-    .execute();
-  return rows.map((row) => ({ ...row, role: row.role === "admin" ? "admin" : "staff" }));
+    .select("username")
+    .where("id", "=", parsed.data.userId)
+    .executeTakeFirst();
+  if (!user) return fail("notFound");
+  await clearFailures(db, user.username);
+  return { ok: true };
 }
 
 export async function createStaff(

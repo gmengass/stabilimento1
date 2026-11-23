@@ -28,7 +28,7 @@
     "submitting": "Logging in…",
     "errors": {
       "invalid": "Wrong username or password.",
-      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "rateLimited": "Too many attempts. Wait a few minutes and try again.",
       "generic": "Something went wrong. Try again."
     }
   },
@@ -56,10 +56,12 @@
     },
     "status": {
       "active": "Active",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "locked": "Sign-in locked until {time} (too many wrong passwords)"
     },
     "disable": "Disable",
     "enable": "Enable",
+    "unlock": "Unlock sign-in",
     "reset": {
       "label": "New password for {username}",
       "submit": "Reset password"
@@ -81,7 +83,8 @@
     "done": {
       "created": "Account created.",
       "updated": "Account updated.",
-      "passwordReset": "Password reset. The user has been logged out."
+      "passwordReset": "Password reset. The user has been logged out.",
+      "unlocked": "Sign-in unlocked."
     },
     "errors": {
       "invalid": "Check the fields and try again.",

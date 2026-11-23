@@ -28,7 +28,7 @@
     "submitting": "Accesso in corso…",
     "errors": {
       "invalid": "Nome utente o password errati.",
-      "rateLimited": "Troppi tentativi. Attendi un minuto e riprova.",
+      "rateLimited": "Troppi tentativi. Attendi qualche minuto e riprova.",
       "generic": "Qualcosa è andato storto. Riprova."
     }
   },
@@ -56,10 +56,12 @@
     },
     "status": {
       "active": "Attivo",
-      "disabled": "Disattivato"
+      "disabled": "Disattivato",
+      "locked": "Accesso bloccato fino alle {time} (troppe password errate)"
     },
     "disable": "Disattiva",
     "enable": "Riattiva",
+    "unlock": "Sblocca accesso",
     "reset": {
       "label": "Nuova password per {username}",
       "submit": "Reimposta password"
@@ -81,7 +83,8 @@
     "done": {
       "created": "Account creato.",
       "updated": "Account aggiornato.",
-      "passwordReset": "Password reimpostata. L'utente è stato disconnesso."
+      "passwordReset": "Password reimpostata. L'utente è stato disconnesso.",
+      "unlocked": "Accesso sbloccato."
     },
     "errors": {
       "invalid": "Controlla i campi e riprova.",

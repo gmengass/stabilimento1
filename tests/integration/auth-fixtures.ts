@@ -12,7 +12,7 @@ export function testAuth(db: Kysely<DB>, baseURL = BASE_URL, trustedOrigins?: st
 }
 
 export async function truncateAuth(db: Kysely<DB>): Promise<void> {
-  await sql`truncate "user", session, account, verification cascade`.execute(db);
+  await sql`truncate "user", session, account, verification, login_failure cascade`.execute(db);
 }
 
 let ipCounter = 0;
