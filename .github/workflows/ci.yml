@@ -167,13 +167,15 @@ jobs:
           done
           test -s caddy-root.crt
       - name: Health check over HTTPS
+        # Caddy issues the localhost and 127.0.0.1 certificates at the same moment; when saving
+        # one loses that race it tries again after 60 s. Wait 90 s so a lost race does not fail CI.
         run: |
-          body=$(curl -fsS --retry 10 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://localhost/health)
+          body=$(curl -fsS --retry 90 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://localhost/health)
           echo "$body"
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: HTTPS by IP (no server name) gets the IP's certificate (DEFAULT_SNI)
         run: |
-          body=$(curl -fsS --retry 5 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://127.0.0.1/health)
+          body=$(curl -fsS --retry 90 --retry-all-errors --retry-delay 1 --cacert caddy-root.crt https://127.0.0.1/health)
           test "$body" = '{"status":"ok","db":"ok"}'
       - name: Security headers, including the app's Content-Security-Policy through Caddy
         run: |
