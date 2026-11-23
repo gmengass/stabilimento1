@@ -1,0 +1,16 @@
+# Keeps the pinned CI actions, base images and Gradle plugins current (security fixes batch 2).
+# Each update is a PR that runs the full CI; the owner merges it like any other.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: docker
+    directories: [/, /android]
+    schedule: { interval: monthly }
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: gradle
+    directory: /android
+    schedule: { interval: monthly }

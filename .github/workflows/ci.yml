@@ -20,7 +20,7 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 2
       - name: Does this change touch anything besides docs and agent files?
@@ -61,8 +61,8 @@ jobs:
       TEST_DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -103,8 +103,8 @@ jobs:
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: ci-only-admin-password
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -118,7 +118,7 @@ jobs:
           DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@localhost:5432/booking
       - name: Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: playwright-report/
@@ -138,7 +138,12 @@ jobs:
       SITE_ADDRESS: localhost, 127.0.0.1
       DEFAULT_SNI: 127.0.0.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: TEMPORARY image digests for pinning
+        run: |
+          for image in node:24-alpine postgres:17-alpine caddy:2.10-alpine gradle:8.14.3-jdk17; do
+            echo "$image $(docker buildx imagetools inspect "$image" --format '{{json .Manifest.Digest}}')"
+          done
       - name: Validate compose file and Caddyfile
         run: |
           docker compose config -q
@@ -218,11 +223,16 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Key and APK directories outside the checkout
         run: |
           echo "ANDROID_KEY_DIR=$RUNNER_TEMP/secrets" >> "$GITHUB_ENV"
           echo "ANDROID_OUT_DIR=$RUNNER_TEMP/apk" >> "$GITHUB_ENV"
+      - name: The wrapper trusts the club root only (ADR 0028)
+        run: |
+          config=android/app/src/main/res/xml/network_security_config.xml
+          grep -q 'src="@raw/club_root"' "$config"
+          ! grep -q 'src="system"\|src="user"' "$config"
       - name: No JavaScript bridge or file access in the wrapper
         run: "! grep -rnE 'addJavascriptInterface|setAllowFileAccess\\(true|allowFileAccess = true|onReceivedSslError.*proceed|handler\\.proceed' android/"
       - name: Throwaway club root in a caddy_data volume, box-like .env
@@ -294,7 +304,7 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - name: Box-like .env and two local release tags
