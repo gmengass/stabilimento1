@@ -2,6 +2,7 @@
 
 - Status: Accepted (on merge of this PR)
 - Date: 2026-11-11
+- Amended by: [ADR 0028](0028-database-account-and-hardening.md) (app database account, hardened containers, pinned images)
 
 ## Context
 - ADR 0003 puts the stack on one club box behind Caddy. It leaves the HTTPS choice open until the

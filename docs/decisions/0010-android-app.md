@@ -4,6 +4,7 @@
 - Date: 2026-11-16 (owner request)
 - Amends: [ADR 0008](0008-deploy-details.md), the "Each staff device trusts Caddy's root
   certificate once" bullet; [ADR 0003](0003-hosting.md), "Staff use a browser on phones/tablets"
+- Amended by: [ADR 0028](0028-database-account-and-hardening.md) (the APK trusts the club root only)
 
 ## Context
 - Android Chrome blocks Caddy's internal certificate with no "Proceed", even with the root

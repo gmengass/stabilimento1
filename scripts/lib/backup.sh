@@ -20,9 +20,29 @@ dump_db() {
 	[ -s "$1" ]
 }
 
+# Dumps made since ADR 0028 grant tables to <POSTGRES_DB>_app; pg_restore stops on a grant to a
+# role this cluster doesn't have yet. Creates it (no login, no grants) if missing. $1: runs psql
+# in the db container, reading SQL from stdin (`db_sh` or a `compose_at ... exec -T` wrapper).
+ensure_app_role() {
+	ear_db=$(env_value POSTGRES_DB)
+	ear_role="${ear_db:-booking}_app"
+	printf '%s\n' "$ear_role" | grep -Eqx '[a-z0-9_]{1,59}' || die "unexpected database name '$ear_db'"
+	"$1" <<SQL
+select format('create role %I', '$ear_role')
+where not exists (select from pg_roles where rolname = '$ear_role') \gexec
+SQL
+}
+
+# psql on the maintenance database, SQL on stdin (for ensure_app_role).
+db_psql() {
+	# shellcheck disable=SC2016 # expanded inside the db container
+	db_sh 'psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 -q' >/dev/null
+}
+
 # Restores dump file $1 into a fresh scratch database; its migrations table must not be empty.
 # PostgreSQL errors go to file $2.
 restore_scratch() {
+	ensure_app_role db_psql 2>"$2" || { log_pg_errors "$2"; return 1; }
 	# shellcheck disable=SC2016 # expanded inside the db container
 	db_sh 'dropdb -U "$POSTGRES_USER" --if-exists '"$SCRATCH_DB"' &&
 		createdb -U "$POSTGRES_USER" '"$SCRATCH_DB"' &&

@@ -20,7 +20,7 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 2
       - name: Does this change touch anything besides docs and agent files?
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
         env:
           POSTGRES_USER: booking
           POSTGRES_PASSWORD: booking
@@ -61,8 +61,8 @@ jobs:
       TEST_DATABASE_URL: postgresql://booking:booking@localhost:5432/booking_test
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
         env:
           POSTGRES_USER: booking
           POSTGRES_PASSWORD: booking
@@ -98,22 +98,27 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://booking:booking@localhost:5432/booking
+      APP_DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@localhost:5432/booking
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: ci-only-admin-password
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run db:migrate && npm run db:seed-admin
-      - run: npm run test:e2e
+      - name: Migrate and seed as the owner (also creates the app's account, ADR 0028)
+        run: npm run db:migrate && npm run db:seed-admin
+      - name: End-to-end tests with the app on its own account, as on the box
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: ${{ env.APP_DATABASE_URL }}
       - name: Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: playwright-report/
@@ -125,6 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-password
+      APP_DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@db:5432/booking
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: ci_admin
       ADMIN_PASSWORD: ci-only-admin-password
@@ -132,10 +138,15 @@ jobs:
       SITE_ADDRESS: localhost, 127.0.0.1
       DEFAULT_SNI: 127.0.0.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Validate compose file and Caddyfile
         run: |
           docker compose config -q
+          # Without APP_DATABASE_URL (a box mid-update, a dev .env) the app keeps the owner account.
+          env -u APP_DATABASE_URL docker compose config --format json |
+            jq -er '.services.app.environment.DATABASE_URL | startswith("postgresql://booking:")'
+          docker compose config --format json |
+            jq -er '.services.app.environment.DATABASE_URL | startswith("postgresql://booking_app:")'
           docker compose run --rm --no-deps --entrypoint caddy caddy validate --config /etc/caddy/Caddyfile
       - name: Build images
         run: |
@@ -170,6 +181,20 @@ jobs:
           echo "$headers"
           echo "$headers" | grep -qi "^content-security-policy: default-src 'self';.*frame-ancestors 'none'"
           echo "$headers" | grep -qi '^x-frame-options: DENY'
+      - name: The app uses its own account, which is not a superuser (ADR 0028)
+        run: |
+          # The health check above already passed through this account.
+          docker compose exec -T app printenv DATABASE_URL | grep -q '^postgresql://booking_app:'
+          q() { docker compose exec -T db psql -U booking -d booking -tAc "$1"; }
+          test "$(q "select rolsuper or rolcreaterole or rolcreatedb from pg_roles where rolname = 'booking_app'")" = f
+      - name: Containers are hardened
+        run: |
+          for service in app caddy; do
+            id=$(docker compose ps -q "$service")
+            docker inspect -f '{{.HostConfig.SecurityOpt}} {{.HostConfig.CapDrop}}' "$id" | tee /dev/stderr |
+              grep -q 'no-new-privileges:true.*ALL'
+          done
+          test "$(docker inspect -f '{{.HostConfig.ReadonlyRootfs}}' "$(docker compose ps -q app)")" = true
       - name: App port is not published on the host
         run: "! curl -s --max-time 3 http://localhost:3000/health"
       - name: Caddy overwrites client IP headers (spoofed headers still hit the rate limit)
@@ -198,11 +223,16 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Key and APK directories outside the checkout
         run: |
           echo "ANDROID_KEY_DIR=$RUNNER_TEMP/secrets" >> "$GITHUB_ENV"
           echo "ANDROID_OUT_DIR=$RUNNER_TEMP/apk" >> "$GITHUB_ENV"
+      - name: The wrapper trusts the club root only (ADR 0028)
+        run: |
+          config=android/app/src/main/res/xml/network_security_config.xml
+          grep -q 'src="@raw/club_root"' "$config"
+          ! grep -q 'src="system"\|src="user"' "$config"
       - name: No JavaScript bridge or file access in the wrapper
         run: "! grep -rnE 'addJavascriptInterface|setAllowFileAccess\\(true|allowFileAccess = true|onReceivedSslError.*proceed|handler\\.proceed' android/"
       - name: Throwaway club root in a caddy_data volume, box-like .env
@@ -210,7 +240,7 @@ jobs:
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=CI throwaway root" \
             -keyout "$RUNNER_TEMP/ca.key" -out "$RUNNER_TEMP/root.crt"
           docker volume create stabilimento_caddy_data
-          docker run --rm -v stabilimento_caddy_data:/d -v "$RUNNER_TEMP/root.crt:/root.crt:ro" caddy:2.10-alpine \
+          docker run --rm -v stabilimento_caddy_data:/d -v "$RUNNER_TEMP/root.crt:/root.crt:ro" caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d \
             sh -c 'mkdir -p /d/caddy/pki/authorities/local && cp /root.crt /d/caddy/pki/authorities/local/root.crt'
           {
             echo "APP_URL=https://stabilimento.local"
@@ -274,7 +304,7 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - name: Box-like .env and two local release tags

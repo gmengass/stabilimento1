@@ -7,11 +7,24 @@ x-logging: &logging
   driver: local
   options: { max-size: 10m, max-file: "3" }
 
+# No privilege gain through setuid binaries; Node needs no Linux capabilities at all.
+x-node-hardening: &node-hardening
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+
+# The app connects as <db>_app (APP_DATABASE_URL): tables only, no schema, roles or files
+# (ADR 0028). Migrations and seed-admin use the owner, which also creates that account and sets
+# its password. Without APP_DATABASE_URL (a box not yet updated, or a dev .env) the app keeps the
+# owner account, so the update that brings this in can't fail on a missing setting.
+x-owner-url: &owner-url postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
+
 services:
   db:
     logging: *logging
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
     restart: unless-stopped
+    # The entrypoint switches to the postgres user itself, so capabilities stay.
+    security_opt: ["no-new-privileges:true"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-booking}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
@@ -27,22 +40,25 @@ services:
       retries: 10
 
   migrate:
+    <<: *node-hardening
     build: { context: ., target: migrate }
     image: stabilimento-migrate:${APP_VERSION:-dev}
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
+      DATABASE_URL: *owner-url
+      APP_DATABASE_URL: ${APP_DATABASE_URL:-}
     depends_on:
       db: { condition: service_healthy }
 
   # First admin account: `docker compose run --rm seed-admin` (no-op if it already exists).
   seed-admin:
+    <<: *node-hardening
     profiles: [setup]
     build: { context: ., target: migrate }
     image: stabilimento-migrate:${APP_VERSION:-dev}
     entrypoint: ["node", "--import", "tsx", "src/db/seed-admin.ts"]
     command: []
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
+      DATABASE_URL: *owner-url
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
@@ -50,12 +66,20 @@ services:
       db: { condition: service_healthy }
 
   app:
+    <<: *node-hardening
     logging: *logging
     build: { context: ., target: runner }
     image: stabilimento-app:${APP_VERSION:-dev}
     restart: unless-stopped
+    # The release's files never change at run time. Writable: Node's temp files, Next's cache and
+    # its route cache (revalidatePath writes there: all 85 e2e specs pass with only these three).
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m,noexec,nosuid
+      - /app/.next/cache:uid=1000,gid=1000,mode=0700,size=128m,noexec,nosuid
+      - /app/.next/server/route-cache:uid=1000,gid=1000,mode=0700,size=64m,noexec,nosuid
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
+      DATABASE_URL: ${APP_DATABASE_URL:-postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}}
       APP_URL: ${APP_URL:?set APP_URL in .env}
       TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
@@ -66,8 +90,11 @@ services:
 
   caddy:
     logging: *logging
-    image: caddy:2.10-alpine
+    image: caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
     restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
       DEFAULT_SNI: ${DEFAULT_SNI:-localhost}

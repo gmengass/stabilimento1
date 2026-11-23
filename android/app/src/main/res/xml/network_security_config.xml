@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ADR 0010: the system roots plus the club's Caddy root, for this app only. No user-installed
-     roots, no cleartext. raw/club_root.crt is copied in by scripts/build-android.sh. -->
+<!-- ADR 0010, amended by ADR 0028: the club's Caddy root only, for this app only. The app opens
+     nothing but APP_URL and REMOTE_URL, and Caddy signs both (`tls internal`, ADR 0011), so no
+     public CA, including one that wrongly issues for a ts.net name, can stand in for the box.
+     No user-installed roots, no cleartext. raw/club_root.crt is copied in by
+     scripts/build-android.sh. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
-            <certificates src="system" />
             <certificates src="@raw/club_root" />
         </trust-anchors>
     </base-config>

@@ -56,6 +56,10 @@ describe("write_box_env", () => {
       ADMIN_PASSWORD: "",
     });
     expect(env.POSTGRES_PASSWORD).toMatch(/^[0-9a-f]{48}$/);
+    expect(env.APP_DATABASE_URL).toMatch(
+      /^postgresql:\/\/booking_app:[0-9a-f]{48}@db:5432\/booking$/,
+    );
+    expect(env.APP_DATABASE_URL).not.toContain(env.POSTGRES_PASSWORD);
     expect(env.AUTH_SECRET).toMatch(/^[0-9a-f]{64}$/);
     expect(parseEnv(env).TRUSTED_ORIGINS).toEqual(["https://192.168.1.10"]);
     expect(() => parseAuthEnv(env)).not.toThrow();
@@ -145,6 +149,60 @@ describe("set_env_value", () => {
     writeFileSync(join(dir, "f"), "A=1\n");
     expect(sh("set_env_value f A \"$(printf 'a\\nB=evil')\"").status).not.toBe(0);
     expect(readFileSync(join(dir, "f"), "utf8")).toBe("A=1\n");
+  });
+});
+
+describe("ensure_app_database_url (boxes set up before ADR 0028)", () => {
+  const ensure = () =>
+    sh(
+      `DEPLOY_ROOT=.; log() { echo "$*" >&2; }; ` +
+        `env_value() { sed -n "s/^$1=//p" .env | tail -n 1; }; ensure_app_database_url`,
+    );
+  const KEPT = "postgresql://club_app:keep0this0one0please000000@db:5432/club";
+
+  it("adds the app's account with a random password when .env has none", () => {
+    writeFileSync(join(dir, ".env"), "POSTGRES_PASSWORD=abc\n");
+    expect(ensure().status).toBe(0);
+    const env = readEnv(join(dir, ".env"));
+    expect(env.APP_DATABASE_URL).toMatch(
+      /^postgresql:\/\/booking_app:[0-9a-f]{48}@db:5432\/booking$/,
+    );
+    expect(env.POSTGRES_PASSWORD).toBe("abc");
+  });
+
+  it("uses POSTGRES_DB for the account and database names", () => {
+    writeFileSync(join(dir, ".env"), "POSTGRES_DB=club\nAPP_DATABASE_URL=\n");
+    expect(ensure().status).toBe(0);
+    expect(readEnv(join(dir, ".env")).APP_DATABASE_URL).toMatch(
+      /^postgresql:\/\/club_app:[0-9a-f]{48}@db:5432\/club$/,
+    );
+  });
+
+  it.each([
+    [
+      "a placeholder password",
+      "postgresql://booking_app:change-me-app-0123456789ab@db:5432/booking",
+    ],
+    [
+      "another database's account",
+      "postgresql://other_app:0123456789abcdef01234567@db:5432/booking",
+    ],
+    [
+      "a password with characters the URL can't hold",
+      "postgresql://booking_app:a+b/c=d@db:5432/booking",
+    ],
+  ])("replaces %s", (_case, url) => {
+    writeFileSync(join(dir, ".env"), `APP_DATABASE_URL=${url}\n`);
+    expect(ensure().status).toBe(0);
+    expect(readEnv(join(dir, ".env")).APP_DATABASE_URL).toMatch(
+      /^postgresql:\/\/booking_app:[0-9a-f]{48}@/,
+    );
+  });
+
+  it("keeps a URL that already fits", () => {
+    writeFileSync(join(dir, ".env"), `POSTGRES_DB=club\nAPP_DATABASE_URL=${KEPT}\n`);
+    expect(ensure().status).toBe(0);
+    expect(readEnv(join(dir, ".env")).APP_DATABASE_URL).toBe(KEPT);
   });
 });
 

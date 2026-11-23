@@ -498,8 +498,10 @@ describe("restore-backup.sh", () => {
     expect(result.stderr).toMatch(/restore test OK/);
     expect(result.restoreInput).toBe("DUMPDATA");
     expectInOrder([
+      // Creates <db>_app first: newer dumps grant to it (ADR 0028).
+      indexOf(result.docker, "psql", "-d postgres"),
       indexOf(result.docker, "pg_restore", "booking_restore_test"),
-      indexOf(result.docker, "psql"),
+      indexOf(result.docker, "kysely_migration"),
       result.docker.findLastIndex(
         (c) => c.includes("dropdb") && c.includes("booking_restore_test"),
       ),
@@ -546,6 +548,8 @@ describe("restore-backup.sh", () => {
         'begin; alter database \\"$POSTGRES_DB\\" rename to booking_before_restore',
       ),
       indexOf(result.docker, 'alter database booking_restore_test rename to \\"$POSTGRES_DB\\"'),
+      // A backup from before ADR 0028 has no grants for the app's account.
+      indexOf(result.docker, "run --rm migrate grant"),
       indexOf(result.docker, "up -d --no-deps app caddy"),
       result.docker.findLastIndex((c) => c.includes("wget")),
     ]);
