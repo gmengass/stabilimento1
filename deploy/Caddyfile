@@ -19,6 +19,8 @@
 		Referrer-Policy no-referrer
 		X-Frame-Options DENY
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Baseline only: Next's inline scripts would need nonces before scripts can be limited.
+		Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
 		-Server
 	}
 	reverse_proxy app:3000 {
