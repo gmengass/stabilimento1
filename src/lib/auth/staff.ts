@@ -5,6 +5,7 @@ import type { DB } from "@/db/types";
 import type { Auth } from "./auth";
 import { passwordSchema, placeholderEmail, roles, usernameSchema, type Role } from "./rules";
 import type { CurrentUser } from "./session";
+import { singleLine } from "@/lib/text";
 
 export type StaffError =
   "invalid" | "forbidden" | "usernameTaken" | "self" | "lastAdmin" | "notFound";
@@ -22,7 +23,7 @@ export interface StaffRow {
 
 const createSchema = z.object({
   username: usernameSchema,
-  name: z.string().trim().min(1).max(100),
+  name: singleLine(100),
   password: passwordSchema,
   role: z.enum(roles).default("staff"),
   communal: z.boolean().default(false),

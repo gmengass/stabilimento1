@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { DB } from "@/db/types";
 import { venueToday } from "@/i18n/format";
 import { bookingDate } from "./bookings";
+import { singleLine } from "@/lib/text";
 
 export interface SeasonRow {
   id: number;
@@ -60,7 +61,7 @@ function pgCode(error: unknown): string {
 
 const seasonFields = z
   .object({
-    name: z.string().trim().min(1).max(60),
+    name: singleLine(60),
     startDate: bookingDate,
     endDate: bookingDate,
   })

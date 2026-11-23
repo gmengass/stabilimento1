@@ -4,6 +4,7 @@ import type { DB } from "@/db/types";
 import { venueToday } from "@/i18n/format";
 import { areaSchema, createArea, defaultSpotNumber } from "./layout";
 import { MAX_AREAS, MAX_LINES, MAX_STOCK, MAX_SUNBEDS, MAX_UMBRELLAS_PER_LINE } from "./limits";
+import { singleLine } from "@/lib/text";
 
 export type EditError =
   | "invalid"
@@ -99,7 +100,7 @@ export async function addArea(db: Kysely<DB>, input: unknown): Promise<AddAreaRe
 
 const renameAreaSchema = z.object({
   areaId: id,
-  areaName: z.string().trim().min(1).max(100),
+  areaName: singleLine(100),
 });
 
 export async function renameArea(db: Kysely<DB>, input: unknown): Promise<EditResult> {
@@ -140,7 +141,7 @@ export async function removeArea(db: Kysely<DB>, input: unknown): Promise<EditRe
 
 const count = z.coerce.number().int().min(1).max(MAX_UMBRELLAS_PER_LINE);
 
-const renameSchema = z.object({ venueName: z.string().trim().min(1).max(100) });
+const renameSchema = z.object({ venueName: singleLine(100) });
 
 export async function renameVenue(db: Kysely<DB>, input: unknown): Promise<EditResult> {
   const parsed = renameSchema.safeParse(input);

@@ -5,6 +5,7 @@ import { isBookingDate, venueToday } from "@/i18n/format";
 import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
 import { areaOfBooking, overStock, type OverStockDay } from "./stock";
+import { multiLine, singleLine } from "@/lib/text";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -26,9 +27,9 @@ const optionalPhone = z
 
 /** Who books and which spots: the same for day bookings and season passes. */
 export const customerAndSpots = {
-  customerName: z.string().trim().min(1).max(100),
+  customerName: singleLine(100),
   customerPhone: optionalPhone,
-  notes: z.string().trim().max(500).default(""),
+  notes: multiLine(500).default(""),
   spots: z
     .array(
       z.object({

@@ -2,6 +2,7 @@ import { sql, type Kysely, type Transaction } from "kysely";
 import { z } from "zod";
 import type { DB, SpotKind } from "@/db/types";
 import { MAX_LINES, MAX_UMBRELLAS_PER_LINE } from "./limits";
+import { singleLine } from "@/lib/text";
 
 /** Default umbrella number (ADR 0004): line × 100 + position, e.g. line 2, position 3 = 203. */
 export function defaultSpotNumber(line: number, position: number): number {
@@ -120,7 +121,7 @@ export async function loadBeach(db: Kysely<DB>, areaId?: number): Promise<BeachL
   };
 }
 
-const name = z.string().trim().min(1).max(100);
+const name = singleLine(100);
 
 export const areaSchema = z.object({
   areaName: name,
