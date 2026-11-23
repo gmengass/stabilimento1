@@ -8,6 +8,11 @@ describe("singleLine", () => {
     expect(name.parse(" Ro\u0000s\u0007a\n ")).toBe("Rosa");
   });
 
+  it("drops bidi overrides and line separators, keeps zero-width joiners", () => {
+    expect(name.parse("Ro\u202Essi\u2028")).toBe("Rossi");
+    expect(name.parse("\u{1F469}\u200D\u{1F33E}")).toBe("\u{1F469}\u200D\u{1F33E}");
+  });
+
   it("refuses a name that is only control characters or spaces", () => {
     expect(name.safeParse("\u0000\u0001 ").success).toBe(false);
   });
@@ -23,7 +28,7 @@ describe("multiLine", () => {
   const notes = multiLine(20);
 
   it("keeps line breaks and tabs, drops other control characters", () => {
-    expect(notes.parse("one\r\ntwo\tthree\u0000\u001b")).toBe("one\ntwo\tthree");
+    expect(notes.parse("one\r\ntwo\tthree\u0000\u001b\u202E")).toBe("one\ntwo\tthree");
   });
 
   it("accepts empty text", () => {
