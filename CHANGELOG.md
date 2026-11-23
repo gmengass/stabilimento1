@@ -29,6 +29,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   framing, no plugins.
 - Names and notes drop control and invisible characters (a NUL no longer causes an error, a
   right-to-left override can't disguise a name).
+- Caddy, the HTTPS proxy in front of the app, is updated to 2.11.
 
 ### Fixed
 - The map's "Today's activity" list no longer reads the whole audit log on every load: an index
