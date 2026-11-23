@@ -38,14 +38,16 @@ pop-up reloads its names, ADR 0027. Still open from that review: see "Not closed
 - Low: per-address keys assume Caddy sees real client addresses; check on the box (RUNBOOK).
 
 ## Batch 2: infrastructure (done on `feat/security-infra`, ADR 0028)
-- Med, done: the app connects as `<db>_app` (tables only). `migrate up` / `migrate grant` keep
-  its grants; `update.sh` adds `APP_DB_PASSWORD`; e2e runs on that account.
+- Med, done: the app connects as `<db>_app` (tables only, audit trail append-only).
+  `migrate up` / `migrate grant` keep its grants; `update.sh` adds `APP_DATABASE_URL`; without
+  it the app keeps the owner account, so the first update can't fail. e2e runs on that account.
 - Low, done: `no-new-privileges`, `cap_drop: ALL` (Caddy keeps `NET_BIND_SERVICE`), read-only app.
   Postgres keeps its loopback port (`npm run dev` needs it).
 - Low, done: images pinned by digest, CI actions by commit, Dependabot for both and Gradle.
 - Low, done differently: the APK trusts the club root only. Caddy signs the `ts.net` name, so
   pinning Let's Encrypt roots would have been wrong.
-- Low, done (opt-in): `update.sh` verifies SSH-signed tags once `.deploy/allowed_signers` exists.
+- Low, done (opt-in): `update.sh` verifies SSH-signed tags once `.deploy/allowed_signers` exists,
+  refuses replayed tag objects and downgrades, and checks out the verified commit.
 - Low, not done: encrypting pre-update dumps would break rollback without the off-box key; the
   RUNBOOK asks for BitLocker instead. `booking_before_restore` stays until the owner drops it
   (the restore prints the command).

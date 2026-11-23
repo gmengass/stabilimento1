@@ -212,11 +212,15 @@ Do this once per device.
 Expect a short outage: Caddy shows an error page while the app is stopped. If a step fails, the
 script stops with the app down and prints the rollback command.
 
-**The app's own database account** (ADR 0028): the app connects as `booking_app`, which can read
-and write the tables but not change the schema, roles or files. `update.sh` adds a random
-`APP_DB_PASSWORD` to `.env` the first time it runs a release that needs it, and the migration
-step sets it on the account. Nothing to remember; migrations and backups still use
-`POSTGRES_USER`.
+**The app's own database account** (ADR 0028): the app connects as `<POSTGRES_DB>_app`
+(`booking_app` by default), which can read and write the tables but not change the schema, the
+audit trail, roles or files. `update.sh` adds `APP_DATABASE_URL` with a random password to `.env`,
+and the migration step sets that password on the account. Nothing to remember; migrations and
+backups still use `POSTGRES_USER`. Without `APP_DATABASE_URL` the app falls back to
+`POSTGRES_USER`, so the update that brings this in works even from an older `update.sh`, and the
+app switches over at the following update. To switch with that first update, add the line before
+running it (with the default `POSTGRES_DB`):
+`printf 'APP_DATABASE_URL=postgresql://booking_app:%s@db:5432/booking\n' "$(openssl rand -hex 24)" >> .env`.
 
 **Signed release tags (optional, recommended)**: with them, someone who gets into the GitHub
 account still can't put code on the box.
