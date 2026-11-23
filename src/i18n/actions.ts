@@ -10,14 +10,17 @@ const localeSchema = z.enum(locales);
 
 export type SetLocaleResult = { ok: true } | { ok: false };
 
-/** Saves the interface language in the `locale` cookie and, when logged in, on the user. */
+/**
+ * Saves the interface language in the `locale` cookie and, when logged in, on the user; a
+ * communal account keeps it per tablet, in the cookie only (ADR 0025).
+ */
 export async function setLocale(input: unknown): Promise<SetLocaleResult> {
   const parsed = localeSchema.safeParse(input);
   if (!parsed.success) return { ok: false };
 
   await writeLocaleCookie(parsed.data);
   const user = await readCurrentUser();
-  if (user) {
+  if (user && !user.communal) {
     await getDb()
       .updateTable("user")
       .set({ locale: parsed.data })

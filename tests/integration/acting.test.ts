@@ -87,6 +87,16 @@ describe("schema (ADR 0025)", () => {
     const up = await runMigrations(db, "up");
     expect(up.error).toBeUndefined();
   });
+
+  it("ends communal sessions on rollback, so no tablet acts as itself afterwards", async () => {
+    const own = await loggedIn(auth, { username: "marco", password: PASSWORD });
+    const down = await createMigrator(db).migrateTo("0012_venue_stock");
+    const left = await db.selectFrom("session").select("user_id").execute();
+    const up = await runMigrations(db, "up");
+    expect(down.error).toBeUndefined();
+    expect(up.error).toBeUndefined();
+    expect(left.map((row) => row.user_id)).toEqual([own.actor.id]);
+  });
 });
 
 describe("listActingChoices", () => {
@@ -230,6 +240,20 @@ describe("disabling staff (ADR 0025)", () => {
   });
 });
 
+describe("choosing while an admin disables the same person", () => {
+  it("waits for the ban and then refuses, so no selection survives it", async () => {
+    let chosen: Promise<unknown> | undefined;
+    await db.transaction().execute(async (trx) => {
+      await trx.updateTable("user").set({ banned: true }).where("id", "=", anna).execute();
+      chosen = chooseActing(db, sessionId(), anna);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await trx.deleteFrom("acting_staff").where("staff_user_id", "=", anna).execute();
+    });
+    await expect(chosen).resolves.toEqual({ ok: false, error: "invalid" });
+    expect(await rows()).toEqual([]);
+  });
+});
+
 describe("creating communal accounts", () => {
   it("flags the account communal and lists it as such", async () => {
     const admin = await loggedIn(auth, { username: "boss", password: PASSWORD, role: "admin" });
@@ -305,6 +329,19 @@ describe("communal accounts and the HTTP surface", () => {
     );
     expect(response.status).toBeGreaterThanOrEqual(400);
   });
+
+  it("ignores the flag even when Better Auth's own update is called", async () => {
+    const own = await loggedIn(auth, { username: "marco", password: PASSWORD });
+    await auth.api
+      .updateUser({ body: { communal: true } as never, headers: own.headers })
+      .catch(() => undefined);
+    const row = await db
+      .selectFrom("user")
+      .select("communal")
+      .where("id", "=", own.actor.id)
+      .executeTakeFirstOrThrow();
+    expect(row.communal).toBe(false);
+  });
 });
 
 describe("currentActing", () => {
@@ -325,6 +362,16 @@ describe("currentActing", () => {
     await expect(currentActing(db, own.actor)).resolves.toBeNull();
     await chooseActing(db, sessionId(), anna);
     await db.updateTable("user").set({ banned: true }).where("id", "=", anna).execute();
+    await expect(currentActing(db, tablet.actor)).resolves.toBeNull();
+  });
+
+  it("agrees with resolveActor once the chosen person is no longer plain staff", async () => {
+    await chooseActing(db, sessionId(), anna);
+    await db.updateTable("user").set({ role: "admin" }).where("id", "=", anna).execute();
+    await expect(resolveActor(db, tablet.actor)).resolves.toEqual({
+      ok: false,
+      error: "needsActor",
+    });
     await expect(currentActing(db, tablet.actor)).resolves.toBeNull();
   });
 });

@@ -5,10 +5,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { NextIntlClientProvider } from "next-intl";
 import messages from "../../messages/en.json";
 
-const { choose, clear } = vi.hoisted(() => ({
+const { choose, clear, refresh } = vi.hoisted(() => ({
   choose: vi.fn(async () => ({ ok: true as const })),
   clear: vi.fn(async () => ({ ok: true as const })),
+  refresh: vi.fn(),
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 vi.mock("@/app/(app)/acting-actions", () => ({
   chooseActingAction: choose,
   clearActingAction: clear,
@@ -112,6 +114,7 @@ describe("ActingProvider (ADR 0025)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Not me" }));
     await waitFor(() => expect(screen.queryByText("Acting as Anna")).toBeNull());
     expect(clear).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
   });
 
   it("forgets who is acting after 2 minutes idle", async () => {
@@ -122,6 +125,17 @@ describe("ActingProvider (ADR 0025)", () => {
       vi.advanceTimersByTime(2 * 60 * 1000 + 1);
     });
     expect(screen.queryByText("Acting as Anna")).toBeNull();
+    // The previous person's Undo buttons are server-rendered: reload them (review 2026-11-23).
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("reloads the page once a name is chosen, so Undo shows that person's entries", async () => {
+    const call = vi.fn().mockResolvedValueOnce(needsActor).mockResolvedValueOnce({ ok: true });
+    mount(call, { communal: true });
+    fireEvent.click(screen.getByRole("button", { name: /go:/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Anna" }));
+    await screen.findByText('go:{"ok":true}');
+    expect(refresh).toHaveBeenCalled();
   });
 
   it("shows no label on a normal account", () => {

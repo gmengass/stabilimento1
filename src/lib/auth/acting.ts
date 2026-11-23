@@ -51,7 +51,10 @@ export function listActingChoices(db: Kysely<DB>): Promise<ActingChoice[]> {
     .execute();
 }
 
-/** Sets who acts on this session, replacing any earlier choice. Only `listActingChoices` people. */
+/**
+ * Sets who acts on this session, replacing any earlier choice. Only `listActingChoices` people.
+ * `for share` waits for a disable of the same person in progress, then sees the ban.
+ */
 export async function chooseActing(
   db: Kysely<DB>,
   sessionId: string,
@@ -62,6 +65,7 @@ export async function chooseActing(
     insert into acting_staff (session_id, staff_user_id, last_used_at)
     select ${sessionId}, id, ${now} from "user"
     where id = ${staffUserId} and role = 'staff' and not banned and not communal
+    for share
     on conflict (session_id) do update
       set staff_user_id = excluded.staff_user_id, last_used_at = excluded.last_used_at
     returning session_id`.execute(db);
@@ -72,7 +76,7 @@ export async function clearActing(db: Kysely<DB>, sessionId: string): Promise<vo
   await db.deleteFrom("acting_staff").where("session_id", "=", sessionId).execute();
 }
 
-/** Who is acting now, for the label: like `resolveActor` but changes nothing. */
+/** Who is acting now, for the label: the same people `resolveActor` accepts, but changes nothing. */
 export async function currentActing(
   db: Kysely<DB>,
   user: Pick<CurrentUser, "communal" | "sessionId">,
@@ -86,6 +90,8 @@ export async function currentActing(
     .select(["u.id", "u.name"])
     .where("a.session_id", "=", user.sessionId)
     .where("u.banned", "=", false)
+    .where("u.role", "=", "staff")
+    .where("u.communal", "=", false)
     .where("a.last_used_at", ">=", oldest)
     .executeTakeFirst();
   return row ?? null;

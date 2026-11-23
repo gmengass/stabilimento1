@@ -19,8 +19,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   );
 }
 
-/** Forgets who was acting on each tablet and the communal flags; the audit log is untouched. */
+/**
+ * Forgets who was acting on each tablet and the communal flags; the audit log is untouched.
+ * Tablets are logged out first: without the flag their 30-day sessions would act as the tablet.
+ */
 export async function down(db: Kysely<unknown>): Promise<void> {
+  await sql`delete from session where user_id in (select id from "user" where communal)`.execute(
+    db,
+  );
   await sql`drop table acting_staff`.execute(db);
   await sql`alter table "user" drop constraint user_communal_staff_only, drop column communal`.execute(
     db,

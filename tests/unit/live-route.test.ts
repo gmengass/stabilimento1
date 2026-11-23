@@ -119,6 +119,13 @@ describe("GET /api/live", () => {
       expect((await open(BEA)).status).toBe(200);
     });
 
+    it("counts each tablet of a communal account separately (review 2026-11-23)", async () => {
+      const tablet = { ...ANNA, id: "c1", communal: true, sessionId: "tablet-1" };
+      for (let i = 0; i < MAX_STREAMS_PER_USER; i++) await open(tablet);
+      expect((await open(tablet)).status).toBe(429);
+      expect((await open({ ...tablet, sessionId: "tablet-2" })).status).toBe(200);
+    });
+
     it("does not count a request that was already aborted", async () => {
       const gone = new AbortController();
       gone.abort();

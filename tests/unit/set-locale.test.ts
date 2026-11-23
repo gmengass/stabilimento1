@@ -107,6 +107,13 @@ describe("setLocale and the user's saved locale", () => {
     expect(set).toHaveBeenCalledWith("locale", "en", expect.any(Object));
   });
 
+  it("on a communal tablet, sets only the cookie: other tablets keep their language", async () => {
+    currentUser.current = { ...anna, communal: true };
+    await expect(setLocale("en")).resolves.toEqual({ ok: true });
+    expect(queries).toEqual([]);
+    expect(set).toHaveBeenCalledWith("locale", "en", expect.any(Object));
+  });
+
   it("logged out, writes nothing to the database", async () => {
     await expect(setLocale("en")).resolves.toEqual({ ok: true });
     expect(queries).toEqual([]);

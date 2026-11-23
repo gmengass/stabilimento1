@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveLocale } from "@/i18n/resolve-locale";
+import { resolveLocale, savedLocale } from "@/i18n/resolve-locale";
 
 const invalid = ["EN", "fr", "", "it-IT", "en; Path=/", " en", "garbage\u0000"];
 
@@ -29,5 +29,19 @@ describe("resolveLocale", () => {
 
   it("falls back to it when both levels are invalid", () => {
     expect(resolveLocale({ user: "EN", cookie: "fr" })).toBe("it");
+  });
+});
+
+describe("savedLocale", () => {
+  it("is a normal account's saved language", () => {
+    expect(savedLocale({ locale: "en", communal: false })).toBe("en");
+  });
+
+  it("is nothing for a communal account, so each tablet's cookie decides (ADR 0025)", () => {
+    expect(savedLocale({ locale: "en", communal: true })).toBeNull();
+  });
+
+  it("is nothing when logged out", () => {
+    expect(savedLocale(null)).toBeNull();
   });
 });
