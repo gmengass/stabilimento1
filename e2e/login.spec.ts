@@ -35,12 +35,20 @@ test.describe("logged out", () => {
     await expect(page.getByLabel(itMessages.login.username)).toHaveAttribute("name", "username");
     await expect(page.getByLabel(itMessages.login.password)).toHaveAttribute("name", "password");
   });
+
+  test("a device that never signed in starts with an empty username", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.locator('input[name="username"]')).toHaveValue("");
+  });
 });
 
-test("a wrong password shows an alert and stays on /login", async ({ page }) => {
+test("a wrong password shows an alert, stays on /login and is not remembered", async ({ page }) => {
   await logIn(page, ADMIN_USERNAME, `${ADMIN_PASSWORD}-wrong`);
   await expect(page.getByText(itMessages.login.errors.invalid)).toHaveAttribute("role", "alert");
   await expect(page).toHaveURL(/\/login$/);
+
+  await page.reload();
+  await expect(page.locator('input[name="username"]')).toHaveValue("");
 });
 
 test("the seeded admin logs in, logs out, and back does not reopen the app", async ({ page }) => {
@@ -56,6 +64,10 @@ test("the seeded admin logs in, logs out, and back does not reopen the app", asy
   await page.reload();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("button", { name: itMessages.appShell.logout })).toHaveCount(0);
+
+  // The device remembers who signed in last and asks only for the password.
+  await expect(page.locator('input[name="username"]')).toHaveValue(ADMIN_USERNAME);
+  await expect(page.locator('input[name="password"]')).toBeFocused();
 });
 
 test.describe("user menu", () => {
