@@ -66,7 +66,10 @@ Each item ships something staff can use on the box.
 - [ ] Remote access via Tailscale: box setup, `.env` addresses, RUNBOOK steps (ADR 0003, ADR 0011)
 
 ## Milestone 3 — Release v1.0
-- [ ] Security review (security agent) and fixes (review done 2026-11-20, no Critical/High; Medium and Low fixes not merged, see PROGRESS)
+- [ ] Security review (security agent) and fixes (review redone 2026-11-23; batches 1 and 2
+      merged: #83, #84, ADRs 0027/0028, plan `docs/plans/security-fixes.md`. Still open, waiting
+      on owner decisions: customer data retention/erasure (GDPR ADR) and masking phones on the
+      map and in search, which closes the last Medium)
 - [x] Accessibility pass: keyboard, contrast, focus, target size, zoom; screen readers out of scope
       (owner, 2026-11-21, PR #80)
 - [ ] Self-hosting docs (Docker)
