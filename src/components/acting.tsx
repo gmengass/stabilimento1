@@ -95,9 +95,11 @@ export function ActingProvider({ communal, choices, initialName, children }: Pro
       });
       pendingAsk.current = { promise, settle };
       setAsking(true);
+      // The names come with the page: reload them, so someone just disabled isn't offered.
+      router.refresh();
     }
     return pendingAsk.current.promise;
-  }, []);
+  }, [router]);
 
   useEffect(
     () => () => {

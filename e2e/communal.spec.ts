@@ -3,10 +3,10 @@ import { Client } from "pg";
 
 import { ADMIN_STATE, SIGN_IN_ADDRESS, logInAs, ownSignInBucket } from "./helpers";
 
-// Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2092).
+// Shared tablet accounts (ADR 0025). A year no other spec books in (they use 2090 to 2095).
 // Selectors avoid translated text: another test switches the shared admin's language.
 
-const DATE = "2093-07-01";
+const DATE = "2096-07-01";
 const PASSWORD = "e2e-tablet-pass-1";
 const TABLET = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
@@ -196,6 +196,10 @@ test.describe.serial("shared tablet account", () => {
     browser,
   }) => {
     const dialog = tablet.getByTestId("acting-dialog");
+    // The phone test chose Anna moments ago: clear it, so this booking asks.
+    await tablet.goto(`/?date=${DATE}`);
+    await tablet.getByTestId("acting-not-me").click();
+    await expect(tablet.getByTestId("acting-as")).toHaveCount(0);
     await submitBooking(tablet, `Tablet before disable ${stamp}`);
     await dialog.getByTestId("acting-choice").filter({ hasText: accounts.anna.name }).click();
     await expect(tablet.locator("aside")).toHaveCount(0);

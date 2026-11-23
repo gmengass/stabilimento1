@@ -129,6 +129,13 @@ describe("ActingProvider (ADR 0025)", () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
+  it("reloads the names when it asks, so a person just disabled isn't offered", async () => {
+    mount(vi.fn().mockResolvedValue(needsActor), { communal: true });
+    fireEvent.click(screen.getByRole("button", { name: /go:/ }));
+    await screen.findByText("Who is doing this?");
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
   it("reloads the page once a name is chosen, so Undo shows that person's entries", async () => {
     const call = vi.fn().mockResolvedValueOnce(needsActor).mockResolvedValueOnce({ ok: true });
     mount(call, { communal: true });
