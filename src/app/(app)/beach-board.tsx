@@ -73,6 +73,7 @@ export function BeachBoard({
   const quickBookButton = useRef<HTMLButtonElement>(null);
   const mapArea = useRef<HTMLDivElement>(null);
   const lastSpotId = useRef<number | null>(null);
+  const openedByKeyboard = useRef(false);
   const sheet = useRef<HTMLElement>(null);
   const contentId = useId();
   const ts = useTranslations("sheet");
@@ -131,8 +132,9 @@ export function BeachBoard({
     setSelected(spots);
   }
 
-  function openQuickBook() {
+  function openQuickBook(viaKeyboard: boolean) {
     lastSpotId.current = null;
+    openedByKeyboard.current = viaKeyboard;
     setNotice(null);
     setSelected([]);
     setPick(null);
@@ -196,7 +198,8 @@ export function BeachBoard({
     setQuickForm(false);
   }
 
-  function onSpotClick(spot: MapSpot) {
+  function onSpotClick(spot: MapSpot, viaKeyboard: boolean) {
+    openedByKeyboard.current = viaKeyboard;
     setNotice(null);
     if (targets && open) return onMoveTap(spot);
     const occupant = occupancy[spot.id];
@@ -382,12 +385,15 @@ export function BeachBoard({
     if (sheetOpen && window.matchMedia(PHONE).matches) mapArea.current?.scrollIntoView();
   }, [sheetOpen]);
 
-  // Keyboard and switch users land in a sheet they opened on purpose (a booking, quick book), not
-  // in one that only shows the umbrellas they are still picking.
+  // Keyboard and switch users land in a panel they opened on purpose (a booking, quick book), not
+  // in one that only shows the umbrellas they are still picking. Beside the map, only a keyboard
+  // opening moves focus, so a tap doesn't scroll a portrait tablet down to the panel.
   const opensSheet = panelKey !== null && !panelKey.startsWith("new-");
   useEffect(() => {
-    if (opensSheet && window.matchMedia(PHONE).matches)
+    if (!opensSheet) return;
+    if (window.matchMedia(PHONE).matches)
       sheet.current?.querySelector<HTMLElement>("[data-sheet-toggle]")?.focus();
+    else if (openedByKeyboard.current) sheet.current?.focus();
   }, [opensSheet, panelKey]);
 
   function returnFocus() {
@@ -397,11 +403,13 @@ export function BeachBoard({
     (tile ?? quickBookButton.current)?.focus();
   }
 
-  // However the sheet goes away (Close, Escape, the booking vanishing, another day), focus does not
-  // fall to the page.
+  // However the panel goes away (Close, Escape, the booking vanishing, another day), focus does not
+  // fall to the page. Beside the map, focus elsewhere on the page stays where it is.
   const wasSheetOpen = useRef(false);
   useEffect(() => {
-    if (wasSheetOpen.current && !sheetOpen && window.matchMedia(PHONE).matches) returnFocus();
+    const focusLost = document.activeElement === document.body || document.activeElement === null;
+    if (wasSheetOpen.current && !sheetOpen && (window.matchMedia(PHONE).matches || focusLost))
+      returnFocus();
     wasSheetOpen.current = sheetOpen;
   }, [sheetOpen]);
 
@@ -424,7 +432,7 @@ export function BeachBoard({
         <button
           type="button"
           ref={quickBookButton}
-          onClick={openQuickBook}
+          onClick={(event) => openQuickBook(event.detail === 0)}
           data-testid="quick-book-open"
           className="min-h-11 self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white"
         >
@@ -454,6 +462,7 @@ export function BeachBoard({
       {panel && (
         <aside
           ref={sheet}
+          tabIndex={-1}
           aria-label={ts("label")}
           data-sheet={collapsed ? "collapsed" : "open"}
           onKeyDown={onPanelKeyDown}

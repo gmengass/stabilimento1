@@ -92,11 +92,11 @@ describe("booking panel as a phone sheet", () => {
     expect(document.activeElement).toBe(tile(2));
   });
 
-  it("does not steal focus on wider screens", () => {
+  it("does not steal focus on wider screens when a tile is tapped", () => {
     setPhone(false);
     renderBoard();
     tile(2).focus();
-    fireEvent.click(tile(2));
+    fireEvent.click(tile(2), { detail: 1 });
     expect(document.activeElement).toBe(tile(2));
   });
 
@@ -143,5 +143,65 @@ describe("booking panel as a phone sheet", () => {
     fireEvent.click(tile(1));
     fireEvent.keyDown(screen.getByRole("complementary"), { key: "Escape" });
     expect(document.activeElement).toBe(screen.getByTestId("quick-book-open"));
+  });
+});
+
+// Tablets and desktops show the panel beside (or below) the map. Enter or Space on a tile is a
+// click with detail 0; a tap or mouse click has detail 1.
+describe("booking panel beside the map", () => {
+  const keyboard = { detail: 0 };
+  const pointer = { detail: 1 };
+
+  it("moves focus into the panel when a booking is opened from the keyboard", () => {
+    setPhone(false);
+    renderBoard();
+    tile(2).focus();
+    fireEvent.click(tile(2), keyboard);
+    expect(document.activeElement).toBe(screen.getByRole("complementary"));
+  });
+
+  it("moves focus into the panel when Quick book is opened from the keyboard", () => {
+    setPhone(false);
+    renderBoard();
+    fireEvent.click(screen.getByTestId("quick-book-open"), keyboard);
+    expect(document.activeElement).toBe(screen.getByRole("complementary"));
+  });
+
+  it("keeps focus on the map while umbrellas are picked from the keyboard", () => {
+    setPhone(false);
+    renderBoard();
+    tile(1).focus();
+    fireEvent.click(tile(1), keyboard);
+    expect(document.activeElement).toBe(tile(1));
+  });
+
+  it("returns focus to the tile when the booking is closed from its tile", () => {
+    setPhone(false);
+    renderBoard();
+    fireEvent.click(tile(2), keyboard);
+    tile(2).focus();
+    fireEvent.click(tile(2), keyboard);
+    expect(screen.queryByRole("complementary")).toBeNull();
+    expect(document.activeElement).toBe(tile(2));
+  });
+
+  it("gives focus back to the tile when the panel it was in disappears", () => {
+    setPhone(false);
+    const view = renderBoard();
+    fireEvent.click(tile(2), keyboard);
+    view.rerender(boardFor({}));
+    view.rerender(boardFor({}));
+    expect(screen.queryByRole("complementary")).toBeNull();
+    expect(document.activeElement).toBe(tile(2));
+  });
+
+  it("leaves focus alone when it is elsewhere as the panel disappears", () => {
+    setPhone(false);
+    const view = renderBoard({ 2: booking });
+    fireEvent.click(tile(2), pointer);
+    tile(1).focus();
+    view.rerender(boardFor({}));
+    view.rerender(boardFor({}));
+    expect(document.activeElement).toBe(tile(1));
   });
 });

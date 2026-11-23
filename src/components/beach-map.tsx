@@ -40,7 +40,8 @@ interface Props {
   badgeOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
   /** A short mark in the other top corner: sunbeds or deckchairs beyond the default (ADR 0023). */
   extrasOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
-  onSpotClick: (spot: MapSpot) => void;
+  /** `viaKeyboard`: the tile was activated with Enter or Space, not tapped or clicked. */
+  onSpotClick: (spot: MapSpot, viaKeyboard: boolean) => void;
 }
 
 /**
@@ -84,7 +85,7 @@ export function BeachMap({
                     <button
                       type="button"
                       data-spot-id={spot.id}
-                      onClick={() => onSpotClick(spot)}
+                      onClick={(event) => onSpotClick(spot, event.detail === 0)}
                       aria-pressed={view === "selected" || view === "open"}
                       className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
                     >
