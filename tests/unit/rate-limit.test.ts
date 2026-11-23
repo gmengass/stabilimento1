@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { hit, resetRateLimits } from "@/lib/rate-limit";
+import { countedKeys, hit, resetRateLimits } from "@/lib/rate-limit";
 
 const { requestHeaders } = vi.hoisted(() => ({ requestHeaders: { current: new Headers() } }));
 vi.mock("next/headers", () => ({ headers: vi.fn(async () => requestHeaders.current) }));
 
-const { withinLimit, SEARCH_LIMIT, ACTION_LIMIT } = await import("@/lib/auth/request-limits");
+const { withinLimit, SEARCH_LIMITS, ACTION_LIMITS } = await import("@/lib/auth/request-limits");
+const SEARCH_LIMIT = SEARCH_LIMITS[0]!;
+const ACTION_LIMIT = ACTION_LIMITS[0]!;
 
 const limit = { max: 3, windowMs: 60_000 };
 
@@ -55,11 +57,36 @@ describe("withinLimit", () => {
     await expect(withinLimit("search", { ...tablet, sessionId: "t2" })).resolves.toBe(true);
   });
 
+  it("caps searches per day too", async () => {
+    vi.useFakeTimers();
+    try {
+      let allowed = 0;
+      for (let minute = 0; minute < 30; minute++) {
+        vi.setSystemTime(minute * 60_000);
+        for (let i = 0; i < SEARCH_LIMIT.max; i++) {
+          if (await withinLimit("search", anna)) allowed += 1;
+        }
+      }
+      expect(allowed).toBe(SEARCH_LIMITS[1]!.max);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("also counts the client address, so new tablet sessions don't reset it", async () => {
     requestHeaders.current = new Headers({ "x-real-ip": "192.168.1.50" });
     for (let i = 0; i < ACTION_LIMIT.max; i++) {
       await withinLimit("action", { ...tablet, sessionId: `t${i}` });
     }
     await expect(withinLimit("action", { ...tablet, sessionId: "fresh" })).resolves.toBe(false);
+  });
+});
+
+describe("memory bound", () => {
+  it("drops address counts when full, never an account's", () => {
+    for (let i = 0; i < 4; i++) hit(["search:user:u1"], limit, 0);
+    for (let i = 0; i < 10_050; i++) hit([`search:ip:10.0.${i >> 8}.${i & 255}`], limit, 0);
+    expect(countedKeys()).toBeLessThanOrEqual(10_000);
+    expect(hit(["search:user:u1"], limit, 0)).toBe(false);
   });
 });

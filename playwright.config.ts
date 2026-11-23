@@ -44,5 +44,7 @@ export default defineConfig({
     url: "http://localhost:3000/",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Every spec shares the admin account and runs in parallel: lift the per-minute limits.
+    env: { RATE_LIMIT_MULTIPLIER: "100" },
   },
 });
