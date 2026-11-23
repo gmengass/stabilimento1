@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 type LoginError = "invalid" | "rateLimited" | "locked" | "generic";
 
@@ -31,17 +31,52 @@ async function signIn(username: string, password: string): Promise<LoginError | 
   }
 }
 
+// The last username that signed in on this device, so a tablet only asks for the password.
+// Storage can be missing or throw (private mode, a full quota): then nothing is remembered.
+const LAST_USERNAME_KEY = "lastUsername";
+
+function readLastUsername(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_USERNAME_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberUsername(username: string): void {
+  try {
+    window.localStorage.setItem(LAST_USERNAME_KEY, username);
+  } catch {
+    // Not remembered; the next sign-in asks for the username again.
+  }
+}
+
 export function LoginForm() {
   const t = useTranslations("login");
   const [error, setError] = useState<LoginError | null>(null);
   const [pending, setPending] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const username = usernameRef.current;
+    const lastUsername = readLastUsername();
+    // Leave a field the user has already typed in or tapped on alone.
+    if (!username || username.value || document.activeElement === username || !lastUsername) {
+      return;
+    }
+    username.value = lastUsername;
+    passwordRef.current?.focus();
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const username = String(form.get("username"));
     setPending(true);
-    const result = await signIn(String(form.get("username")), String(form.get("password")));
+    const result = await signIn(username, String(form.get("password")));
     if (result === null) {
+      rememberUsername(username);
       // Full navigation: the server re-renders with the new session and the user's language.
       window.location.replace("/");
       return;
@@ -55,6 +90,7 @@ export function LoginForm() {
       <label className="flex flex-col gap-1 text-sm">
         {t("username")}
         <input
+          ref={usernameRef}
           name="username"
           autoComplete="username"
           autoCapitalize="none"
@@ -65,6 +101,7 @@ export function LoginForm() {
       <label className="flex flex-col gap-1 text-sm">
         {t("password")}
         <input
+          ref={passwordRef}
           name="password"
           type="password"
           autoComplete="current-password"

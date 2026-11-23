@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- The sign-in page remembers the last username that signed in on the device (tablet app and
+  browser) and asks only for the password. A failed sign-in is not remembered.
+
 ### Security
 - The app connects to the database with its own account, which can read and write the tables
   but not change the schema, the audit trail, roles or files. `scripts/update.sh` sets it up.
