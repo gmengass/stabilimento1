@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
 import { AddAreaForm, CurrentAreaForm } from "./area-forms";
 import { DefaultHoldForm, LayoutEditor, StockForm, VenueNameForm } from "./layout-editor";
+import { PageMain } from "@/components/page-main";
 import { BeachSetupForm } from "./setup-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,11 +28,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
   if (beach) {
     const areas = await listAreas(getDb());
     return (
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="focus:outline-none flex w-full flex-col gap-6 p-4"
-      >
+      <PageMain className="flex w-full flex-col gap-6 p-4">
         <div className="flex flex-wrap items-baseline gap-4">
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -64,18 +61,14 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
           </div>
         </section>
         <AddAreaForm key={beach.areaId} />
-      </main>
+      </PageMain>
     );
   }
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="focus:outline-none mx-auto flex w-full max-w-xl flex-col gap-6 p-6"
-    >
+    <PageMain className="mx-auto flex w-full max-w-xl flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <p>{t("intro")}</p>
       <BeachSetupForm />
-    </main>
+    </PageMain>
   );
 }

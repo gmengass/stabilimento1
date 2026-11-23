@@ -26,6 +26,7 @@ import { loadStockDay } from "@/lib/booking/stock";
 import { loadOpenSeason } from "@/lib/booking/seasons";
 import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
+import { PageMain } from "@/components/page-main";
 import { DayCounts } from "./day-counts";
 
 export default async function Home(props: PageProps<"/">) {
@@ -40,11 +41,7 @@ export default async function Home(props: PageProps<"/">) {
 
   if (!beach) {
     return (
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="focus:outline-none mx-auto flex w-full max-w-xl flex-col gap-4 p-6"
-      >
+      <PageMain className="mx-auto flex w-full max-w-xl flex-col gap-4 p-6">
         <h1 className="text-2xl font-semibold">{t("emptyTitle")}</h1>
         {user.role === "admin" ? (
           <Link href="/admin/beach" className="underline">
@@ -53,7 +50,7 @@ export default async function Home(props: PageProps<"/">) {
         ) : (
           <p>{t("emptyStaff")}</p>
         )}
-      </main>
+      </PageMain>
     );
   }
 
@@ -91,10 +88,7 @@ export default async function Home(props: PageProps<"/">) {
   const freeNoShows = Object.keys(noShows).filter((id) => !occupancy[Number(id)]).length;
 
   return (
-    <main
-      id="main-content"
-      className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]"
-    >
+    <PageMain className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <AreaTabs
           areas={areas}
@@ -169,6 +163,6 @@ export default async function Home(props: PageProps<"/">) {
         entries={activity}
         viewer={viewerFor(user, await currentActing(getDb(), user))}
       />
-    </main>
+    </PageMain>
   );
 }
