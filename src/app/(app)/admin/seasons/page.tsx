@@ -4,6 +4,7 @@ import { getDb } from "@/db/client";
 import { requireAdmin } from "@/lib/auth/session";
 import { formatBookingDate, venueToday } from "@/i18n/format";
 import { listSeasons, nextSeasonDraft, openSeason } from "@/lib/booking/seasons";
+import { PageMain } from "@/components/page-main";
 import { NewSeasonForm, SeasonCard } from "./season-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,11 +21,7 @@ export default async function SeasonsPage() {
   const current = openSeason(seasons, today);
   const locale = await getLocale();
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="focus:outline-none mx-auto flex w-full max-w-2xl flex-col gap-6 p-6"
-    >
+    <PageMain className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <p className="text-sm text-gray-700 dark:text-gray-300">{t("intro")}</p>
       {seasons.length === 0 ? (
@@ -48,6 +45,6 @@ export default async function SeasonsPage() {
       ) : (
         <NewSeasonForm defaults={{ ...draft, name: t("defaultName", { year: draft.year }) }} />
       )}
-    </main>
+    </PageMain>
   );
 }

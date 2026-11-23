@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { getDb } from "@/db/client";
 import { requireAdmin } from "@/lib/auth/session";
 import { listUsers } from "@/lib/auth/staff";
+import { PageMain } from "@/components/page-main";
 import { CreateStaffForm, StaffRowActions } from "./staff-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,11 +17,7 @@ export default async function StaffPage() {
   const format = await getFormatter();
   const users = await listUsers(getDb());
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="focus:outline-none mx-auto flex w-full max-w-4xl flex-col gap-8 p-6"
-    >
+    <PageMain className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-6">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -64,6 +61,6 @@ export default async function StaffPage() {
         </table>
       </div>
       <CreateStaffForm />
-    </main>
+    </PageMain>
   );
 }
