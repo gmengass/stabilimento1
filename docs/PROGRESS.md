@@ -1,19 +1,17 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #80 (accessibility), last tag `v0.14.0`; v0.15.0 (accessibility) is
-  being tagged by the owner, 2026-11-21. Backup setup on the box
-  not done.
+- `main` is at the merge of #80 (accessibility), tagged `v0.15.0` (2026-11-21; deployed to the box,
+  owner 2026-11-23). Previous: `v0.14.0` (stock per space #77), released by the owner. Backup setup on
+  the box not done. No open PRs known (PR state not checkable from sessions).
 - E2E: `login` and `communal` specs each use their own sign-in bucket (`ownSignInBucket`, #74).
 ## Done this session
-- Docs synced after #77/#78. Accessibility pass (plan + status: `docs/plans/accessibility.md`):
-  axe checks (board, panels, dialog, login; it/en), contrast tests incl. focus ring, skip link,
-  page titles, phone-sheet focus in/out, two-tone tile focus ring, 44px login/phone links.
-  Lint, types, format, build clean; unit tests pass except `live-route` (needs `.env`); e2e green in CI (a11y spec: axe, 320px reflow).
+- Docs synced after #80 / v0.15.0. Accessibility pass merged (plan + status:
+  `docs/plans/accessibility.md`): axe checks, contrast tests, skip link, page titles, phone-sheet
+  focus, two-tone focus ring, 44px login/phone links. Milestone 3 accessibility ticked.
 ## Next up
-1. Owner: tag and deploy v0.15.0 (accessibility, PR #80). Then Milestone 2.
-2. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
-3. Prices, payments at the desk, daily cash-up (Milestone 2).
+1. Owner: backups on the box (RUNBOOK; delete `feat/backups`), try a communal tablet, enter stock per space in Beach settings.
+2. Security fixes (Milestone 3, none merged yet), then prices, payments at the desk, daily cash-up (Milestone 2).
 ## Open questions
 - Accessibility: screen readers out of scope (owner, 2026-11-20). Season tiles differ from bookings by colour only: a badge is deferred (owner, 2026-11-20), future item. Palette changes need owner OK (ADR 0017). WebView zoom untestable here.
 - Communal tablets: no PIN (owner, attribution only for "who to ask"); add one if payments (Milestone 2) need accountability. `audit_log` records the person, not the tablet (`via_user_id`?). Pop-up lists every active staff member: an "on duty" list? Choosing a person has no rate limit.
