@@ -24,6 +24,17 @@ pending=$(read_state in-progress)
 [ "$current" != "$tag" ] || die "$tag is already installed"
 git fetch --quiet --tags origin || log "warning: git fetch failed, using local tags"
 git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || die "tag $tag not found"
+# Opt-in (RUNBOOK): with the owner's public key in .deploy/allowed_signers, only tags signed by
+# it are installed, so a stolen GitHub login can't ship code to the box.
+signers="$STATE_DIR/allowed_signers"
+if [ -s "$signers" ]; then
+	git -c gpg.ssh.program=ssh-keygen -c gpg.ssh.allowedSignersFile="$signers" \
+		verify-tag "$tag" >/dev/null 2>&1 ||
+		die "tag $tag is not signed by a key in $signers: not installing it"
+	log "tag $tag: signature verified"
+else
+	log "warning: release tags are not verified (no $signers, see RUNBOOK)"
+fi
 ensure_app_db_password
 
 on_failure() {

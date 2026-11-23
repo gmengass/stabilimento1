@@ -121,7 +121,7 @@ add_docker_apt_repo() {
 
 install_docker() {
 	step "Docker Engine"
-	sudo sh -c 'umask 022 && apt-get update -q && apt-get install -y -q ca-certificates curl git openssl gnupg'
+	sudo sh -c 'umask 022 && apt-get update -q && apt-get install -y -q ca-certificates curl git openssl gnupg openssh-client'
 	if command -v docker >/dev/null 2>&1 && ! systemctl cat docker.service >/dev/null 2>&1; then
 		die "a docker command without a docker service: Docker Desktop? Use Docker Engine (RUNBOOK A)"
 	fi

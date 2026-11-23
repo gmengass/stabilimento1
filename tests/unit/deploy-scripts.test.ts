@@ -142,6 +142,67 @@ describe("update.sh refusals", () => {
   });
 });
 
+describe("update.sh with signed release tags (opt-in)", () => {
+  const hasSshKeygen = spawnSync("ssh-keygen", ["-?"]).error === undefined;
+
+  function signingKey(name: string): { key: string; signers: string } {
+    const key = join(repo, "..", name);
+    spawnSync("ssh-keygen", ["-q", "-t", "ed25519", "-N", "", "-C", name, "-f", key]);
+    const publicKey = readFileSync(`${key}.pub`, "utf8").trim();
+    return { key, signers: `owner@club ${publicKey}\n` };
+  }
+
+  function signedRelease(tag: string, key: string): void {
+    writeFileSync(join(repo, "VERSION"), `${tag}\n`);
+    git("add", "-A");
+    git("commit", "-qm", tag);
+    git(
+      "-c",
+      "gpg.format=ssh",
+      "-c",
+      "gpg.ssh.program=ssh-keygen",
+      "-c",
+      `user.signingkey=${key}`,
+      "tag",
+      "-s",
+      "-m",
+      tag,
+      tag,
+    );
+  }
+
+  it.skipIf(!hasSshKeygen)("installs a tag signed by an allowed key", () => {
+    const owner = signingKey("owner");
+    signedRelease("v0.1.0", owner.key);
+    spawnSync("mkdir", ["-p", join(repo, ".deploy")]);
+    writeFileSync(join(repo, ".deploy", "allowed_signers"), owner.signers);
+    const result = run("update.sh", ["v0.1.0"]);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stderr).toMatch(/signature verified/);
+  });
+
+  it.skipIf(!hasSshKeygen)("refuses an unsigned tag or one signed by another key", () => {
+    const owner = signingKey("owner");
+    const stranger = signingKey("stranger");
+    signedRelease("v0.1.0", stranger.key);
+    spawnSync("mkdir", ["-p", join(repo, ".deploy")]);
+    writeFileSync(join(repo, ".deploy", "allowed_signers"), owner.signers);
+    for (const tag of ["v0.0.1", "v0.1.0"]) {
+      const result = run("update.sh", [tag]);
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toMatch(/not signed by a key in .*allowed_signers/);
+      expect(result.calls).toEqual([]);
+      expect(state("current")).toBeUndefined();
+    }
+  });
+
+  it("without allowed_signers installs as before, with a warning", () => {
+    const result = run("update.sh", ["v0.0.1"]);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toMatch(/release tags are not verified/);
+  });
+});
+
 describe("update.sh", () => {
   it("first install: no backup, migrates before starting, records the release", () => {
     const result = run("update.sh", ["v0.0.1"]);
