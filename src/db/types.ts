@@ -124,8 +124,8 @@ export interface CheckIn {
 export interface LoginFailure {
   failures: number;
   first_failed_at: Timestamp;
+  key: string;
   locked_until: Timestamp | null;
-  username: string;
 }
 
 export interface Season {

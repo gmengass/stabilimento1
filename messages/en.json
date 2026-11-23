@@ -28,7 +28,8 @@
     "submitting": "Logging in…",
     "errors": {
       "invalid": "Wrong username or password.",
-      "rateLimited": "Too many attempts. Wait a few minutes and try again.",
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "locked": "Too many wrong passwords for this username. Try again in 15 minutes, or ask an admin to unlock it.",
       "generic": "Something went wrong. Try again."
     }
   },

@@ -3,14 +3,19 @@
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
-type LoginError = "invalid" | "rateLimited" | "generic";
+type LoginError = "invalid" | "rateLimited" | "locked" | "generic";
 
 const TOO_MANY_REQUESTS = 429;
 
 // The API answers 401 for an unknown user, a wrong password and a disabled account alike.
-function errorFor(status: number): LoginError {
-  if (status === TOO_MANY_REQUESTS) return "rateLimited";
-  return status === 401 ? "invalid" : "generic";
+async function errorFor(response: Response): Promise<LoginError> {
+  if (response.status === TOO_MANY_REQUESTS) {
+    const body: unknown = await response.json().catch(() => null);
+    return (body as { code?: unknown } | null)?.code === "ACCOUNT_LOCKED"
+      ? "locked"
+      : "rateLimited";
+  }
+  return response.status === 401 ? "invalid" : "generic";
 }
 
 async function signIn(username: string, password: string): Promise<LoginError | null> {
@@ -20,7 +25,7 @@ async function signIn(username: string, password: string): Promise<LoginError | 
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-    return response.ok ? null : errorFor(response.status);
+    return response.ok ? null : await errorFor(response);
   } catch {
     return "generic";
   }

@@ -6,7 +6,7 @@ import type { DB } from "@/db/types";
 import type { Auth } from "@/lib/auth/auth";
 import { placeholderEmail } from "@/lib/auth/rules";
 import type { CurrentUser } from "@/lib/auth/session";
-import { LOCKOUT_FAILURES, recordFailure } from "@/lib/auth/lockout";
+import { FROM_ADDRESS, recordFailure } from "@/lib/auth/lockout";
 import { createStaff, listUsers, resetPassword, setDisabled, unlockSignIn } from "@/lib/auth/staff";
 import {
   addUser,
@@ -274,7 +274,7 @@ describe("setDisabled", () => {
 describe("resetPassword", () => {
   it("sets a new password, invalidates the old one and ends sessions", async () => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: staff.actor.id, password: NEW_PASSWORD }),
+      resetPassword(auth, db, admin.headers, { userId: staff.actor.id, password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: true });
 
     expect(await sessionCount(db, staff.actor.id)).toBe(0);
@@ -284,28 +284,30 @@ describe("resetPassword", () => {
 
   it.each(["nine-char", "x".repeat(129)])("rejects password %j as invalid", async (password) => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: staff.actor.id, password }),
+      resetPassword(auth, db, admin.headers, { userId: staff.actor.id, password }),
     ).resolves.toEqual({ ok: false, error: "invalid" });
     expect((await signIn(auth, "anna", STAFF_PASSWORD)).status).toBe(200);
   });
 
   it("is forbidden for a staff actor", async () => {
     await expect(
-      resetPassword(auth, staff.headers, { userId: admin.actor.id, password: NEW_PASSWORD }),
+      resetPassword(auth, db, staff.headers, { userId: admin.actor.id, password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: false, error: "forbidden" });
     expect((await signIn(auth, "boss", ADMIN_PASSWORD)).status).toBe(200);
   });
 
   it("reports an unknown user as notFound", async () => {
     await expect(
-      resetPassword(auth, admin.headers, { userId: "missing", password: NEW_PASSWORD }),
+      resetPassword(auth, db, admin.headers, { userId: "missing", password: NEW_PASSWORD }),
     ).resolves.toEqual({ ok: false, error: "notFound" });
   });
 });
 
 describe("unlockSignIn", () => {
   async function lockAnna() {
-    for (let i = 0; i < LOCKOUT_FAILURES; i++) await recordFailure(db, "anna");
+    for (let i = 0; i < FROM_ADDRESS.failures; i++) {
+      await recordFailure(db, "anna@10.0.0.9", FROM_ADDRESS);
+    }
   }
 
   it("shows the lock on the staff list and lets an admin lift it", async () => {
@@ -327,6 +329,16 @@ describe("unlockSignIn", () => {
     });
     const still = (await listUsers(db)).find((user) => user.username === "anna");
     expect(still?.lockedUntil).not.toBeNull();
+  });
+
+  it("is lifted by a password reset, so the new password works at once", async () => {
+    await lockAnna();
+    await resetPassword(auth, db, admin.headers, {
+      userId: staff.actor.id,
+      password: NEW_PASSWORD,
+    });
+    const after = (await listUsers(db)).find((user) => user.username === "anna");
+    expect(after?.lockedUntil).toBeNull();
   });
 
   it("refuses bad input and unknown accounts", async () => {

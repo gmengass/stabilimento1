@@ -107,6 +107,7 @@ export async function unlockSignIn(
     .executeTakeFirst();
   if (!user) return fail("notFound");
   await clearFailures(db, user.username);
+  console.info(`sign-in unlocked for ${user.username} by ${actor.username}`);
   return { ok: true };
 }
 
@@ -172,9 +173,13 @@ export async function setDisabled(
   });
 }
 
-/** Sets a new password and ends the user's sessions, so a lost tablet is logged out. */
+/**
+ * Sets a new password and ends the user's sessions, so a lost tablet is logged out. Lifts any
+ * sign-in lock too: the new password must work at once on every tablet.
+ */
 export async function resetPassword(
   auth: Auth,
+  db: Kysely<DB>,
   headers: Headers,
   input: unknown,
 ): Promise<StaffResult> {
@@ -183,8 +188,17 @@ export async function resetPassword(
   const { userId, password } = parsed.data;
   // Revoke first: if setting the password then fails, the lost tablet is still logged out
   // and the admin simply retries.
-  return run(async () => {
+  const result = await run(async () => {
     await auth.api.revokeUserSessions({ headers, body: { userId } });
     await auth.api.setUserPassword({ headers, body: { userId, newPassword: password } });
   });
+  if (result.ok) {
+    const user = await db
+      .selectFrom("user")
+      .select("username")
+      .where("id", "=", userId)
+      .executeTakeFirst();
+    if (user) await clearFailures(db, user.username);
+  }
+  return result;
 }

@@ -30,7 +30,7 @@ export async function setDisabledAction(input: unknown): Promise<StaffResult> {
 }
 
 export async function resetPasswordAction(input: unknown): Promise<StaffResult> {
-  return asAdmin((h) => staff.resetPassword(getAuth(), h, input));
+  return asAdmin((h) => staff.resetPassword(getAuth(), getDb(), h, input));
 }
 
 export async function unlockSignInAction(input: unknown): Promise<StaffResult> {

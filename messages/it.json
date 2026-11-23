@@ -28,7 +28,8 @@
     "submitting": "Accesso in corso…",
     "errors": {
       "invalid": "Nome utente o password errati.",
-      "rateLimited": "Troppi tentativi. Attendi qualche minuto e riprova.",
+      "rateLimited": "Troppi tentativi. Attendi un minuto e riprova.",
+      "locked": "Troppe password errate per questo utente. Riprova tra 15 minuti o chiedi a un amministratore di sbloccarlo.",
       "generic": "Qualcosa è andato storto. Riprova."
     }
   },
