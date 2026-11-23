@@ -244,7 +244,8 @@
       "released": "The holder released today: give the day back first.",
       "season": "Season passes are never freed at the hold time.",
       "invalidHold": "Enter a time like 13:30.",
-      "stock": "Not enough sunbeds or deckchairs in stock."
+      "stock": "Not enough sunbeds or deckchairs in stock.",
+      "rateLimited": "Too many actions in a short time. Wait a minute and try again."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -366,7 +367,8 @@
       "past": "Past days can't be booked.",
       "invalid": "Check the fields: 1 to 20 umbrellas, 0 or more sunbeds, and an end date on or after the start.",
       "forbidden": "Your session has ended. Log in again.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "rateLimited": "Too many actions in a short time. Wait a minute and try again."
     },
     "edited": "Your own choice: the umbrellas differ from the suggestion."
   },
@@ -407,7 +409,8 @@
       "takenNow": "Someone just booked one of these umbrellas. Check the map.",
       "generic": "Something went wrong. Try again.",
       "ended": "This booking has already ended: there is nothing left to undo.",
-      "started": "The dates of this booking have started, so the move can no longer be undone."
+      "started": "The dates of this booking have started, so the move can no longer be undone.",
+      "rateLimited": "Too many actions in a short time. Wait a minute and try again."
     },
     "move": "{user} moved the booking of {name}: {fromSpots} → {toSpots}, {dates}",
     "system": "System",
@@ -437,7 +440,8 @@
     "state": "{state, select, booked {Today: booked} checkedIn {Today: checked in} noShow {Today: no-show} released {Today: released} other {}}",
     "back": "← Back to the map",
     "kind": "{kind, select, day {Day booking} multi_day {Multi-day booking} season {Season pass} other {A booking}}",
-    "umbrellas": "{count, plural, one {Umbrella {numbers}} other {Umbrellas {numbers}}}"
+    "umbrellas": "{count, plural, one {Umbrella {numbers}} other {Umbrellas {numbers}}}",
+    "rateLimited": "Too many searches in a short time. Wait a minute and try again."
   },
   "acting": {
     "title": "Who is doing this?",

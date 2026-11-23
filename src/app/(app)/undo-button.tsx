@@ -14,6 +14,7 @@ type ErrorKey =
   | "started"
   | "undone"
   | "forbidden"
+  | "rateLimited"
   | "notFound"
   | "invalid"
   | "taken"
