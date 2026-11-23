@@ -116,6 +116,8 @@ compose_at "$current" exec -T db sh -c 'psql -U "$POSTGRES_USER" -d postgres -v 
 		alter database '"$SCRATCH_DB"' rename to \"$POSTGRES_DB\"; commit"' </dev/null >/dev/null ||
 	die "swapping in the restored database failed"
 scratch=
+# A backup made before ADR 0028, or on another box, has no grants for the app's account.
+compose_at "$current" run --rm migrate grant >/dev/null || die "granting the app's database account failed"
 compose_at "$current" up -d --no-deps app caddy
 wait_healthy "$current" || die "$current did not pass the health check after the restore"
 app_down=

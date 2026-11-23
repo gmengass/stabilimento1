@@ -56,6 +56,8 @@ describe("write_box_env", () => {
       ADMIN_PASSWORD: "",
     });
     expect(env.POSTGRES_PASSWORD).toMatch(/^[0-9a-f]{48}$/);
+    expect(env.APP_DB_PASSWORD).toMatch(/^[0-9a-f]{48}$/);
+    expect(env.APP_DB_PASSWORD).not.toBe(env.POSTGRES_PASSWORD);
     expect(env.AUTH_SECRET).toMatch(/^[0-9a-f]{64}$/);
     expect(parseEnv(env).TRUSTED_ORIGINS).toEqual(["https://192.168.1.10"]);
     expect(() => parseAuthEnv(env)).not.toThrow();
@@ -145,6 +147,34 @@ describe("set_env_value", () => {
     writeFileSync(join(dir, "f"), "A=1\n");
     expect(sh("set_env_value f A \"$(printf 'a\\nB=evil')\"").status).not.toBe(0);
     expect(readFileSync(join(dir, "f"), "utf8")).toBe("A=1\n");
+  });
+});
+
+describe("ensure_app_db_password (boxes set up before ADR 0028)", () => {
+  const ensure = () =>
+    sh(
+      `DEPLOY_ROOT=.; log() { echo "$*" >&2; }; ` +
+        `env_value() { sed -n "s/^$1=//p" .env | tail -n 1; }; ensure_app_db_password`,
+    );
+
+  it("adds a random password when .env has none", () => {
+    writeFileSync(join(dir, ".env"), "POSTGRES_PASSWORD=abc\n");
+    expect(ensure().status).toBe(0);
+    const env = readEnv(join(dir, ".env"));
+    expect(env.APP_DB_PASSWORD).toMatch(/^[0-9a-f]{48}$/);
+    expect(env.POSTGRES_PASSWORD).toBe("abc");
+  });
+
+  it("replaces the .env.example placeholder", () => {
+    writeFileSync(join(dir, ".env"), "APP_DB_PASSWORD=change-me-app-0123456789ab\n");
+    expect(ensure().status).toBe(0);
+    expect(readEnv(join(dir, ".env")).APP_DB_PASSWORD).toMatch(/^[0-9a-f]{48}$/);
+  });
+
+  it("keeps a password that is already set", () => {
+    writeFileSync(join(dir, ".env"), "APP_DB_PASSWORD=keep0this0one0please000000\n");
+    expect(ensure().status).toBe(0);
+    expect(readEnv(join(dir, ".env")).APP_DB_PASSWORD).toBe("keep0this0one0please000000");
   });
 });
 

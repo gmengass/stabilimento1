@@ -158,6 +158,15 @@ describe("update.sh", () => {
     expect(existsSync(join(repo, ".deploy", "lock"))).toBe(false);
   });
 
+  it("gives a box set up before ADR 0028 a password for the app's database account", () => {
+    expect(run("update.sh", ["v0.0.1"]).status).toBe(0);
+    const env = readFileSync(join(repo, ".env"), "utf8");
+    expect(env).toMatch(/^POSTGRES_PASSWORD=x$/m);
+    expect(env).toMatch(/^APP_DB_PASSWORD=[0-9a-f]{48}$/m);
+    expect(run("update.sh", ["v0.0.2"]).status).toBe(0);
+    expect(readFileSync(join(repo, ".env"), "utf8")).toBe(env);
+  });
+
   it("update: backup → build → stop app → migrate → start, then records both releases", () => {
     run("update.sh", ["v0.0.1"]);
     const result = run("update.sh", ["v0.0.2"]);

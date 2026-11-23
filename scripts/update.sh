@@ -6,6 +6,8 @@ set -eu
 DEPLOY_ROOT="${DEPLOY_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 # shellcheck source=scripts/lib/common.sh
 . "$(dirname "$0")/lib/common.sh"
+# shellcheck source=scripts/lib/box-env.sh
+. "$(dirname "$0")/lib/box-env.sh"
 reexec_from_copy update.sh "$@"
 
 tag=${1:-}
@@ -22,6 +24,7 @@ pending=$(read_state in-progress)
 [ "$current" != "$tag" ] || die "$tag is already installed"
 git fetch --quiet --tags origin || log "warning: git fetch failed, using local tags"
 git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || die "tag $tag not found"
+ensure_app_db_password
 
 on_failure() {
 	status=$?

@@ -44,8 +44,10 @@ write_box_env() {
 	# Browsers send lowercase origins; keep APP_URL and SITE_ADDRESS identical to them.
 	name=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
 	db_password=$(openssl rand -hex 24) || db_password=
+	app_db_password=$(openssl rand -hex 24) || app_db_password=
 	auth_secret=$(openssl rand -hex 32) || auth_secret=
-	[ ${#db_password} -eq 48 ] && [ ${#auth_secret} -eq 64 ] || die "openssl could not generate secrets"
+	[ ${#db_password} -eq 48 ] && [ ${#app_db_password} -eq 48 ] && [ ${#auth_secret} -eq 64 ] ||
+		die "openssl could not generate secrets"
 	draft="$file.draft"
 	(umask 077 && cp "$example" "$draft")
 	set_env_value "$draft" APP_URL "https://$name"
@@ -53,8 +55,19 @@ write_box_env() {
 	set_env_value "$draft" TRUSTED_ORIGINS "https://$ip"
 	set_env_value "$draft" DEFAULT_SNI "$ip"
 	set_env_value "$draft" POSTGRES_PASSWORD "$db_password"
+	set_env_value "$draft" APP_DB_PASSWORD "$app_db_password"
 	set_env_value "$draft" AUTH_SECRET "$auth_secret"
 	set_env_value "$draft" ADMIN_USERNAME ""
 	set_env_value "$draft" ADMIN_PASSWORD ""
 	mv "$draft" "$file"
+}
+
+# Adds a random APP_DB_PASSWORD to .env if it has none, or still has the .env.example one (boxes
+# set up before ADR 0028). The app role gets it at the next migration; nobody needs to know it.
+ensure_app_db_password() {
+	case $(env_value APP_DB_PASSWORD) in "" | change-me*) ;; *) return 0 ;; esac
+	eadp_password=$(openssl rand -hex 24) || eadp_password=
+	[ ${#eadp_password} -eq 48 ] || die "openssl could not generate APP_DB_PASSWORD"
+	set_env_value "$DEPLOY_ROOT/.env" APP_DB_PASSWORD "$eadp_password"
+	log "added APP_DB_PASSWORD to .env (the app's own database account, ADR 0028)"
 }

@@ -98,6 +98,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://booking:booking@localhost:5432/booking
+      APP_DB_PASSWORD: ci0only0app0password0123
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: ci-only-admin-password
@@ -109,8 +110,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run db:migrate && npm run db:seed-admin
-      - run: npm run test:e2e
+      - name: Migrate and seed as the owner (also creates the app's account, ADR 0028)
+        run: npm run db:migrate && npm run db:seed-admin
+      - name: End-to-end tests with the app on its own account, as on the box
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@localhost:5432/booking
       - name: Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -125,6 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-password
+      APP_DB_PASSWORD: ci0only0app0password0123
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: ci_admin
       ADMIN_PASSWORD: ci-only-admin-password
@@ -170,6 +176,20 @@ jobs:
           echo "$headers"
           echo "$headers" | grep -qi "^content-security-policy: default-src 'self';.*frame-ancestors 'none'"
           echo "$headers" | grep -qi '^x-frame-options: DENY'
+      - name: The app uses its own account, which is not a superuser (ADR 0028)
+        run: |
+          # The health check above already passed through this account.
+          docker compose exec -T app printenv DATABASE_URL | grep -q '^postgresql://booking_app:'
+          q() { docker compose exec -T db psql -U booking -d booking -tAc "$1"; }
+          test "$(q "select rolsuper or rolcreaterole or rolcreatedb from pg_roles where rolname = 'booking_app'")" = f
+      - name: Containers are hardened
+        run: |
+          for service in app caddy; do
+            id=$(docker compose ps -q "$service")
+            docker inspect -f '{{.HostConfig.SecurityOpt}} {{.HostConfig.CapDrop}}' "$id" | tee /dev/stderr |
+              grep -q 'no-new-privileges:true.*ALL'
+          done
+          test "$(docker inspect -f '{{.HostConfig.ReadonlyRootfs}}' "$(docker compose ps -q app)")" = true
       - name: App port is not published on the host
         run: "! curl -s --max-time 3 http://localhost:3000/health"
       - name: Caddy overwrites client IP headers (spoofed headers still hit the rate limit)

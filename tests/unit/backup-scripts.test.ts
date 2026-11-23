@@ -546,6 +546,8 @@ describe("restore-backup.sh", () => {
         'begin; alter database \\"$POSTGRES_DB\\" rename to booking_before_restore',
       ),
       indexOf(result.docker, 'alter database booking_restore_test rename to \\"$POSTGRES_DB\\"'),
+      // A backup from before ADR 0028 has no grants for the app's account.
+      indexOf(result.docker, "run --rm migrate grant"),
       indexOf(result.docker, "up -d --no-deps app caddy"),
       result.docker.findLastIndex((c) => c.includes("wget")),
     ]);
