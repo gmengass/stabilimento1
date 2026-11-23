@@ -145,6 +145,16 @@ while): `scripts/build-android.sh`.
   Then copy `~/secrets/stabilimento-android-key.tgz.gpg` off the box. Without the key, a new APK
   won't install over the old one: every tablet has to uninstall the app (and sign in again) first.
 
+**Club name and icon** (optional; without them the app is "Stabilimento" with a plain umbrella).
+They stay on the box, out of the public repository:
+- `ANDROID_APP_NAME` in `.env`: the name under the icon, e.g. `ANDROID_APP_NAME=Stabilimento Arturo`
+  (up to 30 letters, digits, spaces, `.`, `-` or `'`). Launchers cut long names short.
+- `ANDROID_ICON_DIR` in `.env`: the full path of a folder holding `foreground.png` (432x432, used on
+  Android 8 and later) and `legacy.png` (192x192, Android 7), e.g. `ANDROID_ICON_DIR=/home/<user>/branding`.
+  In `foreground.png`, keep the artwork inside the middle 264x264 circle: launchers crop the edges to
+  their own shape. `legacy.png` is shown as it is, so give it a round or transparent outline.
+- Then rebuild and install over the old app (below).
+
 **Install on each device:**
 1. Copy the APK by USB cable or stick. Don't send it through a chat app or email. With the stick
    back in the box, check `sha256sum` of the file on it against the APK SHA-256 the script printed.
@@ -170,7 +180,8 @@ while): `scripts/build-android.sh`.
 - A lost or stolen tablet: reset the tablet account's password the same way, at once.
 
 **Rebuild and install over the old app** after a new box or a new `caddy_data` (new root), a
-change to `APP_URL`, `TRUSTED_ORIGINS` or `REMOTE_URL`, or a change under `android/`. App releases
+change to `APP_URL`, `TRUSTED_ORIGINS`, `REMOTE_URL`, `ANDROID_APP_NAME` or the icon files, or a
+change under `android/`. App releases
 (`update.sh`) need no new APK. Keep the same signing key, and sign-ins and settings stay.
 
 ## Trusting the certificate on staff devices

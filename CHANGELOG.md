@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 ### Added
 - The sign-in page remembers the last username that signed in on the device (tablet app and
   browser) and asks only for the password. A failed sign-in is not remembered.
+- The tablet app has an icon, and the box can give it the club's own name and icon
+  (`ANDROID_APP_NAME`, `ANDROID_ICON_DIR` in `.env`; RUNBOOK "Club name and icon"). Rebuild the APK
+  to see it.
 
 ### Security
 - The app connects to the database with its own account, which can read and write the tables
