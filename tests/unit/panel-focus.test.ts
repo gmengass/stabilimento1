@@ -132,7 +132,6 @@ describe("booking panel as a phone sheet", () => {
     const view = renderBoard();
     fireEvent.click(tile(2));
     view.rerender(boardFor({}));
-    view.rerender(boardFor({}));
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(document.activeElement).not.toBe(document.body);
   });
@@ -175,24 +174,32 @@ describe("booking panel beside the map", () => {
     expect(document.activeElement).toBe(tile(1));
   });
 
-  it("returns focus to the tile when the booking is closed from its tile", () => {
-    setPhone(false);
-    renderBoard();
-    fireEvent.click(tile(2), keyboard);
-    tile(2).focus();
-    fireEvent.click(tile(2), keyboard);
-    expect(screen.queryByRole("complementary")).toBeNull();
-    expect(document.activeElement).toBe(tile(2));
-  });
-
   it("gives focus back to the tile when the panel it was in disappears", () => {
     setPhone(false);
     const view = renderBoard();
     fireEvent.click(tile(2), keyboard);
-    view.rerender(boardFor({}));
+    expect(document.activeElement).toBe(screen.getByRole("complementary"));
     view.rerender(boardFor({}));
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(document.activeElement).toBe(tile(2));
+  });
+
+  it("leaves focus on the page when it was never in the panel (Safari doesn't focus taps)", () => {
+    setPhone(false);
+    const view = renderBoard();
+    fireEvent.click(tile(2), pointer);
+    expect(document.activeElement).toBe(document.body);
+    view.rerender(boardFor({}));
+    expect(screen.queryByRole("complementary")).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("does not move focus when Quick book is tapped", () => {
+    setPhone(false);
+    renderBoard();
+    fireEvent.click(screen.getByTestId("quick-book-open"), pointer);
+    expect(screen.getByRole("complementary")).toBeTruthy();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it("leaves focus alone when it is elsewhere as the panel disappears", () => {
@@ -200,7 +207,6 @@ describe("booking panel beside the map", () => {
     const view = renderBoard({ 2: booking });
     fireEvent.click(tile(2), pointer);
     tile(1).focus();
-    view.rerender(boardFor({}));
     view.rerender(boardFor({}));
     expect(document.activeElement).toBe(tile(1));
   });

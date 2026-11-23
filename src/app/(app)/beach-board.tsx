@@ -74,6 +74,7 @@ export function BeachBoard({
   const mapArea = useRef<HTMLDivElement>(null);
   const lastSpotId = useRef<number | null>(null);
   const openedByKeyboard = useRef(false);
+  const focusWasInPanel = useRef(false);
   const sheet = useRef<HTMLElement>(null);
   const contentId = useId();
   const ts = useTranslations("sheet");
@@ -330,7 +331,8 @@ export function BeachBoard({
             index={pickIndex}
             edited={!asSuggested}
             onAnother={() => showSuggestion(pick, (pickIndex + 1) % pick.suggestions.length)}
-            onChange={() => {
+            onChange={(viaKeyboard) => {
+              openedByKeyboard.current = viaKeyboard;
               setSelected([]);
               setQuickForm(true);
             }}
@@ -403,12 +405,24 @@ export function BeachBoard({
     (tile ?? quickBookButton.current)?.focus();
   }
 
+  // Where focus last landed. A removed element fires no focusin, so this still says "the panel"
+  // after the panel is gone. Safari doesn't focus tapped buttons, so <body> alone proves nothing.
+  useEffect(() => {
+    const track = (event: FocusEvent) => {
+      focusWasInPanel.current = sheet.current?.contains(event.target as Node) ?? false;
+    };
+    document.addEventListener("focusin", track);
+    return () => document.removeEventListener("focusin", track);
+  }, []);
+
   // However the panel goes away (Close, Escape, the booking vanishing, another day), focus does not
-  // fall to the page. Beside the map, focus elsewhere on the page stays where it is.
+  // fall to the page. Beside the map, only focus that was in the panel comes back; a tablet
+  // scrolled elsewhere stays where it is.
   const wasSheetOpen = useRef(false);
   useEffect(() => {
     const focusLost = document.activeElement === document.body || document.activeElement === null;
-    if (wasSheetOpen.current && !sheetOpen && (window.matchMedia(PHONE).matches || focusLost))
+    const lostFromPanel = focusLost && focusWasInPanel.current;
+    if (wasSheetOpen.current && !sheetOpen && (window.matchMedia(PHONE).matches || lostFromPanel))
       returnFocus();
     wasSheetOpen.current = sheetOpen;
   }, [sheetOpen]);

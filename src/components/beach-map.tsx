@@ -40,7 +40,10 @@ interface Props {
   badgeOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
   /** A short mark in the other top corner: sunbeds or deckchairs beyond the default (ADR 0023). */
   extrasOf?: (spot: MapSpot) => { text: string; label: string } | undefined;
-  /** `viaKeyboard`: the tile was activated with Enter or Space, not tapped or clicked. */
+  /**
+   * `viaKeyboard`: activated with Enter or Space (click `detail` 0), not tapped or clicked. Assistive
+   * tech and `element.click()` give detail 0 too; they want the same focus handling.
+   */
   onSpotClick: (spot: MapSpot, viaKeyboard: boolean) => void;
 }
 

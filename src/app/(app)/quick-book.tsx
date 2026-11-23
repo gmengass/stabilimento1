@@ -254,7 +254,8 @@ interface BarProps {
   /** Staff changed the umbrellas on the map, or one was booked elsewhere meanwhile. */
   edited: boolean;
   onAnother: () => void;
-  onChange: () => void;
+  /** `viaKeyboard`: see `onSpotClick` in beach-map.tsx. */
+  onChange: (viaKeyboard: boolean) => void;
 }
 
 /** Which suggestion is on the map, how it is laid out, and the way to the next one. */
@@ -303,7 +304,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
         )}
         <button
           type="button"
-          onClick={onChange}
+          onClick={(event) => onChange(event.detail === 0)}
           className="min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2"
         >
           {t("change")}
