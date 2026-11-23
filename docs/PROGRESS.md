@@ -1,10 +1,11 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #84 (2026-11-23). #83 and #84 are merged but not tagged: the next tag
+- `main` is at the merge of #90 (2026-11-23). #83 and #84 are merged but not tagged: the next tag
   (`v0.16.0`) holds both. `v0.15.0` is the last release and is deployed on the box. Backups are
-  not set up on the box yet. Open PRs: only Dependabot #85–#88 (CI actions, Android Gradle plugin
-  9.x; PR state can be checked via REST from sessions).
+  not set up on the box yet. Open PRs: Dependabot #85–#89, #91–#94; #89 (Postgres 17→19 needs a
+  dump/restore) and #94 (Node 26 vs `.nvmrc` 24) need an owner decision. `fix/a11y-keyboard`
+  (keyboard e2e, tablet panel focus, `PageMain`) is open as a PR.
 - Box update to v0.16.0: first add `APP_DATABASE_URL` to `.env` (one-liner in CHANGELOG / RUNBOOK
   "Update"), then rebuild the APK (it now trusts the club root only). Migration `0015` adds a table.
 ## Done this session
