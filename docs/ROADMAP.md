@@ -70,6 +70,8 @@ Each item ships something staff can use on the box.
       merged: #83, #84, ADRs 0027/0028, plan `docs/plans/security-fixes.md`. Still open, waiting
       on owner decisions: customer data retention/erasure (GDPR ADR) and masking phones on the
       map and in search, which closes the last Medium)
+- [ ] Communal tablets: session length and tablet design, `via_user_id` on audit entries (owner
+      decisions 3 and 4 in `docs/plans/security-fixes.md`; amends ADR 0025)
 - [x] Accessibility pass: keyboard, contrast, focus, target size, zoom; screen readers out of scope
       (owner, 2026-11-21, PR #80)
 - [ ] Self-hosting docs (Docker)
