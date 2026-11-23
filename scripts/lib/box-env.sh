@@ -48,6 +48,7 @@ write_box_env() {
 	auth_secret=$(openssl rand -hex 32) || auth_secret=
 	[ ${#db_password} -eq 48 ] && [ ${#app_db_password} -eq 48 ] && [ ${#auth_secret} -eq 64 ] ||
 		die "openssl could not generate secrets"
+	db_name=$(sed -n 's/^POSTGRES_DB=//p' "$example" | tail -n 1)
 	draft="$file.draft"
 	(umask 077 && cp "$example" "$draft")
 	set_env_value "$draft" APP_URL "https://$name"
@@ -55,19 +56,27 @@ write_box_env() {
 	set_env_value "$draft" TRUSTED_ORIGINS "https://$ip"
 	set_env_value "$draft" DEFAULT_SNI "$ip"
 	set_env_value "$draft" POSTGRES_PASSWORD "$db_password"
-	set_env_value "$draft" APP_DB_PASSWORD "$app_db_password"
+	set_env_value "$draft" APP_DATABASE_URL "$(app_database_url "${db_name:-booking}" "$app_db_password")"
 	set_env_value "$draft" AUTH_SECRET "$auth_secret"
 	set_env_value "$draft" ADMIN_USERNAME ""
 	set_env_value "$draft" ADMIN_PASSWORD ""
 	mv "$draft" "$file"
 }
 
-# Adds a random APP_DB_PASSWORD to .env if it has none, or still has the .env.example one (boxes
-# set up before ADR 0028). The app role gets it at the next migration; nobody needs to know it.
-ensure_app_db_password() {
-	case $(env_value APP_DB_PASSWORD) in "" | change-me*) ;; *) return 0 ;; esac
-	eadp_password=$(openssl rand -hex 24) || eadp_password=
-	[ ${#eadp_password} -eq 48 ] || die "openssl could not generate APP_DB_PASSWORD"
-	set_env_value "$DEPLOY_ROOT/.env" APP_DB_PASSWORD "$eadp_password"
-	log "added APP_DB_PASSWORD to .env (the app's own database account, ADR 0028)"
+# The app's own connection string (ADR 0028) for database $1 with password $2.
+app_database_url() { printf 'postgresql://%s_app:%s@db:5432/%s' "$1" "$2" "$1"; }
+
+# Gives .env an APP_DATABASE_URL with a random password if it has none, or one that doesn't fit
+# its database (boxes set up before ADR 0028, a hand edit). The account gets the password at
+# the next migration; nobody needs to know it.
+ensure_app_database_url() {
+	eadu_db=$(env_value POSTGRES_DB)
+	eadu_db=${eadu_db:-booking}
+	printf '%s\n' "$(env_value APP_DATABASE_URL)" |
+		grep -Eqx "postgresql://${eadu_db}_app:[A-Za-z0-9_-]{24,128}@db:5432/${eadu_db}" &&
+		! env_value APP_DATABASE_URL | grep -q ':change-me' && return 0
+	eadu_password=$(openssl rand -hex 24) || eadu_password=
+	[ ${#eadu_password} -eq 48 ] || die "openssl could not generate a database password"
+	set_env_value "$DEPLOY_ROOT/.env" APP_DATABASE_URL "$(app_database_url "$eadu_db" "$eadu_password")"
+	log "set APP_DATABASE_URL in .env (the app's own database account, ADR 0028)"
 }

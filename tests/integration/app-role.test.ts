@@ -1,5 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
 import { appRoleName, grantAppRole } from "@/db/app-role";
 import { createDb, getDb } from "@/db/client";
 import { runMigrations } from "@/db/migrator";
@@ -16,7 +17,8 @@ beforeAll(async () => {
   owner = createDb(testDatabaseUrl());
   const result = await runMigrations(owner, "up");
   if (result.error) throw result.error;
-  role = await grantAppRole(owner, PASSWORD);
+  role = appRoleName(new URL(testDatabaseUrl()).pathname.slice(1));
+  await grantAppRole(owner, { user: role, password: PASSWORD });
   const url = new URL(testDatabaseUrl());
   url.username = role;
   url.password = PASSWORD;
@@ -87,14 +89,53 @@ describe("the app's database role (ADR 0028)", () => {
 
   it("can be granted again without changes or errors", async () => {
     await expect(grantAppRole(owner)).resolves.toBe(role);
-    await expect(grantAppRole(owner, PASSWORD)).resolves.toBe(role);
+    await expect(grantAppRole(owner, { user: role, password: PASSWORD })).resolves.toBe(role);
     await sql`select 1`.execute(app);
   });
 
-  it("refuses a password that can't be inlined safely", async () => {
-    await expect(grantAppRole(owner, "short")).rejects.toThrow(/APP_DB_PASSWORD/);
-    await expect(grantAppRole(owner, `${"a".repeat(24)}' superuser --`)).rejects.toThrow(
-      /APP_DB_PASSWORD/,
+  it("refuses an account named for another database", async () => {
+    await expect(grantAppRole(owner, { user: "other_app", password: PASSWORD })).rejects.toThrow(
+      /must use the user/,
     );
+  });
+
+  it("appends to the audit trail and marks entries undone, but never rewrites or deletes it", async () => {
+    await sql`update audit_log set undone_by_id = null where false`.execute(app);
+    await refused(sql`update audit_log set action = action where false`.execute(app));
+    await refused(sql`delete from audit_log where false`.execute(app));
+    await refused(sql`truncate audit_log`.execute(app));
+  });
+
+  it("can't make temp tables", async () => {
+    await refused(sql`create temp table app_role_temp (id int)`.execute(app));
+  });
+});
+
+describe("migrate.ts with APP_DATABASE_URL", () => {
+  const migrate = (command: string, appUrl: string) =>
+    spawnSync("node", ["--import", "tsx", "src/db/migrate.ts", command], {
+      encoding: "utf8",
+      env: { ...process.env, DATABASE_URL: testDatabaseUrl(), APP_DATABASE_URL: appUrl },
+    });
+  const appUrl = (password: string) => {
+    const url = new URL(testDatabaseUrl());
+    url.username = role;
+    url.password = password;
+    return url.toString();
+  };
+
+  it("grants the account and sets its password", () => {
+    const result = migrate("grant", appUrl(PASSWORD));
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain(`granted ${role}`);
+  });
+
+  it("refuses the .env.example password or a short one before touching the database", () => {
+    for (const password of ["change-me-app-0123456789ab", "short"]) {
+      const result = migrate("up", appUrl(password));
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toMatch(/APP_DATABASE_URL/);
+      expect(result.stdout).not.toMatch(/granted|Nothing to do/);
+    }
   });
 });

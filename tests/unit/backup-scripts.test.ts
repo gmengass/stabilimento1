@@ -498,8 +498,10 @@ describe("restore-backup.sh", () => {
     expect(result.stderr).toMatch(/restore test OK/);
     expect(result.restoreInput).toBe("DUMPDATA");
     expectInOrder([
+      // Creates <db>_app first: newer dumps grant to it (ADR 0028).
+      indexOf(result.docker, "psql", "-d postgres"),
       indexOf(result.docker, "pg_restore", "booking_restore_test"),
-      indexOf(result.docker, "psql"),
+      indexOf(result.docker, "kysely_migration"),
       result.docker.findLastIndex(
         (c) => c.includes("dropdb") && c.includes("booking_restore_test"),
       ),

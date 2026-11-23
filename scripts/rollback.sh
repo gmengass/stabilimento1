@@ -5,6 +5,8 @@ set -eu
 DEPLOY_ROOT="${DEPLOY_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 # shellcheck source=scripts/lib/common.sh
 . "$(dirname "$0")/lib/common.sh"
+# shellcheck source=scripts/lib/backup.sh
+. "$(dirname "$0")/lib/backup.sh"
 reexec_from_copy rollback.sh "$@"
 
 require_env_file
@@ -34,6 +36,11 @@ compose_at "$previous" stop app
 # shellcheck disable=SC2016 # expanded inside the db container
 compose_at "$previous" exec -T db sh -c \
 	'dropdb -U "$POSTGRES_USER" --force "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB"'
+rollback_psql() {
+	# shellcheck disable=SC2016 # expanded inside the db container
+	compose_at "$previous" exec -T db sh -c 'psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 -q' >/dev/null
+}
+ensure_app_role rollback_psql
 # shellcheck disable=SC2016 # expanded inside the db container
 compose_at "$previous" exec -T db sh -c \
 	'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --exit-on-error' <"$dump"

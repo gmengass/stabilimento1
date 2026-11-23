@@ -12,8 +12,10 @@ x-node-hardening: &node-hardening
   security_opt: ["no-new-privileges:true"]
   cap_drop: [ALL]
 
-# The app connects as <db>_app: tables only, no schema, roles or files (ADR 0028). Migrations
-# and seed-admin use the owner, which also creates that role and sets its password.
+# The app connects as <db>_app (APP_DATABASE_URL): tables only, no schema, roles or files
+# (ADR 0028). Migrations and seed-admin use the owner, which also creates that account and sets
+# its password. Without APP_DATABASE_URL (a box not yet updated, or a dev .env) the app keeps the
+# owner account, so the update that brings this in can't fail on a missing setting.
 x-owner-url: &owner-url postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}
 
 services:
@@ -43,7 +45,7 @@ services:
     image: stabilimento-migrate:${APP_VERSION:-dev}
     environment:
       DATABASE_URL: *owner-url
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env (scripts/update.sh adds it)}
+      APP_DATABASE_URL: ${APP_DATABASE_URL:-}
     depends_on:
       db: { condition: service_healthy }
 
@@ -69,11 +71,15 @@ services:
     build: { context: ., target: runner }
     image: stabilimento-app:${APP_VERSION:-dev}
     restart: unless-stopped
-    # The release's files never change at run time; Next may write its cache, Node temp files.
+    # The release's files never change at run time. Writable: Node's temp files, Next's cache and
+    # its route cache (revalidatePath writes there: all 85 e2e specs pass with only these three).
     read_only: true
-    tmpfs: ["/tmp:mode=1777", "/app/.next/cache:uid=1000,gid=1000,mode=0700"]
+    tmpfs:
+      - /tmp:mode=1777,size=64m,noexec,nosuid
+      - /app/.next/cache:uid=1000,gid=1000,mode=0700,size=128m,noexec,nosuid
+      - /app/.next/server/route-cache:uid=1000,gid=1000,mode=0700,size=64m,noexec,nosuid
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_DB:-booking}_app:${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env (scripts/update.sh adds it)}@db:5432/${POSTGRES_DB:-booking}
+      DATABASE_URL: ${APP_DATABASE_URL:-postgresql://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-booking}}
       APP_URL: ${APP_URL:?set APP_URL in .env}
       TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}

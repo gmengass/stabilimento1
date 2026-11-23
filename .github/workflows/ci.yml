@@ -98,7 +98,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://booking:booking@localhost:5432/booking
-      APP_DB_PASSWORD: ci0only0app0password0123
+      APP_DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@localhost:5432/booking
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: ci-only-admin-password
@@ -115,7 +115,7 @@ jobs:
       - name: End-to-end tests with the app on its own account, as on the box
         run: npm run test:e2e
         env:
-          DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@localhost:5432/booking
+          DATABASE_URL: ${{ env.APP_DATABASE_URL }}
       - name: Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-password
-      APP_DB_PASSWORD: ci0only0app0password0123
+      APP_DATABASE_URL: postgresql://booking_app:ci0only0app0password0123@db:5432/booking
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef
       ADMIN_USERNAME: ci_admin
       ADMIN_PASSWORD: ci-only-admin-password
@@ -142,6 +142,11 @@ jobs:
       - name: Validate compose file and Caddyfile
         run: |
           docker compose config -q
+          # Without APP_DATABASE_URL (a box mid-update, a dev .env) the app keeps the owner account.
+          env -u APP_DATABASE_URL docker compose config --format json |
+            jq -er '.services.app.environment.DATABASE_URL | startswith("postgresql://booking:")'
+          docker compose config --format json |
+            jq -er '.services.app.environment.DATABASE_URL | startswith("postgresql://booking_app:")'
           docker compose run --rm --no-deps --entrypoint caddy caddy validate --config /etc/caddy/Caddyfile
       - name: Build images
         run: |
