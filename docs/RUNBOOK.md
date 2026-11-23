@@ -328,7 +328,7 @@ reminder in your calendar.
      ```sh
      install -d -m 700 ~/secrets
      export GPG_TTY=$(tty)
-     docker run --rm -v stabilimento_caddy_data:/d:ro caddy:2.10-alpine tar czf - -C /d . |
+     docker run --rm -v stabilimento_caddy_data:/d:ro caddy:2.11-alpine tar czf - -C /d . |
        gpg --symmetric --output ~/secrets/caddy_data.tgz.gpg
      ```
    - On the new box, before the first install:
@@ -336,7 +336,7 @@ reminder in your calendar.
      docker volume create stabilimento_caddy_data
      export GPG_TTY=$(tty)
      gpg -d caddy_data.tgz.gpg |
-       docker run --rm -i -v stabilimento_caddy_data:/d caddy:2.10-alpine tar xzf - -C /d
+       docker run --rm -i -v stabilimento_caddy_data:/d caddy:2.11-alpine tar xzf - -C /d
      ```
    - Without it, every device has to trust the new root, and the Android app needs rebuilding.
    - Restore the Android signing key too: `install -d -m 700 ~/secrets`,
