@@ -27,6 +27,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   right-to-left override can't disguise a name).
 
 ### Fixed
+- Keyboard: on tablets and computers, opening a booking or Quick book with Enter moves focus into
+  the panel, and focus goes back to the umbrella when it closes. "Skip to content" works on the map.
 - Shared tablets: when the person acting changes or goes idle, the Undo buttons follow at once;
   the "Who is doing this?" names are reloaded, so a disabled person isn't offered; each tablet
   keeps its own language; many tablets no longer run out of live-map connections.
