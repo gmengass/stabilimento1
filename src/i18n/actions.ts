@@ -12,7 +12,7 @@ export type SetLocaleResult = { ok: true } | { ok: false };
 
 /**
  * Saves the interface language in the `locale` cookie and, when logged in, on the user; a
- * communal account keeps it per tablet, in the cookie only (ADR 0025).
+ * communal account keeps it per tablet, in the cookie only (ADR 0027).
  */
 export async function setLocale(input: unknown): Promise<SetLocaleResult> {
   const parsed = localeSchema.safeParse(input);

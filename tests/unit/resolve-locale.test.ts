@@ -37,7 +37,7 @@ describe("savedLocale", () => {
     expect(savedLocale({ locale: "en", communal: false })).toBe("en");
   });
 
-  it("is nothing for a communal account, so each tablet's cookie decides (ADR 0025)", () => {
+  it("is nothing for a communal account, so each tablet's cookie decides (ADR 0027)", () => {
     expect(savedLocale({ locale: "en", communal: true })).toBeNull();
   });
 

@@ -6,7 +6,7 @@ import { createLiveStream } from "@/lib/live/sse";
 
 /**
  * Open streams one user may hold: a few tablets, phones and tabs, not a runaway client. A
- * communal account is shared by every tablet, so its limit is per tablet session (ADR 0025).
+ * communal account is shared by every tablet, so its limit is per tablet session (ADR 0027).
  */
 export const MAX_STREAMS_PER_USER = 10;
 const RETRY_AFTER_SECONDS = 30;

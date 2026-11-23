@@ -348,10 +348,13 @@ reminder in your calendar.
   should print `: connected` at once, `: ping` every 25 s, and `event: changed` within a
   second of any booking. 401 means the cookie is wrong; nothing at all means something buffers
   the stream (check `deploy/Caddyfile` still skips `encode` for `/api/live`).
-- **"Too many failed sign-ins"**: 10 wrong passwords for one username within 15 minutes lock it
-  for 15 minutes, even with the right password. The staff page shows the lock; an admin can lift
-  it with "Unlock sign-in". Many locks you can't explain mean someone is guessing: check
-  `docker compose logs app | grep "sign-in locked"`.
+- **"Too many wrong passwords for this username"**: 10 wrong passwords for one username from one
+  device within 15 minutes lock it on that device for 15 minutes (100 from all devices lock it
+  everywhere), even with the right password. The staff page shows the lock; an admin can lift it
+  with "Unlock sign-in" or by resetting the password. Locked out of every admin account:
+  `docker compose exec db psql -U booking -c "delete from login_failure"`. Many locks you can't
+  explain mean someone is guessing: `docker compose logs app | grep "sign-in locked"`.
 - **"Too many actions" or "Too many searches"**: one tablet or account went over 60 booking actions
-  or 30 searches in a minute. It clears by itself after a minute.
+  or 30 searches in a minute (or 400 searches in a day). It clears by itself. If every tablet sees
+  it at once, the app sees one address for all of them: check client IPs (Android app section).
 - **Logs**: `docker compose logs --tail 200 app caddy db`.

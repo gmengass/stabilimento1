@@ -5,7 +5,13 @@ Sources: Opus re-audit (security agent, 2026-11-23) and Opus review of communal 
 (reviewer agent, 2026-11-23). They replace the 2026-11-20 audit notes in PROGRESS.
 No Critical or High findings. `npm audit --omit=dev`: 0.
 
-## Batch 1: code fixes, no owner decision needed
+## Batch 1: code fixes, no owner decision needed (done on this branch)
+Status 2026-11-23: all 13 done; reviewer and security agents re-checked the branch; unit,
+integration and all 85 e2e specs pass locally (system Chrome). Their follow-ups are in:
+lockout per username *and* address (one device can't lock others out), reset lifts a lock,
+full CSP in `next.config.ts`, invisible characters, daily search cap, bounded limiter memory,
+pop-up reloads its names, ADR 0027. Still open from that review: see "Not closed by Batch 1".
+
 | # | Sev | Finding | Fix |
 |---|-----|---------|-----|
 | 1 | Med | `0013_communal.ts:23` `down` leaves 30-day communal sessions alive; their actions then record the tablet account | Delete communal users' sessions before dropping the column; rollback test with a live communal session |
@@ -16,11 +22,20 @@ No Critical or High findings. `npm audit --omit=dev`: 0.
 | 6 | Low | `setLocale` (`i18n/actions.ts:21`) saves one tablet's language for every tablet | Skip the DB write for communal users |
 | 7 | Low | Live streams limited to 10 per user (`api/live/route.ts:8`): many tablets on one communal account get 429 | Count per session for communal accounts |
 | 8 | Low | Name and notes accept NUL/control chars (`bookings.ts:29,31`): 500 and customer data in logs | Strip `\p{Cc}` in the schema, as `search.ts` does |
-| 9 | Low | Login limited per IP only (`auth.ts:128`) | Per-username counter |
-| 10 | Low | No CSP (`deploy/Caddyfile`) | Baseline CSP: `default-src 'self'; frame-ancestors 'none'; object-src 'none'` (nonce later if needed) |
+| 9 | Low | Login limited per IP only (`auth.ts:128`) | Lockout per username and address (ADR 0027) |
+| 10 | Low | No CSP (`deploy/Caddyfile`) | CSP in `next.config.ts` (`'unsafe-inline'` scripts until nonces) |
 | 11 | Low | Picking a person races with disabling them (`staff.ts:133`, `acting.ts:61`) | `for share` lock on the user row in `chooseActing` |
 | 12 | — | Test gaps: `acting.test.ts:299` proves nothing; no e2e for communal → `/admin/*`, "Not me", disabling the acting person | Server-side test that `communal: true` is ignored; e2e specs (run in CI) |
 | 13 | — | 7 moderate dev-only `npm audit` (minimatch) | `npm audit fix` (chore commit) |
+
+## Not closed by Batch 1
+- Med: the map sends every occupant's name, phone and notes for any `?date=`, unthrottled (live
+  refresh reloads it every few seconds, so a per-minute limit would break the live map). Fix
+  with owner decision 2: no phone or notes in the map data; the panel loads them per booking
+  through a rate-limited action. With masking, search can drop phones too.
+- Low: parallel sign-ins can pass the lock check together before any failure is counted
+  (bounded by 5 a minute per address). Counting in the before-hook would close it.
+- Low: per-address keys assume Caddy sees real client addresses; check on the box (RUNBOOK).
 
 ## Batch 2: infrastructure (risky, `/checkpoint` first; RUNBOOK steps for the owner)
 - Med: the app connects to Postgres as superuser (`docker-compose.yml:58`). Add a DML-only app
@@ -37,7 +52,8 @@ No Critical or High findings. `npm audit --omit=dev`: 0.
 1. **GDPR retention** (Med, new ADR): anonymise name, phone and notes N months after a
    booking's last day? Admin erase/export per customer? Limit staff to browsing past dates
    for how long?
-2. **Phone masking** in search results and on the map (e.g. `•••• 1234`, full number on tap).
+2. **Phone masking** in search results and on the map (e.g. `•••• 1234`, full number on tap),
+   and how far back staff may browse past dates. Closes the Medium above.
 3. **Communal session length**: keep 30 days, or 7 days with a "renew" button for the admin.
 4. **Tablet design** (amends ADR 0025): record the tablet on each audit entry (`via_user_id`)
    and an optional "on duty today" list for the pop-up (cheap, recommended now); a per-person

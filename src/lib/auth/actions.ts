@@ -8,7 +8,7 @@ import { getCurrentUser } from "./session";
 
 /**
  * Ends the session. The locale cookie keeps the user's language on the login page; a communal
- * tablet's cookie already holds its own language (ADR 0025).
+ * tablet's cookie already holds its own language (ADR 0027).
  */
 export async function logout(): Promise<never> {
   const user = await getCurrentUser();
