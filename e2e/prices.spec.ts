@@ -80,7 +80,11 @@ test("a booking shows its suggested price and can be marked paid, then undone", 
   await expect(panel).toHaveCount(0);
 
   const label = page.locator("span[aria-hidden]", { hasText: new RegExp(`^${number}$`) });
-  await page.getByTestId("beach-map").locator("ol button", { has: label }).click();
+  const tile = page.getByTestId("beach-map").locator("ol button", { has: label });
+  // Wait for the map to show the booking: a live update from another worker can otherwise leave
+  // the tile looking free, and the click would start a new booking instead.
+  await expect(tile.locator("span.truncate")).toHaveText(customer);
+  await tile.click();
   // An umbrella and its 2 sunbeds for 2 days: one bundle at the 2-day price.
   await expect(panel.getByTestId("suggested-price")).toHaveText(/57[.,]50/);
   await expect(panel.getByTestId("price-discount")).toBeVisible();

@@ -30,19 +30,40 @@ const style = (page: Page, selector: string) =>
       };
     });
 
-async function openNewBooking(page: Page, day: string) {
+// Parallel workers' bookings reach this page as live updates: pick a free umbrella (one with no
+// name on it, so a retry never reuses its own booking) and wait for the map to show a booking
+// before opening it, or the click lands on a stale free tile. Selectors avoid translated text.
+const map = (page: Page) => page.getByTestId("beach-map");
+const spot = (page: Page, number: string) =>
+  map(page).locator("ol button", {
+    has: page.locator("span[aria-hidden]", { hasText: new RegExp(`^${number}$`) }),
+  });
+
+async function openNewBooking(page: Page, day: string): Promise<string> {
   await page.goto(`/?date=${day}`);
-  await page.getByTestId("beach-map").locator("ol button").first().click();
-  await page.locator("aside").waitFor();
+  const free = map(page)
+    .locator("ol button", { hasNot: page.locator("span.truncate") })
+    .first();
+  const number = (await free.locator("span[aria-hidden]").first().innerText()).trim();
+  await spot(page, number).click();
+  await page.locator('aside input[name="customerName"]').waitFor();
+  return number;
 }
 
-async function bookAndOpen(page: Page, day: string) {
-  await openNewBooking(page, day);
-  await page.locator('aside input[name="customerName"]').fill(`Panel ${Date.now()}`);
+async function openBooking(page: Page, number: string, customer: string) {
+  await expect(spot(page, number).locator("span.truncate")).toHaveText(customer);
+  await spot(page, number).click();
+  await expect(page.getByTestId("move-open")).toBeVisible();
+}
+
+async function bookAndOpen(page: Page, day: string): Promise<string> {
+  const number = await openNewBooking(page, day);
+  const customer = `Panel ${Date.now()}`;
+  await page.locator('aside input[name="customerName"]').fill(customer);
   await page.locator('aside form button[type="submit"]').click();
   await expect(page.locator("aside")).toHaveCount(0);
-  await page.getByTestId("beach-map").locator("ol button").first().click();
-  await page.locator("aside").waitFor();
+  await openBooking(page, number, customer);
+  return customer;
 }
 
 test("arturo: green band, white panel, orange main button, green outlined buttons", async ({
@@ -131,11 +152,20 @@ for (const theme of ["dark", "system"]) {
 
 test("arturo: the band's Close closes every panel", async ({ page, context, baseURL }) => {
   await useTheme(context, baseURL, "arturo");
-  await bookAndOpen(page, "2097-08-07");
+  const number = await openNewBooking(page, "2097-08-07");
+  await page.locator("[data-sheet-close]").click();
+  await expect(page.locator("aside")).toHaveCount(0);
+  await spot(page, number).click();
+  const customer = `Panel ${Date.now()}`;
+  await page.locator('aside input[name="customerName"]').fill(customer);
+  await page.locator('aside form button[type="submit"]').click();
+  await expect(page.locator("aside")).toHaveCount(0);
+
+  await openBooking(page, number, customer);
   await page.locator("[data-sheet-close]").click();
   await expect(page.locator("aside")).toHaveCount(0);
 
-  await page.getByTestId("beach-map").locator("ol button").first().click();
+  await spot(page, number).click();
   await page.getByTestId("move-open").click();
   await page.getByTestId("move-form").waitFor();
   await page.locator("[data-sheet-close]").click();
