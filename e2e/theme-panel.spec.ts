@@ -90,8 +90,8 @@ test("sera: night panel, same band, orange main button, red cancel", async ({
 }) => {
   await useTheme(context, baseURL, "sera");
   await bookAndOpen(page, "2097-08-03");
-  expect((await style(page, "[data-panel-band]")).background).toBe(GREEN);
-  expect((await style(page, "aside")).background).toBe("rgb(30, 47, 61)");
+  await expect(page.locator("[data-panel-band]")).toHaveCSS("background-color", GREEN);
+  await expect(page.locator("aside")).toHaveCSS("background-color", "rgb(30, 47, 61)");
   await expect(page.getByTestId("move-open")).toHaveCSS("color", "rgb(232, 238, 242)");
   await page.locator("aside button", { hasText: itMessages.booking.cancel }).click();
   const yes = page.locator("aside button", { hasText: itMessages.booking.cancelYes });
@@ -109,4 +109,49 @@ test("light keeps today's panel: no band on a tablet, blue main button", async (
   const submit = await style(page, 'aside form button[type="submit"]');
   expect(submit.background).not.toBe(ORANGE);
   expect(submit.color).toBe("rgb(255, 255, 255)");
+});
+
+for (const theme of ["dark", "system"]) {
+  test(`${theme} keeps today's panel: no band on a tablet, its own Close`, async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await useTheme(context, baseURL, theme);
+    await bookAndOpen(page, theme === "dark" ? "2097-08-05" : "2097-08-06");
+    await expect(page.locator("[data-panel-band]")).toHaveCSS("display", "none");
+    await expect(page.getByTestId("move-open")).not.toHaveCSS("color", "rgb(232, 238, 242)");
+    await page.locator("aside button:visible", { hasText: itMessages.booking.close }).click();
+    await expect(page.locator("aside")).toHaveCount(0);
+  });
+}
+
+test("arturo: the band's Close closes every panel", async ({ page, context, baseURL }) => {
+  await useTheme(context, baseURL, "arturo");
+  await bookAndOpen(page, "2097-08-07");
+  await page.locator("[data-sheet-close]").click();
+  await expect(page.locator("aside")).toHaveCount(0);
+
+  await page.getByTestId("beach-map").locator("ol button").first().click();
+  await page.getByTestId("move-open").click();
+  await page.getByTestId("move-form").waitFor();
+  await page.locator("[data-sheet-close]").click();
+  await expect(page.locator("aside")).toHaveCount(0);
+
+  await page.getByTestId("quick-book-open").click();
+  await page.getByTestId("quick-book-form").waitFor();
+  await page.locator("[data-sheet-close]").click();
+  await expect(page.locator("aside")).toHaveCount(0);
+});
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("sera: the band's Close closes the sheet", async ({ page, context, baseURL }) => {
+    await useTheme(context, baseURL, "sera");
+    await openNewBooking(page, "2097-08-08");
+    await expect(page.locator("[data-panel-band]")).toHaveCSS("background-color", GREEN);
+    await page.locator("[data-sheet-close]").click();
+    await expect(page.locator("aside")).toHaveCount(0);
+  });
 });
