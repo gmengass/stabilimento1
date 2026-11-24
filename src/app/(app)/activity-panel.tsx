@@ -154,7 +154,7 @@ export async function ActivityPanel({ entries, viewer }: Props) {
                   <span
                     className={
                       entry.undone
-                        ? "flex-1 text-gray-500 dark:text-gray-400 line-through"
+                        ? "flex-1 text-gray-500 dark:text-gray-400 line-through sun:text-gray-600 sun:dark:text-gray-400"
                         : "flex-1"
                     }
                   >
