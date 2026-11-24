@@ -3,6 +3,18 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Two more themes in the user menu (ADR 0030), chosen per tablet like the others: **Arturo**
+  (sand background) and **Sera** (night blue, dark). Both have a dark green top bar with an
+  orange stripe. Automatic, Light and Dark are unchanged.
+- In Arturo and Sera the map uses larger "sun tiles" for bright light: 64 × 72 px, solid
+  colours, a thick outline, a bigger number and name, and a letter in the corner (P booked, ✓
+  checked in, S season pass, ? no-show; in English B for booked), so the map reads without
+  colour. A line of 18 umbrellas still fits a 1280px landscape tablet.
+
+### Fixed
+- On wide screens the map takes the full width until a booking panel opens; the empty panel
+  column no longer pushes a long line into sideways scrolling.
 
 ## [0.17.0] - 2026-11-24
 Update with `scripts/update.sh v0.17.0` (migration 0017; no new APK). Then enter the 2027 prices.
