@@ -12,6 +12,10 @@ const { setTheme } = await import("@/theme/actions");
 const ONE_YEAR = 31_536_000;
 
 describe("resolveTheme", () => {
+  it("offers exactly the five themes, in menu order", () => {
+    expect(themes).toEqual(["system", "light", "dark", "arturo", "sera"]);
+  });
+
   it("defaults to following the device", () => {
     expect(defaultTheme).toBe("system");
     expect(resolveTheme(undefined)).toBe("system");
@@ -21,9 +25,12 @@ describe("resolveTheme", () => {
     expect(resolveTheme(theme)).toBe(theme);
   });
 
-  it.each(["", "DARK", "blue", "dark "])("falls back for an unknown value: %j", (value) => {
-    expect(resolveTheme(value)).toBe("system");
-  });
+  it.each(["", "DARK", "blue", "dark ", "ARTURO", "sera "])(
+    "falls back for an unknown value: %j",
+    (value) => {
+      expect(resolveTheme(value)).toBe("system");
+    },
+  );
 
   it("isTheme rejects non-strings", () => {
     expect(isTheme(1)).toBe(false);

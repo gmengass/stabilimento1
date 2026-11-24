@@ -1,4 +1,5 @@
-export const themes = ["system", "light", "dark"] as const;
+/** "arturo" and "sera" are the club's light and dark looks, with larger map tiles (ADR 0030). */
+export const themes = ["system", "light", "dark", "arturo", "sera"] as const;
 
 export type Theme = (typeof themes)[number];
 

@@ -9,7 +9,9 @@
       "label": "Theme",
       "system": "Automatic",
       "light": "Light",
-      "dark": "Dark"
+      "dark": "Dark",
+      "arturo": "Arturo",
+      "sera": "Sera"
     }
   },
   "meta": {
@@ -138,7 +140,11 @@
     "countSunbeds": "Sunbeds free: {free} / {total}",
     "countSunbedStock": "Sunbeds in stock free: {free} / {total}",
     "countDeckchairStock": "Deckchairs free: {free} / {total}",
-    "countOver": "({count} over the stock)"
+    "countOver": "({count} over the stock)",
+    "markBooked": "B",
+    "markSeason": "S",
+    "markNoShow": "?",
+    "markCheckedIn": "✓"
   },
   "beachSetup": {
     "title": "Beach settings",
