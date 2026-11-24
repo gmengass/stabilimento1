@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- In Arturo and Sera the booking panel matches the top bar (docs/plans/theme-panel.md): a green
+  band with the orange stripe holds the title and Close, the main button of each panel (and Quick
+  book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
+  cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
 ### Added
 - Search results and the admin pages (Beach settings, Seasons, price list) say when bookings or
   the setup changed on another device, with a Reload button; the Prezzi page updates itself
