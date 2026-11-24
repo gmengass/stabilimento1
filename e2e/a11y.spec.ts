@@ -55,6 +55,36 @@ for (const scheme of ["light", "dark"] as const) {
   }
 }
 
+for (const [theme, scheme] of [
+  ["arturo", "light"],
+  ["sera", "dark"],
+] as const) {
+  test.describe(`${theme} theme, tablet`, () => {
+    test.use({ storageState: ADMIN_STATE, colorScheme: scheme, viewport: TABLET });
+
+    test.beforeEach(async ({ context, baseURL }) => {
+      await context.addCookies([{ name: "theme", value: theme, url: baseURL! }]);
+    });
+
+    for (const { name, path } of PAGES) {
+      test(`${name} has no WCAG violations`, async ({ page }) => {
+        await page.goto(path);
+        await page.locator("main").waitFor();
+        await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+        expect(await violations(page)).toEqual([]);
+      });
+    }
+
+    test("the booking panel has no WCAG violations", async ({ page }) => {
+      await page.goto("/");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      await page.locator("[data-spot-id]").first().click();
+      await page.getByRole("complementary").waitFor();
+      expect(await violations(page)).toEqual([]);
+    });
+  });
+}
+
 test.describe("login page", () => {
   test.use({ storageState: { cookies: [], origins: [] }, viewport: PHONE });
 
