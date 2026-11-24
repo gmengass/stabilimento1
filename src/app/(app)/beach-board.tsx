@@ -497,9 +497,12 @@ export function BeachBoard({
         >
           <div
             data-panel-band
-            className="sticky top-0 z-10 -mx-4 flex items-center justify-end gap-2 bg-background px-4 py-2 md:hidden sun:mb-3 sun:flex sun:border-b-4 sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec] sun:md:-mt-4 sun:md:flex sun:md:rounded-t"
+            className="sticky top-0 z-10 -mx-4 flex justify-end gap-2 bg-background px-4 py-2 md:hidden sun:mb-3 sun:flex sun:items-center sun:border-b-4 sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec] sun:md:-mt-4 sun:md:rounded-t"
           >
-            <h2 className="mr-auto hidden min-w-0 truncate text-lg font-semibold sun:block">
+            <h2
+              title={panelTitle}
+              className="mr-auto hidden min-w-0 truncate text-lg font-semibold sun:block"
+            >
               {panelTitle}
             </h2>
             <button

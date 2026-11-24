@@ -34,4 +34,8 @@ Automatic look exactly as today.
 ## Risks
 - Two looks for the same action on tablets in different themes (as with the tiles, ADR 0031).
 - Long customer names in the band are cut with "…".
+- The price box's own coloured lines (grey hint, green/amber paid) keep their colours; only plain
+  text takes the brown. axe passes.
+- Between md and lg (portrait tablets) the band sticks to the top of the screen while a long panel
+  scrolls, keeping Close in reach.
 - Out of scope: the "Ripristina" (undo) buttons in today's activity list.

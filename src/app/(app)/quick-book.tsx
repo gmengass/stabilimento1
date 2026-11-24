@@ -313,7 +313,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
             type="button"
             onClick={onAnother}
             data-testid="quick-book-another"
-            className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 ${sunSecondary}`}
+            className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 sun:bg-transparent ${sunSecondary}`}
           >
             {t("another")}
           </button>
@@ -321,7 +321,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
         <button
           type="button"
           onClick={(event) => onChange(event.detail === 0)}
-          className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 ${sunSecondary}`}
+          className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 sun:bg-transparent ${sunSecondary}`}
         >
           {t("change")}
         </button>
