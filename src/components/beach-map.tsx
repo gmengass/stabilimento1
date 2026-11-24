@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
+import { statusMarkKey, type SpotView } from "@/lib/beach/status-mark";
 
-export type SpotView =
-  "free" | "released" | "noShow" | "selected" | "booked" | "checkedIn" | "season" | "open";
+export type { SpotView };
 
 const viewClass: Record<SpotView, string> = {
   free: "border-green-600 bg-green-50 text-green-900",
@@ -16,6 +16,32 @@ const viewClass: Record<SpotView, string> = {
   season: "border-violet-700 bg-violet-100 text-violet-950",
   open: "border-red-900 bg-red-700 text-white",
 };
+
+/**
+ * Sun tiles (Arturo and Sera, ADR 0031): solid fills, a near-black outline (light in Sera). The
+ * same in both themes, so the colour code stays the same.
+ */
+const outline = "sun:border-[#111] sun:dark:border-[#e8eef2]";
+const sunClass: Record<SpotView, string> = {
+  free: `${outline} sun:bg-white sun:text-[#111] sun:dark:bg-[#e8eef2]`,
+  released:
+    "sun:border-[#5b21b6] sun:bg-white sun:text-[#111] sun:dark:border-[#a78bfa] sun:dark:bg-[#e8eef2]",
+  noShow: `${outline} sun:bg-[#ffc300] sun:text-[#111]`,
+  selected: `${outline} sun:bg-blue-700 sun:text-white`,
+  booked: `${outline} sun:bg-[#c1121f] sun:text-white`,
+  checkedIn: `${outline} sun:bg-[#0b6e4f] sun:text-white`,
+  season: `${outline} sun:bg-[#5b21b6] sun:text-white`,
+  open: "sun:border-[#e8862a] sun:bg-[#7f1d1d] sun:text-white",
+};
+
+/** The corner mark takes the tile's text colour, except on a released day's white tile. */
+const markClass: Partial<Record<SpotView, string>> = { released: "sun:text-[#5b21b6]" };
+
+const corner = "sun:top-0.5 sun:text-[12px] sun:font-medium";
+
+/** The thick sun outline hides the inset ring, so sun tiles get an outer blue ring (WCAG 2.4.7). */
+const sunFocus =
+  "sun:focus-visible:z-10 sun:focus-visible:shadow-none sun:focus-visible:outline-[3px] sun:focus-visible:outline-offset-2 sun:focus-visible:outline-[#1d4ed8] sun:dark:focus-visible:outline-[#93c5fd]";
 
 /** Screen-reader text per view. A selected spot is a free one being picked. */
 const labelKey = {
@@ -66,7 +92,7 @@ export function BeachMap({
   return (
     <div data-testid="beach-map" className="overflow-x-auto">
       <div className="inline-flex min-w-full flex-col gap-2">
-        <div className="rounded bg-sky-200 py-2 text-center text-sm font-medium text-sky-900">
+        <div className="rounded bg-sky-200 py-2 text-center text-sm font-medium text-sky-900 sun:dark:bg-[#0c3b5e] sun:dark:text-[#bfe3f7]">
           {t("seaOf", { area: areaName })}
         </div>
         {lines.map((line) => (
@@ -76,13 +102,14 @@ export function BeachMap({
             </h2>
             <ol
               className="grid gap-1"
-              style={{ gridTemplateColumns: `repeat(${columns}, minmax(3.25rem, 1fr))` }}
+              style={{ gridTemplateColumns: `repeat(${columns}, minmax(var(--tile-min), 1fr))` }}
             >
               {line.spots.map((spot) => {
                 const view = viewOf(spot);
                 const caption = captionOf(spot);
                 const badge = badgeOf?.(spot);
                 const extras = extrasOf?.(spot);
+                const mark = badge ? undefined : statusMarkKey(view);
                 return (
                   <li key={spot.id} style={{ gridColumn: spot.position }}>
                     <button
@@ -90,13 +117,13 @@ export function BeachMap({
                       data-spot-id={spot.id}
                       onClick={(event) => onSpotClick(spot, event.detail === 0)}
                       aria-pressed={view === "selected" || view === "open"}
-                      className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold ${viewClass[view]}`}
+                      className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold sun:h-[4.5rem] sun:rounded-lg sun:border-[3px] sun:text-[18px] sun:font-medium ${sunFocus} ${viewClass[view]} ${sunClass[view]}`}
                     >
                       <span aria-hidden>{spot.number}</span>
                       {caption && (
                         <span
                           aria-hidden
-                          className="max-w-full truncate px-0.5 text-[10px] font-normal"
+                          className="max-w-full truncate px-0.5 text-[10px] font-normal sun:mt-1 sun:px-1 sun:text-[14px] sun:leading-tight"
                         >
                           {caption}
                         </span>
@@ -104,16 +131,26 @@ export function BeachMap({
                       {badge && (
                         <span
                           aria-hidden
-                          className="absolute top-0 right-0.5 text-[10px] leading-tight font-normal"
+                          data-testid="tile-badge"
+                          className={`absolute top-0 right-0.5 text-[10px] leading-tight font-normal sun:right-1 ${corner}`}
                         >
                           {badge.text}
+                        </span>
+                      )}
+                      {mark && (
+                        <span
+                          aria-hidden
+                          data-testid="tile-mark"
+                          className={`absolute right-1 hidden leading-tight sun:block ${corner} ${markClass[view] ?? ""}`}
+                        >
+                          {t(mark)}
                         </span>
                       )}
                       {extras && (
                         <span
                           aria-hidden
                           data-testid="tile-extras"
-                          className="absolute top-0 left-0.5 text-[10px] leading-tight font-normal"
+                          className={`absolute top-0 left-0.5 text-[10px] leading-tight font-normal sun:left-1 ${corner}`}
                         >
                           {extras.text}
                         </span>

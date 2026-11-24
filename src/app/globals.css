@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
-/* `<html data-theme>` is "light", "dark" or "system" (follow the device), from the theme cookie. */
+/*
+ * `<html data-theme>` is "light", "dark", "arturo", "sera" or "system" (follow the device), from the
+ * theme cookie. Sera is dark. `sun:` is Arturo and Sera: banner and larger map tiles (ADR 0031).
+ */
 @custom-variant dark {
-  &:where([data-theme="dark"], [data-theme="dark"] *) {
+  &:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="sera"], [data-theme="sera"] *) {
     @slot;
   }
   @media (prefers-color-scheme: dark) {
@@ -12,10 +15,27 @@
   }
 }
 
+@custom-variant sun (&:where([data-theme="arturo"], [data-theme="arturo"] *, [data-theme="sera"], [data-theme="sera"] *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --tile-min: 3.25rem;
   color-scheme: light;
+}
+
+:root[data-theme="arturo"] {
+  --background: #fbf6ec;
+  --foreground: #171717;
+  --tile-min: 4rem;
+  color-scheme: light;
+}
+
+:root[data-theme="sera"] {
+  --background: #16232f;
+  --foreground: #ededed;
+  --tile-min: 4rem;
+  color-scheme: dark;
 }
 
 :root[data-theme="dark"] {
@@ -50,7 +70,20 @@ body {
     outline-offset: 2px;
   }
 
-  :root[data-theme="dark"] :focus-visible {
+  :root:is([data-theme="dark"], [data-theme="sera"]) :focus-visible {
+    outline-color: #93c5fd;
+  }
+
+  /* On the green banner the ring is orange; inside the user menu's panel it is the page's again. */
+  :root:is([data-theme="arturo"], [data-theme="sera"]) [data-banner] :focus-visible {
+    outline-color: #e8862a;
+  }
+
+  :root[data-theme="arturo"] [data-banner] [data-menu-panel] :focus-visible {
+    outline-color: #1d4ed8;
+  }
+
+  :root[data-theme="sera"] [data-banner] [data-menu-panel] :focus-visible {
     outline-color: #93c5fd;
   }
 

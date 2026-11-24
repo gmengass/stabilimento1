@@ -407,7 +407,9 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("mapTitle")}</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">{t("mapHint")}</p>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+        <div
+          className={`grid grid-cols-1 gap-4 lg:items-start ${selected ? "lg:grid-cols-[minmax(0,1fr)_18rem]" : ""}`}
+        >
           <div className="min-w-0">
             <BeachMap
               areaName={beach.areaName}
