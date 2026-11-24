@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { useActing } from "@/components/acting";
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { formatCents, formatTimestamp } from "@/i18n/format";
@@ -49,11 +49,14 @@ export function PriceBox({ occupant }: { occupant: Occupant }) {
   const [pending, startTransition] = useTransition();
   const [failure, setFailure] = useState<Failure | null>(null);
   const { suggestion, paid } = occupant.price;
+  // Ticks at once; the refreshed map then shows the saved state (or the old one, if refused).
+  const [ticked, setTicked] = useOptimistic(paid !== null);
 
   function toggle() {
     startTransition(async () => {
+      setTicked(!ticked);
       try {
-        const input = { bookingId: occupant.bookingId, paid: paid === null };
+        const input = { bookingId: occupant.bookingId, paid: !ticked };
         const result = await run(() => setPaidAction(input));
         if (!result) return;
         // Already as wanted (another tablet got there first): the refreshed map shows it.
@@ -95,7 +98,7 @@ export function PriceBox({ occupant }: { occupant: Occupant }) {
       <label className="mt-1 flex min-h-11 items-center gap-3 text-base font-semibold">
         <input
           type="checkbox"
-          checked={paid !== null}
+          checked={ticked}
           onChange={toggle}
           disabled={pending}
           data-testid="paid-tick"
