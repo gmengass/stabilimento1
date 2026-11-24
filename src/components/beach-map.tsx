@@ -2,10 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
-import { statusMarkKey } from "@/lib/beach/status-mark";
+import { statusMarkKey, type SpotView } from "@/lib/beach/status-mark";
 
-export type SpotView =
-  "free" | "released" | "noShow" | "selected" | "booked" | "checkedIn" | "season" | "open";
+export type { SpotView };
 
 const viewClass: Record<SpotView, string> = {
   free: "border-green-600 bg-green-50 text-green-900",
@@ -35,7 +34,14 @@ const sunClass: Record<SpotView, string> = {
   open: "sun:border-[#e8862a] sun:bg-[#7f1d1d] sun:text-white",
 };
 
+/** The corner mark takes the tile's text colour, except on a released day's white tile. */
+const markClass: Partial<Record<SpotView, string>> = { released: "sun:text-[#5b21b6]" };
+
 const corner = "sun:top-0.5 sun:text-[12px] sun:font-medium";
+
+/** The thick sun outline hides the inset ring, so sun tiles get an outer blue ring (WCAG 2.4.7). */
+const sunFocus =
+  "sun:focus-visible:z-10 sun:focus-visible:shadow-none sun:focus-visible:outline-[3px] sun:focus-visible:outline-offset-2 sun:focus-visible:outline-[#1d4ed8] sun:dark:focus-visible:outline-[#93c5fd]";
 
 /** Screen-reader text per view. A selected spot is a free one being picked. */
 const labelKey = {
@@ -111,7 +117,7 @@ export function BeachMap({
                       data-spot-id={spot.id}
                       onClick={(event) => onSpotClick(spot, event.detail === 0)}
                       aria-pressed={view === "selected" || view === "open"}
-                      className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold sun:h-[4.5rem] sun:rounded-lg sun:border-[3px] sun:text-[18px] sun:font-medium ${viewClass[view]} ${sunClass[view]}`}
+                      className={`relative flex h-14 focus-visible:outline-black focus-visible:outline-offset-[-2px] focus-visible:shadow-[inset_0_0_0_2px_#fff] w-full flex-col items-center justify-center rounded border text-sm font-semibold sun:h-[4.5rem] sun:rounded-lg sun:border-[3px] sun:text-[18px] sun:font-medium ${sunFocus} ${viewClass[view]} ${sunClass[view]}`}
                     >
                       <span aria-hidden>{spot.number}</span>
                       {caption && (
@@ -125,6 +131,7 @@ export function BeachMap({
                       {badge && (
                         <span
                           aria-hidden
+                          data-testid="tile-badge"
                           className={`absolute top-0 right-0.5 text-[10px] leading-tight font-normal sun:right-1 ${corner}`}
                         >
                           {badge.text}
@@ -134,7 +141,7 @@ export function BeachMap({
                         <span
                           aria-hidden
                           data-testid="tile-mark"
-                          className={`absolute right-1 hidden leading-tight sun:block ${corner} ${view === "released" ? "sun:text-[#5b21b6]" : ""}`}
+                          className={`absolute right-1 hidden leading-tight sun:block ${corner} ${markClass[view] ?? ""}`}
                         >
                           {t(mark)}
                         </span>

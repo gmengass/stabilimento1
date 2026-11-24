@@ -1,4 +1,6 @@
-import type { SpotView } from "@/components/beach-map";
+/** How a spot looks on the map for the chosen date. */
+export type SpotView =
+  "free" | "released" | "noShow" | "selected" | "booked" | "checkedIn" | "season" | "open";
 
 export type StatusMarkKey = "markBooked" | "markSeason" | "markNoShow" | "markCheckedIn";
 

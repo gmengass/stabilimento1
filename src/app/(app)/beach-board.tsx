@@ -441,7 +441,9 @@ export function BeachBoard({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:items-start lg:has-[>aside]:grid-cols-[minmax(0,1fr)_20rem]">
+    <div
+      className={`grid grid-cols-1 gap-4 lg:items-start ${panel ? "lg:grid-cols-[minmax(0,1fr)_20rem]" : ""}`}
+    >
       <div ref={mapArea} className="flex min-w-0 scroll-mt-2 flex-col gap-2">
         <button
           type="button"
