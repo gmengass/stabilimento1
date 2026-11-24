@@ -16,14 +16,18 @@ paid state to be as the entry left it.
 - Two columns per row: single piece and bundle (umbrella + 2 pieces, a small discount built in).
 - Suggested total = floor(pieces / 3) × bundle[d] + (pieces mod 3) × single[d].
   Example: 1 umbrella + 3 sunbeds, 8 days = 230 + 77 = €307.
-- Assumptions: 32–60 days = col[31] + col[d − 31] per column; a season pass pays the full
-  Stagionale row whatever its first day or released days; the suggestion is computed, not stored,
+- Season passes are priced by their days like any booking, not automatically at Stagionale
+  (owner, 2026-11-24). Which days count, and when Stagionale applies, is an open question.
+- Assumptions: over 31 days = whole 31-day blocks at col[31] plus col[remainder], per column (so
+  passes of 100+ days work too); the suggestion is computed, not stored,
   so moves and changes recompute it; a missing row (or no season) shows no suggestion, no error.
   A booking that crosses seasons uses its start date's season.
 
 ## Acceptance criteria
 - An 8-day booking with 1 umbrella and 3 sunbeds shows €307,00 in the booking panel and the
   quick-book confirm, with its breakdown.
+- If pieces or days change after the tick, it stays paid and the panel warns that the price
+  changed since it was paid (current suggestion ≠ `paid_suggested_cents`).
 - Ticking "paid" shows who and when (Rome time), writes a `paid` activity entry, and Undo clears it
   (ADR 0013 rules: author within 30 minutes, admin any time). Unticking writes `unpaid`.
 - A communal tablet with no person chosen is refused with `needsActor` (ADR 0025).
@@ -35,7 +39,8 @@ paid state to be as the entry left it.
 - `price`: `season_id` (FK, cascade), `days smallint null` (null = Stagionale, check 1..31),
   `single_cents`, `bundle_cents` (int ≥ 0), `unique nulls not distinct (season_id, days)`,
   timestamps, `map_changed` trigger (ADR 0019).
-- `booking`: `paid_at timestamptz null`, `paid_by text null` (FK user), both set or both null.
+- `booking`: `paid_at timestamptz null`, `paid_by text null` (FK user), both set or both null;
+  `paid_suggested_cents int null`, the suggestion when ticked (owner chose a warning, 2026-11-24).
 - Migration `0017_prices_paid.ts` with a down path (loses paid ticks: `/checkpoint` first).
 - Money in integer cents; add `formatCents` (closes the `formatEur` open question).
 
@@ -54,8 +59,8 @@ user menu in `src/app/(app)/layout.tsx`; booking panel and quick book; `messages
   tablets; price save is admin-only with zod caps (0–1,000,000 cents). Security agent reviews.
 
 ## Tests
-- Unit: days 1, 3, 31, 32, 60, 61 (null); pieces 0–6; €307 and the 16-day example; Stagionale
-  for a late pass with released days; missing rows.
+- Unit: days 1, 3, 31, 32, 62, 63, 120; pieces 0–6; €307 and the 16-day example; season passes
+  per the owner's rule (late start, released days); missing rows.
 - Integration: tick/untick audit; undo rules incl. after the last day; parallel ticks give one
   entry; `needsActor`; staff refused on price save; migration up/down/up.
 - e2e: prices page from the menu, it/en; paid tick + Undo; quick-book suggestion follows sunbeds.
@@ -67,8 +72,8 @@ user menu in `src/app/(app)/layout.tsx`; booking panel and quick book; `messages
 7. `feat:` suggestion and tick in the panel and quick book. 8. `test:` e2e; full lint/type/test.
 
 ## Open questions
-- Paid, then pieces or days change: keep "paid" and warn? (Needs the suggestion at tick time,
-  close to an "amount paid".) Or keep it silently?
+- Season passes: do released days come off the count? Is Stagionale a cap (the price never goes
+  above it) or only applied by hand?
 - A paid/unpaid badge on map tiles (needs palette OK, ADR 0017)? Left out by default.
 - Payment PIN (ADR 0025): left out while paid is only a tick.
 - Refunds on cancelled bookings; till integration (PROGRESS).
