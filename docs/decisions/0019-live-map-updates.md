@@ -4,7 +4,8 @@
 - Date: 2026-11-18
 - Builds on: [ADR 0002](0002-tech-stack.md) (SSE fed by `LISTEN/NOTIFY`) and
   [ADR 0003](0003-hosting.md) (one box, no extra services)
-- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (a communal account's streams count per tablet)
+- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (a communal account's streams count per tablet),
+  [ADR 0030](0030-live-notices-search-admin.md) (search and admin pages get a "changed" notice)
 
 ## Context
 Staff on several tablets and phones book the same beach. A map only changed on reload, so two
