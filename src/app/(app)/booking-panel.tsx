@@ -24,6 +24,7 @@ import {
   setHoldAction,
   uncheckAction,
 } from "./booking-actions";
+import { PriceBox } from "./price-box";
 
 export type ErrorKey =
   | "invalid"
@@ -50,6 +51,7 @@ export type ErrorKey =
   | "season"
   | "invalidHold"
   | "stock"
+  | "cancelled"
   | "generic";
 export interface Failure {
   key: ErrorKey;
@@ -841,6 +843,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         )}
       </ul>
       {occupant.notes && <p className="text-sm whitespace-pre-wrap">{occupant.notes}</p>}
+      <PriceBox occupant={occupant} />
       {date === today && <CheckInButton occupant={occupant} date={date} />}
       {!isPass && occupant.endDate >= today && date >= today && !occupant.checkedIn && (
         <HoldForm key={occupant.holdTime} occupant={occupant} />

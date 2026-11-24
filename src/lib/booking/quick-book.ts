@@ -1,7 +1,10 @@
 import type { Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
-import { venueToday } from "@/i18n/format";
+import { addDays, venueToday } from "@/i18n/format";
+import { MAX_DECKCHAIRS_PER_UMBRELLA } from "@/lib/beach/limits";
+import { quotePrice } from "@/lib/pricing/price-list";
+import type { Suggestion as Price } from "@/lib/pricing/suggest";
 import { bookingDate, MAX_SPOTS_PER_BOOKING } from "./bookings";
 import { suggestSpots, type SuggestResult, type Umbrella } from "./suggest";
 
@@ -17,6 +20,12 @@ const quickSchema = z
       .int()
       .min(0)
       .max(MAX_SPOTS_PER_BOOKING * 10),
+    deckchairs: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_SPOTS_PER_BOOKING * MAX_DECKCHAIRS_PER_UMBRELLA)
+      .default(0),
     startDate: bookingDate,
     endDate: bookingDate,
   })
@@ -25,7 +34,17 @@ const quickSchema = z
     (q) => (Date.parse(q.endDate) - Date.parse(q.startDate)) / 86_400_000 < MAX_QUICK_BOOK_DAYS,
   );
 
-export type QuickSuggestResult = SuggestResult | { ok: false; error: "invalid" | "past" };
+export type QuickSuggestResult =
+  | (Extract<SuggestResult, { ok: true }> & { price: Price | null })
+  | Extract<SuggestResult, { ok: false }>
+  | { ok: false; error: "invalid" | "past" };
+
+/** Days from start to end, both included. */
+function daysBetween(startDate: string, endDate: string): number {
+  let days = 1;
+  for (let d = startDate; d < endDate; d = addDays(d, 1)) days++;
+  return days;
+}
 
 /** Umbrellas of the space with no `booked` day in the range: released days count as free. */
 async function loadFreeUmbrellas(
@@ -73,8 +92,14 @@ export async function suggestQuickBook(
 ): Promise<QuickSuggestResult> {
   const parsed = quickSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { areaId, umbrellas, sunbeds, startDate, endDate } = parsed.data;
+  const { areaId, umbrellas, sunbeds, deckchairs, startDate, endDate } = parsed.data;
   if (startDate < today) return { ok: false, error: "past" };
   const free = await loadFreeUmbrellas(db, areaId, startDate, endDate);
-  return suggestSpots(free, umbrellas, sunbeds);
+  const result = suggestSpots(free, umbrellas, sunbeds);
+  if (!result.ok) return result;
+  // The booking form caps deckchairs per umbrella (ADR 0020); price what it will book.
+  const pieces =
+    umbrellas + sunbeds + Math.min(deckchairs, umbrellas * MAX_DECKCHAIRS_PER_UMBRELLA);
+  const price = await quotePrice(db, startDate, pieces, daysBetween(startDate, endDate));
+  return { ...result, price };
 }

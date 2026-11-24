@@ -247,7 +247,8 @@
       "season": "Season passes are never freed at the hold time.",
       "invalidHold": "Enter a time like 13:30.",
       "stock": "Not enough sunbeds or deckchairs in stock.",
-      "rateLimited": "Too many actions in a short time. Wait a minute and try again."
+      "rateLimited": "Too many actions in a short time. Wait a minute and try again.",
+      "cancelled": "This booking was cancelled."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -373,7 +374,9 @@
       "generic": "Something went wrong. Try again.",
       "rateLimited": "Too many actions in a short time. Wait a minute and try again."
     },
-    "edited": "Your own choice: the umbrellas differ from the suggestion."
+    "edited": "Your own choice: the umbrellas differ from the suggestion.",
+    "price": "Suggested price {price} for {pieces, plural, one {# piece} other {# pieces}}",
+    "priceDiscount": "Suggested price {price} for {pieces, plural, one {# piece} other {# pieces}}, {percent}% off the daily price"
   },
   "sheet": {
     "label": "Booking panel",
@@ -487,6 +490,21 @@
         "forbidden": "Only admins can do this.",
         "generic": "Something went wrong. Try again."
       }
+    },
+    "panel": {
+      "title": "Price",
+      "suggested": "Suggested price",
+      "basis": "{days, plural, one {# day} other {# days}}, {pieces, plural, one {# piece} other {# pieces}}",
+      "bundles": "{count} × {price} (umbrella + 2)",
+      "singles": "{count} × {price}",
+      "plus": "{first} + {second}",
+      "line": "{basis} · {parts}",
+      "discount": "Discount {amount} ({percent}%) on the daily price",
+      "noPrice": "No suggested price: the season's price list has no price for this booking.",
+      "paid": "Paid",
+      "paidBy": "Marked paid by {name}, {at}",
+      "changedSincePaid": "The price changed since it was marked paid.",
+      "changedSincePaidFrom": "The price changed since it was marked paid (it was {price})."
     }
   }
 }

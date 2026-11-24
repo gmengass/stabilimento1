@@ -247,7 +247,8 @@
       "season": "Gli abbonamenti stagionali non vengono mai liberati all'orario di tenuta.",
       "invalidHold": "Scrivi un orario come 13:30.",
       "stock": "Lettini o sdraie in magazzino non sufficienti.",
-      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
+      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova.",
+      "cancelled": "Questa prenotazione è stata annullata."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -373,7 +374,9 @@
       "generic": "Qualcosa è andato storto. Riprova.",
       "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
     },
-    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
+    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta.",
+    "price": "Prezzo suggerito {price} per {pieces, plural, one {# pezzo} other {# pezzi}}",
+    "priceDiscount": "Prezzo suggerito {price} per {pieces, plural, one {# pezzo} other {# pezzi}}, sconto {percent}% sul prezzo giornaliero"
   },
   "sheet": {
     "label": "Pannello prenotazione",
@@ -487,6 +490,21 @@
         "forbidden": "Solo gli amministratori possono farlo.",
         "generic": "Qualcosa è andato storto. Riprova."
       }
+    },
+    "panel": {
+      "title": "Prezzo",
+      "suggested": "Prezzo suggerito",
+      "basis": "{days, plural, one {# giorno} other {# giorni}}, {pieces, plural, one {# pezzo} other {# pezzi}}",
+      "bundles": "{count} × {price} (ombrellone + 2)",
+      "singles": "{count} × {price}",
+      "plus": "{first} + {second}",
+      "line": "{basis} · {parts}",
+      "discount": "Sconto {amount} ({percent}%) sul prezzo giornaliero",
+      "noPrice": "Nessun prezzo suggerito: il listino della stagione non ha un prezzo per questa prenotazione.",
+      "paid": "Pagato",
+      "paidBy": "Segnato pagato da {name}, {at}",
+      "changedSincePaid": "Il prezzo è cambiato da quando è stato segnato pagato.",
+      "changedSincePaidFrom": "Il prezzo è cambiato da quando è stato segnato pagato (era {price})."
     }
   }
 }

@@ -22,7 +22,7 @@ const BEFORE = "0009_check_in";
 const LIVE_PREFIX = "0010_";
 const FENCE = "live_test_fence";
 
-/** Every table whose changes the map shows. */
+/** Every table whose changes the map shows; `price` since 0017 (ADR 0029). */
 const WATCHED = [
   "area",
   "area_line",
@@ -30,6 +30,7 @@ const WATCHED = [
   "booking",
   "booking_spot",
   "check_in",
+  "price",
   "season",
   "spot",
   "spot_day",

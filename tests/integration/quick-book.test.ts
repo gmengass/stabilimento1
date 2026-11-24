@@ -9,6 +9,7 @@ import { createBooking, type CreateBookingInput } from "@/lib/booking/bookings";
 import { createSeasonPass, releaseDays } from "@/lib/booking/passes";
 import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-book";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
+import { savePrices } from "@/lib/pricing/price-list";
 import { testDatabaseUrl } from "./test-database";
 
 let db: Kysely<DB>;
@@ -243,5 +244,34 @@ describe("suggestQuickBook", () => {
       from spot_day sd join booking_spot bs on bs.id = sd.booking_spot_id`.execute(db);
     expect(rows[0]).toEqual({ bookings: 1, days: 6 });
     expect(numbers(await suggest({ umbrellas: 2, sunbeds: 4 }))[0]).toEqual([103, 104]);
+  });
+});
+
+describe("quick book price (ADR 0029)", () => {
+  async function withPrices() {
+    const season = { name: "Estate 2027", startDate: "2027-06-01", endDate: "2027-09-15" };
+    expect(await createSeason(db, season, "2027-05-01")).toEqual({ ok: true });
+    const seasonId = (await listSeasons(db))[0].id;
+    const rows = Array.from({ length: 31 }, (_, i) => ({
+      days: i + 1,
+      single: (i + 1) * 1000,
+      bundle: (i + 1) * 2500,
+    }));
+    expect(await savePrices(db, { seasonId, rows })).toEqual({ ok: true });
+  }
+
+  it("prices what was asked for, deckchairs capped per umbrella", async () => {
+    await withPrices();
+    const result = await suggest({ umbrellas: 1, sunbeds: 2, deckchairs: 5 });
+    if (!result.ok) throw new Error(result.error);
+    const days = Math.round((Date.parse(END) - Date.parse(START)) / 86_400_000) + 1;
+    // 1 umbrella + 2 sunbeds + 2 deckchairs = 5 pieces: one bundle and two singles.
+    expect(result.price).toMatchObject({ pieces: 5, days, bundles: 1, singles: 2 });
+  });
+
+  it("has no price before the season's list is entered", async () => {
+    const result = await suggest();
+    if (!result.ok) throw new Error(result.error);
+    expect(result.price).toBeNull();
   });
 });

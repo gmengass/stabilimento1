@@ -171,3 +171,27 @@ export async function bookingSuggestion(
   if (!list) return null;
   return suggestPrice(list, piecesOf(spots, row.deckchairs), row.days ?? 0);
 }
+
+/** The id of the season that contains this day, if any. */
+export async function seasonOn(db: Kysely<DB>, date: string): Promise<number | null> {
+  const row = await db
+    .selectFrom("season")
+    .select("id")
+    .where("start_date", "<=", date)
+    .where("end_date", ">=", date)
+    .executeTakeFirst();
+  return row?.id ?? null;
+}
+
+/** A price for a booking not made yet, e.g. in quick book: its first day picks the season. */
+export async function quotePrice(
+  db: Kysely<DB>,
+  startDate: string,
+  pieces: number,
+  days: number,
+): Promise<Suggestion | null> {
+  const seasonId = await seasonOn(db, startDate);
+  if (seasonId === null) return null;
+  const list = (await loadPriceLists(db, [seasonId])).get(seasonId);
+  return list ? suggestPrice(list, pieces, days) : null;
+}
