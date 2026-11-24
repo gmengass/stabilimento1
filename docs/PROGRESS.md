@@ -1,30 +1,28 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `main` is at the merge of #95 (2026-11-23). #83, #84 and #95 are merged but not tagged: the next
-  tag (`v0.16.0`) holds them. `v0.15.0` is the last release and is deployed on the box. Backups are
-  not set up on the box yet. Open PRs: Dependabot #85–#89, #91–#94; #89 (Postgres 17→19 needs a
-  dump/restore) and #94 (Node 26 vs `.nvmrc` 24) need an owner decision.
-- Box update to v0.16.0: first add `APP_DATABASE_URL` to `.env` (one-liner in CHANGELOG / RUNBOOK
-  "Update"), then rebuild the APK (it now trusts the club root only). Migration `0015` adds a table.
+- `v0.16.0` (2026-11-24) holds #83, #84, #95, #97, #98, #100 and the Dependabot updates (#85–#87,
+  #91–#93); #88, #89 and #94 were closed unmerged. `v0.15.0` is deployed on the box; v0.16.0 is
+  tagged, not yet deployed. Backups are not set up on the box yet. No open PRs.
+- Box update to v0.16.0: first add `APP_DATABASE_URL` to `.env` (one-liner in RUNBOOK "Update").
+  Migrations `0015` (a table) and `0016` (an index). Then add `ANDROID_APP_NAME=Stabilimento Arturo`
+  and `ANDROID_ICON_DIR` (the two Arturo icon files, kept on the box only) and rebuild the APK.
 ## Done this session
-- Opus re-review of the Sonnet-era work: the communal accounts (no Critical/High) and the security
-  audit redone from scratch (`docs/plans/security-fixes.md`).
-- Batch 1 (#83, ADR 0027): sign-in lockout per username + address, rate limits on search and
-  booking actions, `FLAG_SECURE`, CSP from `next.config.ts`, invisible-character stripping, and
-  the communal fixes.
-- Batch 2 (#84, ADR 0028): the app connects as `booking_app` (tables only, audit log append-only),
-  hardened containers, images and actions pinned plus Dependabot, the APK trusts the club root
-  only, opt-in signed tags in `update.sh` (no downgrades).
+- Opus review of the Sonnet-era work finished: ADR 0024 (#73), ADR 0026 (#77), live stream limits
+  (#68) and check-in at creation (#71), no bugs; #67 and #69 (display only) skipped. #97 adds the
+  `audit_log.created_at` index. Owner kept "Check in now" ticked by default (#71).
+- #98: the sign-in page remembers the last username. #100: tablet app icon, and the club's name
+  and icon from `.env` (RUNBOOK "Club name and icon"); the logo is the hotel's, not committed.
 ## Next up
-1. Owner: tag v0.16.0 and update the box (add `APP_DATABASE_URL` first), rebuild the APK, set up backups (RUNBOOK; delete `feat/backups`).
-2. Owner decisions: customer data retention (GDPR ADR) and masking phones on the map and in search close the security item; also tablet session length, tablet design (record the tablet and an "on duty" list now; a payment PIN in Milestone 2).
-3. Then Milestone 2: prices, payments at the desk, daily cash-up.
+1. Owner: update the box to v0.16.0 (add `APP_DATABASE_URL` first), rebuild the APK with the club name and icon, set up backups (RUNBOOK; delete `feat/backups`).
+2. Owner decisions: customer data retention (GDPR ADR) and masking phones on the map and in search close the security item; also tablet session length, tablet design (record the tablet and an "on duty" list now; a payment PIN in Milestone 2); whether "Trusted certificate" (Milestone 0) comes before Milestone 2.
+3. Then Milestone 2: prices, payments at the desk, daily cash-up (`feat/prices-payments`).
 ## Open questions
 - Security (plan "Not closed by Batch 1"): the map sends names, phones and notes for any date, unthrottled. The fix needs decision 2. Parallel sign-ins can burst past the lock check, bounded at 5/min per address. Check that Caddy sees real client IPs on the box (RUNBOOK).
 - Not done: encrypted pre-update dumps (BitLocker instead); Gradle `verification-metadata.xml`; `booking_before_restore` stays until the owner drops it.
 - Communal tablets: no PIN (owner: attribution only); `audit_log` has no tablet id (`via_user_id`).
 - Multi-day bookings keep the 11:00 hold rule (ADR 0004/0015) but are never checked in, so each day is flagged `no_show`. Hold rule for one-day bookings only (new ADR)? Owner left it open 2026-11-19.
+- Review notes, not fixed: today's list renders up to 500 rows on every refresh ("Show more"?); `venueDayStart` assumes UTC+1/+2; migration `0014` left stock warnings effectively off until set per space; an 11th live stream shows "connection lost".
 - Backups: tenant SMTP AUTH (else Brevo)? apt may downgrade `rclone selfupdate`; "last backup" in admin?
 - Deckchairs: edit on a booking (audited, undo)? "+N" on tiles? Stock (ADR 0021/0026): no warning on undo/restore or on lowering it; date moves warn on all days; no venue-wide total.
 - Search: `unaccent`? ADR 0018: an earlier own hold wins; no e2e for the no-show tile. Moves: a pass's first day?

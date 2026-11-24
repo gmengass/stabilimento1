@@ -22,8 +22,10 @@ Draft milestones below. Adjust them after PROJECT_BRIEF.md is filled in.
 - [x] Communal accounts for shared tablets: a staff account flagged communal, "who is doing this?"
       pop-up on the first action and after 2 minutes idle, actions recorded under the person
       chosen (owner, 2026-11-20, ADR 0025)
-- [ ] Sign-in remembers the last username on the device, tablet app and browser (owner,
+- [x] Sign-in remembers the last username on the device, tablet app and browser (owner,
       2026-11-23)
+- [x] Tablet app icon; the club's name and icon come from the box's `.env`, not the public repo
+      (owner, 2026-11-23, #100)
 - [ ] Trusted certificate (deferred by ADR 0010; for staff personal phones in a plain browser):
       Let's Encrypt via DNS-01 on the club's own domain (new ADR amending ADR 0008)
 
