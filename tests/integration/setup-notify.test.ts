@@ -11,7 +11,6 @@ import { testDatabaseUrl } from "./test-database";
 
 // Setup changes (ADR 0030): beach layout, seasons and prices send `setup_changed`; bookings don't.
 
-const BEFORE = "0017_prices_paid";
 const NAME = "0018_setup_notify";
 const FENCE = "setup_test_fence";
 const WATCHED = ["area", "area_line", "price", "season", "spot", "venue"];
@@ -153,7 +152,8 @@ describe("the setup-notify migration", () => {
   });
 
   it("down removes the triggers and their function; up restores them", async () => {
-    const down = await createMigrator(db).migrateTo(BEFORE);
+    await createMigrator(db).migrateTo(NAME);
+    const down = await createMigrator(db).migrateDown();
     if (down.error) throw down.error;
     expect(down.results?.map((r) => [r.migrationName, r.direction, r.status])).toEqual([
       [NAME, "Down", "Success"],

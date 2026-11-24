@@ -10,9 +10,11 @@ const LIVE = { timeout: 5_000 };
 async function device(browser: Browser, path: string): Promise<Page> {
   const context = await browser.newContext({ storageState: ADMIN_STATE });
   const page = await context.newPage();
+  // These pages don't catch up when the stream opens (ADR 0030): it must be open before the
+  // other device writes.
+  const streaming = page.waitForResponse((r) => r.url().endsWith("/api/live") && r.ok());
   await page.goto(path);
-  // The stream opens after hydration; give it a moment before the other device writes.
-  await page.waitForLoadState("networkidle").catch(() => undefined);
+  await streaming;
   return page;
 }
 
