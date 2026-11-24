@@ -42,6 +42,7 @@ const occupant = (bookingId: number, spotId: number) => ({
   holdUntil: null,
   holdTime: "11:00",
   usualHoldTime: "11:00",
+  price: { suggestion: null, paid: null },
 });
 
 function board(occupancy: Record<number, unknown>, date = "2026-11-19") {
