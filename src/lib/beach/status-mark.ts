@@ -12,7 +12,7 @@ const markKey: Partial<Record<SpotView, StatusMarkKey>> = {
   checkedIn: "markCheckedIn",
 };
 
-/** The letter a sun tile shows in its corner when no badge is there (ADR 0030). */
+/** The letter a sun tile shows in its corner when no badge is there (ADR 0031). */
 export function statusMarkKey(view: SpotView): StatusMarkKey | undefined {
   return markKey[view];
 }

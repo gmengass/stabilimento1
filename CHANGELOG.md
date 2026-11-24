@@ -4,7 +4,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Added
-- Two more themes in the user menu (ADR 0030), chosen per tablet like the others: **Arturo**
+- Search results and the admin pages (Beach settings, Seasons, price list) say when bookings or
+  the setup changed on another device, with a Reload button; the Prezzi page updates itself
+  (ADR 0030, migration 0018).
+- Two more themes in the user menu (ADR 0031), chosen per tablet like the others: **Arturo**
   (sand background) and **Sera** (night blue, dark). Both have a dark green top bar with an
   orange stripe. Automatic, Light and Dark are unchanged.
 - In Arturo and Sera the map uses larger "sun tiles" for bright light: 64 × 72 px, solid

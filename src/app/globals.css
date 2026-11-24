@@ -2,7 +2,7 @@
 
 /*
  * `<html data-theme>` is "light", "dark", "arturo", "sera" or "system" (follow the device), from the
- * theme cookie. Sera is dark. `sun:` is Arturo and Sera: banner and larger map tiles (ADR 0030).
+ * theme cookie. Sera is dark. `sun:` is Arturo and Sera: banner and larger map tiles (ADR 0031).
  */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="sera"], [data-theme="sera"] *) {

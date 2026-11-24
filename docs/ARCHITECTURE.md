@@ -101,7 +101,7 @@ screens within seconds. Customers never use the app. They are contact details on
 ## UI conventions
 - Colours: every fixed colour class has a `dark:` partner. `dark:` follows `<html data-theme>`
   (`light`, `dark`, `sera`, or `system` = the device), set from the `theme` cookie (ADR 0017).
-  `sun:` matches Arturo and Sera, which use larger high-contrast map tiles (ADR 0030); otherwise
+  `sun:` matches Arturo and Sera, which use larger high-contrast map tiles (ADR 0031); otherwise
   map tiles keep the same colours in both themes.
 - Tap targets are at least 44×44 CSS px (`min-h-11`); `e2e/phone.spec.ts` measures the map page.
 - Below Tailwind's `md` (768px) the map's booking panel is a bottom sheet (`beach-board.tsx`);

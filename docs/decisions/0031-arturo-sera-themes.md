@@ -1,4 +1,4 @@
-# 0030. Arturo and Sera themes, with larger "sun tiles" on the map
+# 0031. Arturo and Sera themes, with larger "sun tiles" on the map
 
 - Status: Accepted (owner, 2026-11-24)
 - Date: 2026-11-24

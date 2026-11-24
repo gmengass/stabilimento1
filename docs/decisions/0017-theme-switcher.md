@@ -19,7 +19,7 @@
   the right theme. Tailwind's `dark:` variant follows that attribute, or the device when it is
   "system". Every screen has dark colours.
 - Booking tiles on the map keep the same colours in both themes, so the colour code stays the same.
-  Amended by [ADR 0030](0030-arturo-sera-themes.md): Arturo and Sera use their own "sun tiles".
+  Amended by [ADR 0031](0031-arturo-sera-themes.md): Arturo and Sera use their own "sun tiles".
 - The login page has no switcher; it uses the device's cookie like every other page.
 
 ## Alternatives considered

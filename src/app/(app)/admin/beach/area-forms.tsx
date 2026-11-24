@@ -6,6 +6,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import type { EditError } from "@/lib/beach/edit";
 import { MAX_LINES, MAX_UMBRELLAS_PER_LINE } from "@/lib/beach/limits";
 import { addAreaAction, removeAreaAction, renameAreaAction } from "./actions";
+import { ownWrite } from "@/lib/live/own-write";
 
 type ErrorKey = EditError | "forbidden" | "generic";
 type Feedback = { ok: true } | { ok: false; error: ErrorKey } | null;
@@ -19,7 +20,7 @@ function useFeedback() {
   function run<R extends { ok: boolean }>(call: () => Promise<R>, onOk: (result: R) => void) {
     startTransition(async () => {
       try {
-        const result = await call();
+        const result = await ownWrite(call);
         if (result.ok) {
           setFeedback({ ok: true });
           onOk(result);

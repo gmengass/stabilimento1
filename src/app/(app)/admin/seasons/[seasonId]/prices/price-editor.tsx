@@ -6,6 +6,7 @@ import { centsToInput, parseEuros } from "@/lib/pricing/money";
 import type { PriceEntry } from "@/lib/pricing/price-list";
 import { LIST_DAYS } from "@/lib/pricing/suggest";
 import { savePricesAction } from "../../actions";
+import { ownWrite } from "@/lib/live/own-write";
 
 type Feedback =
   | { kind: "saved" }
@@ -53,7 +54,7 @@ export function PriceEditor({ seasonId, entries }: { seasonId: number; entries: 
     }
     startTransition(async () => {
       try {
-        const result = await savePricesAction({ seasonId, rows });
+        const result = await ownWrite(() => savePricesAction({ seasonId, rows }));
         setFeedback(result.ok ? { kind: "saved" } : { kind: "error", key: result.error });
       } catch {
         setFeedback({ kind: "error", key: "generic" });

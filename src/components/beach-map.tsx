@@ -18,7 +18,7 @@ const viewClass: Record<SpotView, string> = {
 };
 
 /**
- * Sun tiles (Arturo and Sera, ADR 0030): solid fills, a near-black outline (light in Sera). The
+ * Sun tiles (Arturo and Sera, ADR 0031): solid fills, a near-black outline (light in Sera). The
  * same in both themes, so the colour code stays the same.
  */
 const outline = "sun:border-[#111] sun:dark:border-[#e8eef2]";

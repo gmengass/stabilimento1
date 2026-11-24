@@ -10,6 +10,7 @@ import { AddAreaForm, CurrentAreaForm } from "./area-forms";
 import { DefaultHoldForm, LayoutEditor, StockForm, VenueNameForm } from "./layout-editor";
 import { PageMain } from "@/components/page-main";
 import { BeachSetupForm } from "./setup-form";
+import { LiveNotice } from "@/components/live-notice";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("beachSetup");
@@ -29,6 +30,7 @@ export default async function BeachSetupPage(props: PageProps<"/admin/beach">) {
     const areas = await listAreas(getDb());
     return (
       <PageMain className="flex w-full flex-col gap-6 p-4">
+        <LiveNotice kind="setup" />
         <div className="flex flex-wrap items-baseline gap-4">
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">

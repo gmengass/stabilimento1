@@ -1,7 +1,8 @@
 // Server-Sent Events for the live map (ADR 0019). The stream carries only these signals, never
 // booking data: the client reloads the page data itself.
 
-export type LiveEvent = "changed" | "resync";
+/** `changed`: anything the map shows; `setup`: beach layout, seasons or prices (ADR 0030). */
+export type LiveEvent = "changed" | "setup" | "resync";
 
 export const HEARTBEAT_MS = 25_000;
 export const STREAM_LIFETIME_MS = 300_000;

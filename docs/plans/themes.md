@@ -1,6 +1,6 @@
 # Plan: Arturo and Sera themes, sun tiles (branch feat/themes)
 
-Owner decisions 2026-11-24. ADR [0030](../decisions/0030-arturo-sera-themes.md).
+Owner decisions 2026-11-24. ADR [0030](../decisions/0031-arturo-sera-themes.md).
 
 ## Goal
 Two per-device themes, Arturo (light) and Sera (dark), with the Arturo banner and larger "sun
@@ -13,7 +13,7 @@ tiles" on the beach map. Automatic, Light and Dark stay as they are (maybe remov
 - Sera: page #16232F, `color-scheme: dark`, every `dark:` class applies, the same banner. Sea band
   #0C3B5E, text #BFE3F7.
 - In Arturo and Sera each tile is at least 64 × 72 px, 3px border, 8px radius; number 18px/500,
-  name 14px with an ellipsis, corner marks 12px/500. Fills and borders as in ADR 0030.
+  name 14px with an ellipsis, corner marks 12px/500. Fills and borders as in ADR 0031.
 - Top-right corner: the badge wins; otherwise booked P (en B), checked in ✓, season S, no-show ?,
   released S in violet. Free, selected and open show none. Screen-reader labels unchanged.
 - Light, Dark and Automatic tiles look as today.
@@ -22,7 +22,7 @@ tiles" on the beach map. Automatic, Light and Dark stay as they are (maybe remov
 - axe (WCAG 2.2 AA) reports no violations in Arturo and in Sera.
 
 ## Steps (one commit each)
-1. `docs:` this plan, ADR 0030, ADR 0017 marked amended.
+1. `docs:` this plan, ADR 0031, ADR 0017 marked amended.
 2. `feat:` themes in config and messages; CSS `dark` variant includes `sera`, new `sun` variant,
    per-theme variables. Unit tests.
 3. `feat:` banner, user-menu text colour, Sera sea band. e2e: colours and persistence.

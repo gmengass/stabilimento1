@@ -4,7 +4,8 @@
 - Date: 2026-11-18
 - Builds on: [ADR 0002](0002-tech-stack.md) (SSE fed by `LISTEN/NOTIFY`) and
   [ADR 0003](0003-hosting.md) (one box, no extra services)
-- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (a communal account's streams count per tablet)
+- Amended by: [ADR 0027](0027-sign-in-lockout-and-rate-limits.md) (a communal account's streams count per tablet),
+  [ADR 0030](0030-live-notices-search-admin.md) (search and admin pages get a "changed" notice)
 
 ## Context
 Staff on several tablets and phones book the same beach. A map only changed on reload, so two
@@ -34,7 +35,8 @@ people could pick the same umbrella or miss a check-in made at the desk.
   can't see, but the server ends every stream after 5). Offline, or down for over 2 s, it shows
   "Not live, reconnecting".
 - **Caddy**: `/api/live` skips `encode`; Caddy already flushes `text/event-stream` at once.
-- Scope: the map page only. Search and admin pages are not live.
+- Scope: the map page only. Search and admin pages are not live (amended by
+  [ADR 0030](0030-live-notices-search-admin.md): they show a "changed" notice).
 
 ## Consequences
 - Any write to those tables, including direct SQL, updates open maps; no app code has to
