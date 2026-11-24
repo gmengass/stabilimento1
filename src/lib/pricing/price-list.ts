@@ -99,3 +99,29 @@ export async function savePrices(db: Kysely<DB>, input: unknown): Promise<SavePr
     return { ok: true } as const;
   });
 }
+
+export interface PriceSource {
+  seasonName: string;
+  entries: PriceEntry[];
+}
+
+/** The latest earlier season that has prices, to pre-fill an empty list ("copy from"). */
+export async function previousPrices(
+  db: Kysely<DB>,
+  seasonId: number,
+): Promise<PriceSource | null> {
+  const row = await db
+    .selectFrom("season as s")
+    .innerJoin("season as this", (join) =>
+      join.on("this.id", "=", seasonId).onRef("s.start_date", "<", "this.start_date"),
+    )
+    .select(["s.id", "s.name"])
+    .where((eb) =>
+      eb.exists(eb.selectFrom("price").select("id").whereRef("season_id", "=", "s.id")),
+    )
+    .orderBy("s.start_date", "desc")
+    .limit(1)
+    .executeTakeFirst();
+  if (!row) return null;
+  return { seasonName: row.name, entries: await listPrices(db, row.id) };
+}

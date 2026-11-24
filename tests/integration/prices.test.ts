@@ -7,7 +7,7 @@ import { loadBeach, setupBeach } from "@/lib/beach/layout";
 import { createBooking, loadOccupancy } from "@/lib/booking/bookings";
 import { createSeasonPass, releaseDays } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
-import { listPrices, savePrices, type PriceEntry } from "@/lib/pricing/price-list";
+import { listPrices, previousPrices, savePrices, type PriceEntry } from "@/lib/pricing/price-list";
 import { testDatabaseUrl } from "./test-database";
 
 let db: Kysely<DB>;
@@ -203,5 +203,26 @@ describe("the suggested price on the map", () => {
       days: 107,
       totalCents: 80_000,
     });
+  });
+});
+
+describe("previousPrices", () => {
+  it("offers the latest earlier season's list, and nothing for the first season", async () => {
+    expect(await previousPrices(db, seasonId)).toBeNull();
+    await savePrices(db, { seasonId, rows: rows().slice(0, 3) });
+    expect(
+      await createSeason(
+        db,
+        { name: "Estate 2028", startDate: "2028-06-01", endDate: "2028-09-15" },
+        "2027-09-16",
+      ),
+    ).toEqual({ ok: true });
+    const next = (await listSeasons(db)).find((s) => s.name === "Estate 2028");
+    if (!next) throw new Error("no 2028 season");
+    expect(await previousPrices(db, next.id)).toEqual({
+      seasonName: "Estate 2027",
+      entries: rows().slice(0, 3),
+    });
+    expect(await previousPrices(db, seasonId)).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import type { SeasonError, SeasonResult, SeasonRow } from "@/lib/booking/seasons";
@@ -149,6 +150,9 @@ export function SeasonCard({ season }: { season: SeasonRow }) {
         <span>{t("passes", { count: season.passes })}</span>
         {sold && <span>{t("datesFixed")}</span>}
       </p>
+      <Link href={`/admin/seasons/${season.id}/prices`} className="self-start text-sm underline">
+        {t("prices")}
+      </Link>
       <div className="flex flex-wrap gap-2">
         <button type="submit" disabled={pending} className="rounded border px-3 py-2">
           {t("save")}

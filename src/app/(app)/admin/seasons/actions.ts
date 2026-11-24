@@ -6,6 +6,7 @@ import { readCurrentUser } from "@/lib/auth/session";
 import { writeEntry } from "@/lib/booking/audit";
 import * as seasons from "@/lib/booking/seasons";
 import type { SeasonResult } from "@/lib/booking/seasons";
+import { savePrices, type SavePricesResult } from "@/lib/pricing/price-list";
 
 type Forbidden = { ok: false; error: "forbidden" };
 
@@ -22,10 +23,10 @@ async function logChange(userId: string, what: string) {
  * Every season action checks the role itself: the page guard is not a security boundary. A change
  * that worked shows in the activity stream; it can't be undone there (ADR 0013).
  */
-async function asAdmin(
-  what: "create" | "update" | "remove",
-  run: () => Promise<SeasonResult>,
-): Promise<SeasonResult | Forbidden> {
+async function asAdmin<R extends SeasonResult | SavePricesResult>(
+  what: "create" | "update" | "remove" | "prices",
+  run: () => Promise<R>,
+): Promise<R | Forbidden> {
   const actor = await readCurrentUser();
   if (actor?.role !== "admin") return { ok: false, error: "forbidden" };
   const result = await run();
@@ -45,4 +46,9 @@ export async function updateSeasonAction(input: unknown): Promise<SeasonResult |
 
 export async function removeSeasonAction(input: unknown): Promise<SeasonResult | Forbidden> {
   return asAdmin("remove", () => seasons.removeSeason(getDb(), input));
+}
+
+/** Replaces a season's price list (ADR 0029). */
+export async function savePricesAction(input: unknown): Promise<SavePricesResult | Forbidden> {
+  return asAdmin("prices", () => savePrices(getDb(), input));
 }

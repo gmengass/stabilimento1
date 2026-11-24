@@ -343,7 +343,8 @@
       "seasonEnded": "This season has already ended."
     },
     "defaultName": "Season {year}",
-    "nextAfter": "You can add the next season once {name} has ended (last day {date})."
+    "nextAfter": "You can add the next season once {name} has ended (last day {date}).",
+    "prices": "Price list"
   },
   "quickBook": {
     "open": "Quick book",
@@ -451,5 +452,37 @@
     "cancel": "Cancel",
     "empty": "There are no staff accounts to choose from.",
     "failed": "Could not choose. Try again."
+  },
+  "prices": {
+    "title": "Prices",
+    "heading": "Prices {name}",
+    "days": "Days",
+    "daysRow": "{count, plural, one {# day} other {# days}}",
+    "season": "Season",
+    "single": "One piece",
+    "bundle": "Umbrella + 2 pieces",
+    "piecesNote": "Each umbrella, sunbed and deckchair is one piece.",
+    "close": "Close",
+    "empty": "No prices entered for this season yet.",
+    "noSeason": "There is no season today.",
+    "admin": {
+      "title": "Price list",
+      "heading": "Price list: {name}",
+      "back": "Back to seasons",
+      "intro": "Prices in euros for one piece (umbrella, sunbed or deckchair) and for an umbrella with 2 pieces, by number of days. The season row is the most any stay can cost. Leave a row empty if there is no price for it.",
+      "copied": "Filled in from {name}: check the prices and save to use them for this season.",
+      "singleFor": "One piece, {row}",
+      "bundleFor": "Umbrella + 2 pieces, {row}",
+      "hint": "Type euros, e.g. 77 or 77,50.",
+      "save": "Save prices",
+      "saved": "Prices saved.",
+      "badRows": "Fill in both prices, in euros, on these rows: {rows}.",
+      "errors": {
+        "invalid": "Check the prices: whole euros or euros and cents, up to €100,000.",
+        "notFound": "Not found: reload the page.",
+        "forbidden": "Only admins can do this.",
+        "generic": "Something went wrong. Try again."
+      }
+    }
   }
 }

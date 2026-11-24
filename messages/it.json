@@ -343,7 +343,8 @@
       "seasonEnded": "Questa stagione è già finita."
     },
     "defaultName": "Stagione {year}",
-    "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date})."
+    "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date}).",
+    "prices": "Listino prezzi"
   },
   "quickBook": {
     "open": "Prenotazione rapida",
@@ -451,5 +452,37 @@
     "cancel": "Annulla",
     "empty": "Non ci sono account del personale tra cui scegliere.",
     "failed": "Scelta non riuscita. Riprova."
+  },
+  "prices": {
+    "title": "Prezzi",
+    "heading": "Prezzi {name}",
+    "days": "Giorni",
+    "daysRow": "{count, plural, one {# giorno} other {# giorni}}",
+    "season": "Stagionale",
+    "single": "Un pezzo",
+    "bundle": "Ombrellone + 2 pezzi",
+    "piecesNote": "Ogni ombrellone, lettino e sdraio è un pezzo.",
+    "close": "Chiudi",
+    "empty": "Nessun prezzo inserito per questa stagione.",
+    "noSeason": "Oggi non c'è una stagione.",
+    "admin": {
+      "title": "Listino prezzi",
+      "heading": "Listino prezzi: {name}",
+      "back": "Torna alle stagioni",
+      "intro": "Prezzi in euro per un pezzo (ombrellone, lettino o sdraio) e per un ombrellone con 2 pezzi, per numero di giorni. La riga stagionale è il massimo che può costare un soggiorno. Lascia vuota una riga senza prezzo.",
+      "copied": "Compilato da {name}: controlla i prezzi e salva per usarli in questa stagione.",
+      "singleFor": "Un pezzo, {row}",
+      "bundleFor": "Ombrellone + 2 pezzi, {row}",
+      "hint": "Scrivi gli euro, ad es. 77 o 77,50.",
+      "save": "Salva prezzi",
+      "saved": "Prezzi salvati.",
+      "badRows": "Inserisci entrambi i prezzi, in euro, in queste righe: {rows}.",
+      "errors": {
+        "invalid": "Controlla i prezzi: euro interi o euro e centesimi, fino a 100.000 €.",
+        "notFound": "Non trovato: ricarica la pagina.",
+        "forbidden": "Solo gli amministratori possono farlo.",
+        "generic": "Qualcosa è andato storto. Riprova."
+      }
+    }
   }
 }
