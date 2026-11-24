@@ -1,6 +1,6 @@
 # Plan: Arturo and Sera themes, sun tiles (branch feat/themes)
 
-Owner decisions 2026-11-24. ADR [0030](../decisions/0031-arturo-sera-themes.md).
+Owner decisions 2026-11-24. ADR [0031](../decisions/0031-arturo-sera-themes.md).
 
 ## Goal
 Two per-device themes, Arturo (light) and Sera (dark), with the Arturo banner and larger "sun
