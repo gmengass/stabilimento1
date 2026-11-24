@@ -13,6 +13,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   sunbeds row and deckchairs are on one line below. An open booking reads "101 · 2 lettini · 1
   sdraio" (the word "Ombrellone" is dropped from these lines).
 
+### Fixed
+- Arturo: undone entries in today's activity list were too faint on the sand background; they
+  now meet the contrast minimum.
+
 ## [0.18.0] - 2026-11-24
 Update with `scripts/update.sh v0.18.0` (migration 0018; no new APK). Pick Arturo or Sera per
 tablet in the user menu → Theme.
