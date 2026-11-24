@@ -1,13 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createLiveConnection, type LiveSignal } from "@/lib/live/live-connection";
+import { probeSession } from "@/lib/live/session-probe";
 
 export interface UseLiveConnectionOptions {
   signals: readonly LiveSignal[];
   catchUpOnOpen: boolean;
   onSignal: () => void;
+  /**
+   * When the stream keeps failing, the session may have ended. `refresh` re-renders the page;
+   * `probe` only asks the auth endpoint, for pages that must not reload under the user.
+   */
+  sessionCheck: "refresh" | "probe";
 }
 
 /**
@@ -18,8 +24,10 @@ export function useLiveConnection(options: UseLiveConnectionOptions): boolean {
   const router = useRouter();
   const [reconnecting, setReconnecting] = useState(false);
   const onSignal = useRef(options.onSignal);
-  const { catchUpOnOpen } = options;
-  const signals = options.signals.join(",");
+  const { catchUpOnOpen, sessionCheck } = options;
+  const key = options.signals.join(",");
+  // Callers pass a fresh array on every render; follow its contents, not its identity.
+  const signals = useMemo(() => options.signals, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     onSignal.current = options.onSignal;
@@ -30,9 +38,12 @@ export function useLiveConnection(options: UseLiveConnectionOptions): boolean {
       createSource: () => new EventSource("/api/live"),
       isOnline: () => navigator.onLine,
       onRefresh: () => onSignal.current(),
-      onSessionCheck: () => router.refresh(),
+      onSessionCheck:
+        sessionCheck === "refresh"
+          ? () => router.refresh()
+          : () => void probeSession({ fetch, goToLogin: () => router.push("/login") }),
       onNotice: setReconnecting,
-      signals: signals.split(",") as LiveSignal[],
+      signals,
       catchUpOnOpen,
     });
     const onOffline = () => connection.offline();
@@ -51,7 +62,7 @@ export function useLiveConnection(options: UseLiveConnectionOptions): boolean {
       document.removeEventListener("visibilitychange", onVisibility);
       connection.dispose();
     };
-  }, [router, signals, catchUpOnOpen]);
+  }, [router, signals, catchUpOnOpen, sessionCheck]);
 
   return reconnecting;
 }

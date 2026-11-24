@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { LiveSignal } from "@/lib/live/live-connection";
+import { isOwnWrite } from "@/lib/live/own-write";
 import { LiveReconnecting } from "./live-reconnecting";
 import { useLiveConnection } from "./use-live-connection";
 
@@ -13,32 +14,20 @@ const SIGNALS: Record<LiveNoticeKind, readonly LiveSignal[]> = {
   setup: ["setup"],
 };
 
-/** Signals this soon after the page itself submitted a form are taken as its own write. */
-export const OWN_WRITE_MS = 10_000;
-
 /**
  * Tells a page that does not refresh itself (search, admin forms) that its data changed
  * elsewhere, and offers a reload (ADR 0030). A full reload, so forms show the saved values. A
- * signal just after this page submitted a form is its own save, not a change from elsewhere.
+ * signal just after this page's own save is that save, not a change from elsewhere.
  */
 export function LiveNotice({ kind }: { kind: LiveNoticeKind }) {
   const t = useTranslations("live");
   const [changed, setChanged] = useState(false);
-  const lastSubmit = useRef(Number.NEGATIVE_INFINITY);
-
-  useEffect(() => {
-    const onSubmit = () => {
-      lastSubmit.current = Date.now();
-    };
-    document.addEventListener("submit", onSubmit, true);
-    return () => document.removeEventListener("submit", onSubmit, true);
-  }, []);
-
   const reconnecting = useLiveConnection({
     signals: SIGNALS[kind],
     catchUpOnOpen: false,
+    sessionCheck: "probe",
     onSignal: () => {
-      if (Date.now() - lastSubmit.current > OWN_WRITE_MS) setChanged(true);
+      if (!isOwnWrite()) setChanged(true);
     },
   });
 

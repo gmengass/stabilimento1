@@ -29,6 +29,7 @@ export function LiveRefresh({ signals = MAP }: { signals?: readonly LiveSignal[]
   const reconnecting = useLiveConnection({
     signals,
     catchUpOnOpen: true,
+    sessionCheck: "refresh",
     onSignal: () => scheduler.current?.notify(),
   });
   return reconnecting ? <LiveReconnecting /> : null;
