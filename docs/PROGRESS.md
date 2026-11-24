@@ -1,12 +1,10 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.16.0` (2026-11-24) holds #83, #84, #95, #97, #98, #100 and the Dependabot updates (#85–#87,
-  #91–#93); #88, #89 and #94 were closed unmerged. `v0.15.0` is deployed on the box; v0.16.0 is
-  tagged, not yet deployed. Backups are not set up on the box yet. No open PRs.
-- Box update to v0.16.0: first add `APP_DATABASE_URL` to `.env` (one-liner in RUNBOOK "Update").
-  Migrations `0015` (a table) and `0016` (an index). Then add `ANDROID_APP_NAME=Stabilimento Arturo`
-  and `ANDROID_ICON_DIR` (the two Arturo icon files, kept on the box only) and rebuild the APK.
+- `v0.16.0` (tagged 2026-11-24 on the #100 merge) is deployed on the box, with the APK rebuilt as
+  "Stabilimento Arturo" and the club icon (`ANDROID_APP_NAME`, `ANDROID_ICON_DIR`; the icon files
+  live only on the box). It holds #83, #84, #95, #97, #98, #100 and the Dependabot updates (#85–#87,
+  #91–#93); #88, #89 and #94 were closed unmerged. Backups are not set up on the box yet.
 ## Done this session
 - Opus review of the Sonnet-era work finished: ADR 0024 (#73), ADR 0026 (#77), live stream limits
   (#68) and check-in at creation (#71), no bugs; #67 and #69 (display only) skipped. #97 adds the
@@ -14,7 +12,7 @@
 - #98: the sign-in page remembers the last username. #100: tablet app icon, and the club's name
   and icon from `.env` (RUNBOOK "Club name and icon"); the logo is the hotel's, not committed.
 ## Next up
-1. Owner: update the box to v0.16.0 (add `APP_DATABASE_URL` first), rebuild the APK with the club name and icon, set up backups (RUNBOOK; delete `feat/backups`).
+1. Owner: set up backups on the box (RUNBOOK; delete `feat/backups`).
 2. Owner decisions: customer data retention (GDPR ADR) and masking phones on the map and in search close the security item; also tablet session length, tablet design (record the tablet and an "on duty" list now; a payment PIN in Milestone 2); whether "Trusted certificate" (Milestone 0) comes before Milestone 2.
 3. Then Milestone 2: prices, payments at the desk, daily cash-up (`feat/prices-payments`).
 ## Open questions
