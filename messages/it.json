@@ -388,7 +388,11 @@
   "sheet": {
     "label": "Pannello prenotazione",
     "collapse": "Riduci",
-    "expand": "Espandi"
+    "expand": "Espandi",
+    "bandNew": "Nuova prenotazione",
+    "bandMove": "Sposta prenotazione",
+    "bandQuick": "Prenotazione rapida",
+    "bandTitle": "{numbers} · {what}"
   },
   "activity": {
     "title": "Attività di oggi",
