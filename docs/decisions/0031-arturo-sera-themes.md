@@ -3,6 +3,8 @@
 - Status: Accepted (owner, 2026-11-24)
 - Date: 2026-11-24
 - Details: `docs/plans/themes.md`. Amends [ADR 0017](0017-theme-switcher.md) in one place.
+- Amended 2026-11-24 (owner): booking panel band, body and button colours, see
+  `docs/plans/theme-panel.md`.
 
 ## Context
 - Staff use the tablets on the beach in bright sun. Today's tiles use pale fills that wash out
