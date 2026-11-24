@@ -24,8 +24,12 @@ to fresh ones.
   the saved values and a new search is a deliberate one. A `resync` shows the notice too.
 - **No catch-up on open**: these pages don't treat a (re)opened stream as a change, since streams
   reopen every 5 minutes. Changes made while a page was offline are not reported.
-- **Own saves**: a signal within 10 s of the page itself submitting a form is taken as that save
-  and shows nothing. A change from elsewhere in those 10 s is missed.
+- **Own saves**: admin saves go through `ownWrite`, which marks the time when a save starts and
+  when it returns; a setup signal within 10 s of a mark is that save and shows nothing. A change
+  from elsewhere in those 10 s is missed.
+- **Session check**: when the stream keeps failing, these pages ask `/api/auth/get-session` and go
+  to the sign-in page only if the session is gone, instead of re-rendering the page as the map
+  does (that would re-run a search, or refresh under a half-edited form).
 - **Prices page** (`/prices`, read-only): refreshes itself on `setup`, like the map.
 
 ## Consequences

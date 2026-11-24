@@ -35,7 +35,8 @@ people could pick the same umbrella or miss a check-in made at the desk.
   can't see, but the server ends every stream after 5). Offline, or down for over 2 s, it shows
   "Not live, reconnecting".
 - **Caddy**: `/api/live` skips `encode`; Caddy already flushes `text/event-stream` at once.
-- Scope: the map page only. Search and admin pages are not live.
+- Scope: the map page only. Search and admin pages are not live (amended by
+  [ADR 0030](0030-live-notices-search-admin.md): they show a "changed" notice).
 
 ## Consequences
 - Any write to those tables, including direct SQL, updates open maps; no app code has to
