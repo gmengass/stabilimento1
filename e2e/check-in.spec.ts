@@ -35,6 +35,9 @@ test("staff check a booking in from the map and can take it back", async ({ page
   await panel.locator('form button[type="submit"]').click();
   await expect(panel).toHaveCount(0);
 
+  // Wait for the map to show the booking: a live update from another worker can otherwise leave
+  // the tile looking free, and the click would start a new booking instead.
+  await expect(spotButton(page, number).locator("span.truncate")).toHaveText(customer);
   await spotButton(page, number).click();
   await panel.getByTestId("check-in").click();
   await expect(panel.getByTestId("uncheck")).toBeVisible();
