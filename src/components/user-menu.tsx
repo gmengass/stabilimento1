@@ -59,7 +59,8 @@ export function UserMenu({ label, children }: Props) {
       <div
         id={panelId}
         hidden={!open}
-        className="bg-background absolute right-0 z-10 mt-1 rounded border p-3 shadow"
+        data-menu-panel
+        className="bg-background text-foreground absolute right-0 z-10 mt-1 rounded border p-3 shadow"
       >
         {children}
       </div>

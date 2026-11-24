@@ -28,7 +28,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       >
         {t("skipToContent")}
       </a>
-      <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm">
+      <nav
+        data-banner
+        className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm sun:border-b-[5px] sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec]"
+      >
         <Link href="/" className="flex min-h-11 items-center">
           {t("map")}
         </Link>
