@@ -1,20 +1,35 @@
 // The live map's client connection (ADR 0019), without React or a real EventSource so it can
 // be tested with fake timers.
 import { backoffDelay } from "./refresh-scheduler";
-import { STREAM_LIFETIME_MS } from "./sse";
+import { STREAM_LIFETIME_MS, type LiveEvent } from "./sse";
+
+/** The named events a page can follow; `resync` always counts. */
+export type LiveSignal = Exclude<LiveEvent, "resync">;
 
 /** The part of `EventSource` this uses. */
 export interface LiveSource {
-  addEventListener(type: "open" | "error" | "changed" | "resync", listener: () => void): void;
+  addEventListener(type: "open" | "error" | LiveEvent, listener: () => void): void;
   close(): void;
 }
 
 export interface LiveConnectionOptions {
   createSource: () => LiveSource;
   isOnline: () => boolean;
-  /** Asks for the page data to be reloaded (debounced by the caller). */
+  /** A followed event or a resync arrived, or (with `catchUpOnOpen`) a stream opened. */
   onRefresh: () => void;
+  /**
+   * The stream keeps failing, which may mean the session ended: reload so the page can send the
+   * user to sign in. Defaults to `onRefresh`.
+   */
+  onSessionCheck?: () => void;
   onNotice: (show: boolean) => void;
+  /** Which named events call `onRefresh`. Default: `changed` (the map). */
+  signals?: readonly LiveSignal[];
+  /**
+   * Call `onRefresh` on every open, the first included, to catch up on anything missed. Off for
+   * pages that only offer a reload (ADR 0030): streams reopen every 5 minutes.
+   */
+  catchUpOnOpen?: boolean;
   random?: () => number;
 }
 
@@ -33,7 +48,16 @@ export const NOTICE_DELAY_MS = 2_000;
 export const WATCHDOG_MS = STREAM_LIFETIME_MS + 60_000;
 
 export function createLiveConnection(options: LiveConnectionOptions): LiveConnection {
-  const { createSource, isOnline, onRefresh, onNotice, random = Math.random } = options;
+  const {
+    createSource,
+    isOnline,
+    onRefresh,
+    onSessionCheck = onRefresh,
+    onNotice,
+    signals = ["changed"],
+    catchUpOnOpen = true,
+    random = Math.random,
+  } = options;
   let source: LiveSource | undefined;
   let attempt = 0;
   let retry: ReturnType<typeof setTimeout> | undefined;
@@ -95,7 +119,7 @@ export function createLiveConnection(options: LiveConnectionOptions): LiveConnec
     next.addEventListener("open", () => {
       if (source !== next) return;
       // Catch up on anything committed between the page render (or the outage) and now.
-      onRefresh();
+      if (catchUpOnOpen) onRefresh();
       attempt = 0;
       hideNotice();
       armWatchdog();
@@ -103,7 +127,7 @@ export function createLiveConnection(options: LiveConnectionOptions): LiveConnec
     const signal = () => {
       if (source === next) onRefresh();
     };
-    next.addEventListener("changed", signal);
+    for (const event of signals) next.addEventListener(event, signal);
     next.addEventListener("resync", signal);
     next.addEventListener("error", () => {
       if (source !== next) return;
@@ -111,7 +135,7 @@ export function createLiveConnection(options: LiveConnectionOptions): LiveConnec
       showNotice(NOTICE_DELAY_MS);
       // A stream that keeps failing may mean the session ended: a refresh sends the page to
       // the login screen in that case.
-      if (attempt === 1) onRefresh();
+      if (attempt === 1) onSessionCheck();
       retry = setTimeout(open, backoffDelay(attempt, random));
       attempt += 1;
     });
