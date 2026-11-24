@@ -82,6 +82,21 @@ for (const [theme, scheme] of [
       await page.getByRole("complementary").waitFor();
       expect(await violations(page)).toEqual([]);
     });
+
+    test("the quick-book form has no WCAG violations", async ({ page }) => {
+      await page.goto("/");
+      await page.getByTestId("quick-book-open").click();
+      await page.getByTestId("quick-book-form").waitFor();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test("the booking panel on a phone has no WCAG violations", async ({ page }) => {
+      await page.setViewportSize(PHONE);
+      await page.goto("/");
+      await page.locator("[data-spot-id]").first().click();
+      await page.getByRole("complementary").waitFor();
+      expect(await violations(page)).toEqual([]);
+    });
   });
 }
 

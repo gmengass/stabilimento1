@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- In Arturo and Sera the booking panel matches the top bar (docs/plans/theme-panel.md): a green
+  band with the orange stripe holds the title and Close, the main button of each panel (and Quick
+  book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
+  cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
 
 ## [0.18.0] - 2026-11-24
 Update with `scripts/update.sh v0.18.0` (migration 0018; no new APK). Pick Arturo or Sera per

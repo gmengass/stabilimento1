@@ -11,6 +11,7 @@ import { BookingDetails, NewBookingForm, NoShowDay, ReleasedDay } from "./bookin
 import { initialPanel } from "./initial-panel";
 import { MoveForm, type MoveTargets } from "./move-form";
 import { QuickBookForm, SuggestionBar, type QuickBookPick } from "./quick-book";
+import { sunOnBand, sunPrimary } from "@/components/button-classes";
 
 const noticeKey = {
   taken: "spotsTaken",
@@ -368,6 +369,16 @@ export function BeachBoard({
       />
     ) : null;
 
+  /** The panel's title, shown on the green band in Arturo and Sera (the forms hide their own). */
+  const panelTitle =
+    open && targets
+      ? tb("moveTitle")
+      : open
+        ? open.customerName
+        : freeSelected.length > 0
+          ? tb("newTitle", { area: areaName })
+          : t("title", { area: areaName });
+
   /** What the panel shows: new content opens a collapsed sheet again, toggling umbrellas doesn't. */
   const panelKey = open
     ? `booking-${open.bookingId}`
@@ -450,7 +461,7 @@ export function BeachBoard({
           ref={quickBookButton}
           onClick={(event) => openQuickBook(event.detail === 0)}
           data-testid="quick-book-open"
-          className="min-h-11 self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white"
+          className={`min-h-11 self-start rounded bg-blue-700 px-4 py-2 font-semibold text-white ${sunPrimary}`}
         >
           {t("open")}
         </button>
@@ -482,16 +493,25 @@ export function BeachBoard({
           aria-label={ts("label")}
           data-sheet={collapsed ? "collapsed" : "open"}
           onKeyDown={onPanelKeyDown}
-          className="rounded border bg-background p-4 lg:sticky lg:top-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:pt-0 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_16px_rgb(0_0_0/0.2)]"
+          className="rounded border bg-background p-4 sun:border-[#d9cdb4] sun:bg-white sun:accent-[#1f3d2b] sun:dark:border-[#34495a] sun:dark:bg-[#1e2f3d] sun:dark:accent-[#e8862a] lg:sticky lg:top-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:pt-0 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_16px_rgb(0_0_0/0.2)]"
         >
-          <div className="sticky top-0 z-10 -mx-4 flex justify-end gap-2 bg-background px-4 py-2 md:hidden">
+          <div
+            data-panel-band
+            className="sticky top-0 z-10 -mx-4 flex justify-end gap-2 bg-background px-4 py-2 md:hidden sun:mb-3 sun:flex sun:items-center sun:border-b-4 sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec] sun:md:-mt-4 sun:md:rounded-t"
+          >
+            <h2
+              title={panelTitle}
+              className="mr-auto hidden min-w-0 truncate text-lg font-semibold sun:block"
+            >
+              {panelTitle}
+            </h2>
             <button
               type="button"
               data-sheet-toggle
               aria-expanded={!collapsed}
               aria-controls={contentId}
               onClick={() => setCollapsed(!collapsed)}
-              className="min-h-11 rounded border px-3 py-2"
+              className={`min-h-11 rounded border px-3 py-2 md:hidden ${sunOnBand}`}
             >
               {collapsed ? ts("expand") : ts("collapse")}
             </button>
@@ -499,7 +519,7 @@ export function BeachBoard({
               type="button"
               data-sheet-close
               onClick={closePanel}
-              className="min-h-11 rounded border px-3 py-2"
+              className={`min-h-11 rounded border px-3 py-2 ${sunOnBand}`}
             >
               {tb("close")}
             </button>

@@ -75,7 +75,9 @@ body {
   }
 
   /* On the green banner the ring is orange; inside the user menu's panel it is the page's again. */
-  :root:is([data-theme="arturo"], [data-theme="sera"]) [data-banner] :focus-visible {
+  :root:is([data-theme="arturo"], [data-theme="sera"])
+    :is([data-banner], [data-panel-band])
+    :focus-visible {
     outline-color: #e8862a;
   }
 

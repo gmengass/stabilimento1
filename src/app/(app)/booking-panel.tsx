@@ -25,6 +25,7 @@ import {
   uncheckAction,
 } from "./booking-actions";
 import { PriceBox } from "./price-box";
+import { sunDanger, sunDangerFilled, sunPrimary, sunSecondary } from "@/components/button-classes";
 
 export type ErrorKey =
   | "invalid"
@@ -255,7 +256,7 @@ export function NewBookingForm(props: NewProps) {
 
   return (
     <form onSubmit={onSubmit} onChange={stock.clear} className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">{t("newTitle", { area: areaName })}</h2>
+      <h2 className="text-lg font-semibold sun:hidden">{t("newTitle", { area: areaName })}</h2>
       <ul className="flex flex-col gap-2">
         {spots.map((spot) => (
           <li key={spot.id} className="flex items-center gap-2 text-sm">
@@ -277,7 +278,7 @@ export function NewBookingForm(props: NewProps) {
             <button
               type="button"
               onClick={() => onRemove(spot.id)}
-              className="ml-auto min-h-11 rounded border px-3 py-2"
+              className={`ml-auto min-h-11 rounded border px-3 py-2 ${sunSecondary}`}
               aria-label={t("removeSpot", { number: spot.number })}
             >
               {t("remove")}
@@ -411,7 +412,7 @@ export function NewBookingForm(props: NewProps) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60"
+        className={`rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60 ${sunPrimary}`}
       >
         {pending
           ? t("saving")
@@ -553,8 +554,8 @@ function CheckInButton({ occupant, date }: { occupant: Occupant; date: string })
         data-testid={occupant.checkedIn ? "uncheck" : "check-in"}
         className={
           occupant.checkedIn
-            ? "min-h-11 rounded border px-3 py-2 disabled:opacity-60"
-            : "min-h-11 rounded bg-teal-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
+            ? `min-h-11 rounded border px-3 py-2 disabled:opacity-60 ${sunSecondary}`
+            : `min-h-11 rounded bg-teal-700 px-3 py-2 font-semibold text-white disabled:opacity-60 ${sunPrimary}`
         }
       >
         {pending ? t("saving") : t(occupant.checkedIn ? "uncheck" : "checkIn")}
@@ -617,7 +618,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
         <button
           type="submit"
           disabled={pending}
-          className="min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+          className={`min-h-11 rounded border px-3 py-2 disabled:opacity-60 ${sunSecondary}`}
         >
           {pending ? t("saving") : t("holdSave")}
         </button>
@@ -626,7 +627,7 @@ function HoldForm({ occupant }: { occupant: Occupant }) {
             type="button"
             onClick={() => save(null)}
             disabled={pending}
-            className="min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+            className={`min-h-11 rounded border px-3 py-2 disabled:opacity-60 ${sunSecondary}`}
           >
             {t("holdClear")}
           </button>
@@ -701,7 +702,11 @@ function ReleaseForm({ occupant, date, today }: DayProps & { occupant: Occupant 
           />
         </label>
       </div>
-      <button type="submit" disabled={pending} className="min-h-11 rounded border px-3 py-2">
+      <button
+        type="submit"
+        disabled={pending}
+        className={`min-h-11 rounded border px-3 py-2 ${sunSecondary}`}
+      >
         {pending ? t("saving") : t("release")}
       </button>
       {released !== null && (
@@ -758,7 +763,11 @@ function LastDayForm({ occupant, date, today }: DayProps & { occupant: Occupant 
           className={field}
         />
       </label>
-      <button type="submit" disabled={pending} className="min-h-11 rounded border px-3 py-2">
+      <button
+        type="submit"
+        disabled={pending}
+        className={`min-h-11 rounded border px-3 py-2 ${sunSecondary}`}
+      >
         {pending ? t("saving") : t("setLastDay")}
       </button>
       {saved && (
@@ -803,7 +812,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-start">
+      <div className="flex items-start sun:hidden">
         <h2 className="text-lg font-semibold">{occupant.customerName}</h2>
         <button
           type="button"
@@ -853,7 +862,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
           type="button"
           onClick={onMove}
           data-testid="move-open"
-          className="min-h-11 rounded border px-3 py-2"
+          className={`min-h-11 rounded border px-3 py-2 ${sunSecondary}`}
         >
           {t("move")}
         </button>
@@ -865,21 +874,21 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         <LastDayForm occupant={occupant} date={date} today={today} />
       )}
       {confirming ? (
-        <div className="flex flex-col gap-2 rounded border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 p-3">
+        <div className="flex flex-col gap-2 rounded border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 p-3 sun:border-2 sun:border-[#8b1a1a] sun:bg-white sun:text-[#8b1a1a] sun:dark:border-[#f08a8a] sun:dark:bg-[#1e2f3d] sun:dark:text-[#f5b5b5]">
           <p className="text-sm">{t(isPass ? "cancelPassConfirm" : "cancelConfirm")}</p>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={cancel}
               disabled={pending}
-              className="min-h-11 flex-1 rounded bg-red-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
+              className={`min-h-11 flex-1 rounded bg-red-700 px-3 py-2 font-semibold text-white disabled:opacity-60 ${sunDangerFilled}`}
             >
               {pending ? t("saving") : t("cancelYes")}
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="min-h-11 flex-1 rounded border px-3 py-2"
+              className={`min-h-11 flex-1 rounded border px-3 py-2 ${sunSecondary}`}
             >
               {t("cancelNo")}
             </button>
@@ -889,7 +898,7 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="min-h-11 rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400"
+          className={`min-h-11 rounded border border-red-700 dark:border-red-400 px-3 py-2 text-red-700 dark:text-red-400 ${sunDanger}`}
         >
           {t("cancel")}
         </button>
