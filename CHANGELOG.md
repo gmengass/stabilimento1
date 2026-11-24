@@ -3,6 +3,8 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.16.0] - 2026-11-24
 ### Added
 - The sign-in page remembers the last username that signed in on the device (tablet app and
   browser) and asks only for the password. A failed sign-in is not remembered.
