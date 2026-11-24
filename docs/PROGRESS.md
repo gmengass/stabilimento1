@@ -1,19 +1,17 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.17.0` (tagged 2026-11-24, prices, ADR 0029) is deployed on the box (owner, 2026-11-24); APK
-  unchanged since v0.16.0. No backups on the box yet. PR #103 (v0.17.0 docs) is merged.
-- PR #104 (live notices on search and admin, ADR 0030, migration 0018) merged 2026-11-24, not tagged yet.
-- PR #105 (`feat/themes`, open): Arturo and Sera themes with sun tiles (ADR 0031, plan
-  `docs/plans/themes.md`); main (#104) merged in, its ADR renumbered from 0030 to 0031.
+- `v0.18.0` (tagged 2026-11-24 on the #105 merge) is deployed on the box (owner, 2026-11-24): live
+  notices on search and admin (#104, ADR 0030, migration 0018) and the Arturo and Sera themes with
+  sun tiles (#105, ADR 0031). APK unchanged since v0.16.0. No backups on the box yet.
 ## Done this session
 - Owner chose the themes (2026-11-24): Arturo (sand) and Sera (night blue), both with the green
   banner and orange stripe; sun tiles 64 × 72 px, number 18px, name 14px, marks 12px; Automatic,
   Light and Dark stay for now (may go later). Payments at the desk is shelved (owner, 2026-11-24).
-- #105: themes, sun tiles with status marks (P/B, ✓, S, ?), panel column only while a panel is
-  open (map and Beach settings). 1504 unit/integration and 110 e2e pass; reviewer findings fixed.
+- #105 (merged, v0.18.0): themes, sun tiles with status marks (P/B, ✓, S, ?), panel column only while a panel is
+  open (map and Beach settings). 1527 unit/integration and 112 e2e pass; reviewer findings fixed.
 ## Next up
-1. Owner: review and merge #105, tag a release (with #104), update the box (migration 0018, no new APK).
+1. Owner: try Arturo or Sera on a desk tablet outdoors and report anything hard to read.
 2. Owner: enter the 2027 prices on the box (Seasons → Price list); set up backups (RUNBOOK; delete `feat/backups`).
 3. Owner: describe the cabins (how many, day or season, tied to an umbrella?) so Cabins can start; decisions for GDPR retention and phone masking.
 ## Open questions
