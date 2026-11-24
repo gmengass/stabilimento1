@@ -3,6 +3,9 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.17.0] - 2026-11-24
+Update with `scripts/update.sh v0.17.0` (migration 0017; no new APK). Then enter the 2027 prices.
 ### Added
 - Prices (ADR 0029): the admin enters each season's price list under Seasons → Price list (rows
   for 1 to 31 days and a season row; one piece and umbrella + 2 pieces), filled in from the
