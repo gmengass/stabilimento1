@@ -158,3 +158,60 @@ test.describe("at 1280 × 800 in arturo", () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   });
 });
+
+test("sera uses sun tiles and a dark blue sea band", async ({ page, context, baseURL }) => {
+  await useTheme(context, baseURL, "sera");
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "sera");
+  const { width, height } = await tileSize(page);
+  expect(width).toBeGreaterThanOrEqual(64);
+  expect(height).toBeGreaterThanOrEqual(72);
+  const sea = page.getByTestId("beach-map").locator("> div > div").first();
+  await expect(sea).toHaveCSS("background-color", "rgb(12, 59, 94)");
+  await expect(sea).toHaveCSS("color", "rgb(191, 227, 247)");
+});
+
+test("arturo keeps the light sea band", async ({ page, context, baseURL }) => {
+  await useTheme(context, baseURL, "arturo");
+  await page.goto("/");
+  const sea = page.getByTestId("beach-map").locator("> div > div").first();
+  await expect(sea).not.toHaveCSS("background-color", "rgb(12, 59, 94)");
+});
+
+test("a sun tile has a visible blue keyboard focus ring", async ({ page, context, baseURL }) => {
+  await useTheme(context, baseURL, "arturo");
+  await page.goto("/");
+  const tile = page.locator("[data-spot-id]").first();
+  await tile.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(tile).toBeFocused();
+  await expect(tile).toHaveCSS("outline-color", "rgb(29, 78, 216)");
+  await expect(tile).toHaveCSS("outline-width", "3px");
+});
+
+// A far-off date of its own, so no other spec books on it.
+test("a booked tile shows its badge or its mark, never both, and no mark in light", async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  const day = "2093-07-10";
+  await useTheme(context, baseURL, "arturo");
+  await page.goto(`/?date=${day}`);
+  const tile = page.getByTestId("beach-map").locator("ol button").first();
+  const panel = page.locator("aside");
+  await tile.click();
+  await panel.locator('input[name="customerName"]').fill(`Mark ${Date.now()}`);
+  await panel.locator('form button[type="submit"]').click();
+  await expect(panel).toHaveCount(0);
+
+  const corner = tile.locator('[data-testid="tile-badge"], [data-testid="tile-mark"]');
+  await expect(corner).toHaveCount(1);
+  await expect(corner).toBeVisible();
+  await expect(corner).toHaveAttribute("aria-hidden", "true");
+
+  await useTheme(context, baseURL, "light");
+  await page.reload();
+  await expect(tile.getByTestId("tile-mark")).toBeHidden();
+});
