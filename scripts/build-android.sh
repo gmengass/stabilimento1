@@ -1,6 +1,7 @@
 #!/bin/sh
 # Builds the Android app for club tablets on the box (ADR 0010, ADR 0011): a signed APK that
 # opens APP_URL (falling back to REMOTE_URL) and trusts the club's Caddy root.
+# Optional: ANDROID_APP_NAME and ANDROID_ICON_DIR in .env give the app the club's name and icon.
 # Usage: scripts/build-android.sh   (needs internet on the first run; see docs/RUNBOOK.md)
 # Writes nothing into the checkout. The signing key stays in ANDROID_KEY_DIR (~/secrets).
 set -eu
@@ -27,6 +28,12 @@ app_url=$(env_value APP_URL)
 trusted=$(env_value TRUSTED_ORIGINS)
 remote=$(env_value REMOTE_URL)
 check_android_config "$app_url" "$trusted" "$remote" "$(env_value SITE_ADDRESS)" "$(env_value DEFAULT_SNI)"
+# Values with spaces may be written in quotes in .env.
+unquoted() { env_value "$1" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/"; }
+app_name=$(unquoted ANDROID_APP_NAME)
+icon_dir=$(unquoted ANDROID_ICON_DIR)
+check_android_app_name "$app_name"
+check_android_icon_dir "$icon_dir"
 command -v docker >/dev/null || die "docker not found"
 command -v openssl >/dev/null || die "openssl not found"
 
@@ -75,6 +82,11 @@ chmod 600 "$KEY_DIR/$KEYSTORE" "$KEY_DIR/$KEY_PASS" 2>/dev/null || true
 cp -R "$DEPLOY_ROOT/android" "$WORK/android"
 mkdir -p "$WORK/android/app/src/main/res/raw"
 cp "$WORK/root.crt" "$WORK/android/app/src/main/res/raw/club_root.crt"
+if [ -n "$icon_dir" ]; then
+	cp "$icon_dir/foreground.png" "$WORK/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"
+	cp "$icon_dir/legacy.png" "$WORK/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
+	log "icon from $icon_dir"
+fi
 
 version_name=$(read_state current)
 printf '%s\n' "$version_name" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+' || version_name=dev
@@ -86,11 +98,12 @@ log "building $apk"
 # Gradle runs downloaded plugins, so the signing key is not mounted here.
 # shellcheck disable=SC2016 # expanded by the shell inside the container
 in_build_image -w /work/android \
-	-e APP_URL="$app_url" -e TRUSTED_ORIGINS="$trusted" -e REMOTE_URL="$remote" \
-	-e VERSION_CODE="$version_code" -e VERSION_NAME="$version_name" \
+	-e APP_URL="$app_url" -e TRUSTED_ORIGINS="$trusted" -e REMOTE_URL="$remote" -e APP_NAME="$app_name" \
+	-e VERSION_CODE="$version_code" -e VERSION_NAME="$version_name" -e LC_ALL=C.UTF-8 \
 	"$image" sh -euc '
 		gradle --no-daemon --quiet \
 			-PappUrl="$APP_URL" -PtrustedOrigins="$TRUSTED_ORIGINS" -PremoteUrl="$REMOTE_URL" \
+			-PappName="$APP_NAME" \
 			-PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME" \
 			test assembleRelease
 		zipalign -p -f 4 app/build/outputs/apk/release/app-release-unsigned.apk /work/aligned.apk

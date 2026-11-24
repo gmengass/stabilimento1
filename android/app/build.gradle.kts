@@ -12,6 +12,9 @@ fun clubValue(name: String): String = providers.gradleProperty(name).orNull?.tri
 val appUrl = clubValue("appUrl")
 val trustedOrigins = clubValue("trustedOrigins")
 val remoteUrl = clubValue("remoteUrl")
+// The name under the launcher icon (ANDROID_APP_NAME): letters, digits, spaces, . - and '.
+val appNameRule = Regex("""[\p{L}\p{N}][\p{L}\p{N} .'-]{0,29}""")
+val appName = clubValue("appName").ifEmpty { "Stabilimento" }
 val clubRoot = file("src/main/res/raw/club_root.crt")
 
 fun javaString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
@@ -23,6 +26,9 @@ val verifyClubConfig by tasks.registering {
         listed.forEach { require(origin.matches(it)) { "trustedOrigins: '$it' is not an https origin" } }
         require(remoteUrl.isEmpty() || origin.matches(remoteUrl)) {
             "remoteUrl must be empty or an https origin, got '$remoteUrl'"
+        }
+        require(appNameRule.matches(appName)) {
+            "appName: 1 to 30 letters, digits, spaces, . - or ', starting with a letter or digit; got '$appName'"
         }
         require(clubRoot.isFile) { "missing $clubRoot: build with scripts/build-android.sh" }
     }
@@ -43,9 +49,14 @@ android {
         buildConfigField("String", "APP_URL", javaString(appUrl))
         buildConfigField("String", "TRUSTED_ORIGINS", javaString(trustedOrigins))
         buildConfigField("String", "REMOTE_URL", javaString(remoteUrl))
+        // An apostrophe must be escaped in a string resource.
+        resValue("string", "app_name", appName.replace("'", "\\'"))
     }
 
-    buildFeatures { buildConfig = true }
+    buildFeatures {
+        buildConfig = true
+        resValues = true
+    }
 
     buildTypes {
         release { isMinifyEnabled = false }

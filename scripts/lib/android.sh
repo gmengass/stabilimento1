@@ -51,3 +51,24 @@ check_android_config() {
 	done
 	set +f
 }
+
+# ANDROID_APP_NAME $1 (optional): the same rule as appName in android/app/build.gradle.kts.
+check_android_app_name() {
+	[ -z "$1" ] && return 0
+	printf '%s\n' "$1" | LC_ALL=C.UTF-8 grep -Eqx "[[:alnum:]][[:alnum:] .'-]{0,29}" ||
+		die "ANDROID_APP_NAME: 1 to 30 letters, digits, spaces, . - or ', starting with a letter or digit (got '$1')"
+}
+
+# Whether file $1 is a PNG of exactly $2 x $2 pixels.
+is_square_png() { file -bL "$1" 2>/dev/null | grep -Eq "^PNG image data, $2 x $2,"; }
+
+# ANDROID_ICON_DIR $1 (optional): foreground.png (432x432, Android 8+) and legacy.png (192x192,
+# Android 7) replace the default icon (RUNBOOK, "Club name and icon").
+check_android_icon_dir() {
+	[ -z "$1" ] && return 0
+	command -v file >/dev/null || die "ANDROID_ICON_DIR needs the file command: sudo apt-get install file"
+	case $1 in /*) ;; *) die "ANDROID_ICON_DIR must be a full path starting with / (got '$1')" ;; esac
+	[ -d "$1" ] || die "ANDROID_ICON_DIR $1 is not a folder"
+	is_square_png "$1/foreground.png" 432 || die "ANDROID_ICON_DIR: $1/foreground.png must be a 432x432 PNG"
+	is_square_png "$1/legacy.png" 192 || die "ANDROID_ICON_DIR: $1/legacy.png must be a 192x192 PNG"
+}
