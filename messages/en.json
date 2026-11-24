@@ -35,6 +35,7 @@
   },
   "appShell": {
     "map": "Beach map",
+    "prices": "Prices",
     "beach": "Beach settings",
     "staff": "Staff",
     "signedInAs": "Signed in as {name}",

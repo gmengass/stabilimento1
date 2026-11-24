@@ -34,7 +34,7 @@ paid state to be as the entry left it.
 - Ticking "paid" shows who and when (Rome time), writes a `paid` activity entry, and Undo clears it
   (ADR 0013 rules: author within 30 minutes, admin any time). Unticking writes `unpaid`.
 - A communal tablet with no person chosen is refused with `needsActor` (ADR 0025).
-- Every signed-in user has "Prezzi / Prices" in the user menu: a page without app nav filling the
+- Every signed-in user has "Prezzi / Prices" in the top bar: a page without app nav filling the
   screen, rows 1–31 + Stagionale, single and bundle columns in EUR, it/en, readable on a 10" tablet.
 - The admin edits a season's list under Seasons, with "copy from previous season"; staff can't.
 

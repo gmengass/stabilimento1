@@ -35,6 +35,7 @@
   },
   "appShell": {
     "map": "Mappa spiaggia",
+    "prices": "Prezzi",
     "beach": "Impostazioni spiaggia",
     "staff": "Personale",
     "signedInAs": "Accesso come {name}",

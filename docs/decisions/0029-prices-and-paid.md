@@ -36,7 +36,7 @@ Cabins are on the list but are not modelled yet.
   price changed since it was paid. Ticking writes a `paid` entry and unticking an `unpaid` entry in
   the activity stream; both can be undone. Any staff member may tick, like booking; on communal
   tablets the person chosen is recorded (ADR 0025). Cancelled bookings cannot be ticked.
-- **Prices page**: "Prezzi" in the user menu for everyone signed in: a full-screen table drawn from
+- **Prices page**: "Prezzi" in the top bar for everyone signed in: a full-screen table drawn from
   the stored prices, not a photo of the list, so it always matches what the app suggests.
 
 ### Amendment to ADR 0013
