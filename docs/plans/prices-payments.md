@@ -19,6 +19,8 @@ paid state to be as the entry left it.
 - Season passes are priced by their days like any booking (owner, 2026-11-24): days = first to
   last day minus released days. Stagionale is a cap: each column is min(col[d], col[Stagionale]),
   for every booking (only long ones reach it). Releasing a day lowers the suggestion.
+- Discount shown under the suggestion (owner, 2026-11-24): baseline = pieces × days × single[1];
+  "sconto €X (Y%)", Y rounded down, shown only when X > 0. Computed, not stored.
 - Assumptions: over 31 days = whole 31-day blocks at col[31] plus col[remainder], per column (so
   passes of 100+ days work too); the suggestion is computed, not stored,
   so moves and changes recompute it; a missing row (or no season) shows no suggestion, no error.
@@ -60,7 +62,8 @@ user menu in `src/app/(app)/layout.tsx`; booking panel and quick book; `messages
   tablets; price save is admin-only with zod caps (0–1,000,000 cents). Security agent reviews.
 
 ## Tests
-- Unit: days 1, 3, 31, 32, 62, 63, 120; pieces 0–6; €307 and the 16-day example; season passes
+- Unit: discount (€13 / 4% for the €307 example; none for 1 day);
+  days 1, 3, 31, 32, 62, 63, 120; pieces 0–6; €307 and the 16-day example; season passes
   (late start, released days, cap at Stagionale for 120 days); missing rows.
 - Integration: tick/untick audit; undo rules incl. after the last day; parallel ticks give one
   entry; `needsActor`; staff refused on price save; migration up/down/up.
