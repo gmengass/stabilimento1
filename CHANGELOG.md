@@ -3,6 +3,16 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Prices (ADR 0029): the admin enters each season's price list under Seasons → Price list (rows
+  for 1 to 31 days and a season row; one piece and umbrella + 2 pieces), filled in from the
+  previous season. Enter the 2027 prices on the box before the season opens.
+- Every booking shows a suggested price, how it adds up, and the discount against the daily
+  price; quick book shows it too. Season passes are priced by their days less released days,
+  never more than the season row.
+- A "Paid" tick on each booking records who ticked it and when, shows in today's activity and can
+  be undone. If the price changes after the tick, the booking warns.
+- "Prezzi" in the top bar opens the price list full screen for everyone.
 
 ## [0.16.0] - 2026-11-24
 ### Added
