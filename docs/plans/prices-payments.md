@@ -16,8 +16,9 @@ paid state to be as the entry left it.
 - Two columns per row: single piece and bundle (umbrella + 2 pieces, a small discount built in).
 - Suggested total = floor(pieces / 3) × bundle[d] + (pieces mod 3) × single[d].
   Example: 1 umbrella + 3 sunbeds, 8 days = 230 + 77 = €307.
-- Season passes are priced by their days like any booking, not automatically at Stagionale
-  (owner, 2026-11-24). Which days count, and when Stagionale applies, is an open question.
+- Season passes are priced by their days like any booking (owner, 2026-11-24): days = first to
+  last day minus released days. Stagionale is a cap: each column is min(col[d], col[Stagionale]),
+  for every booking (only long ones reach it). Releasing a day lowers the suggestion.
 - Assumptions: over 31 days = whole 31-day blocks at col[31] plus col[remainder], per column (so
   passes of 100+ days work too); the suggestion is computed, not stored,
   so moves and changes recompute it; a missing row (or no season) shows no suggestion, no error.
@@ -60,7 +61,7 @@ user menu in `src/app/(app)/layout.tsx`; booking panel and quick book; `messages
 
 ## Tests
 - Unit: days 1, 3, 31, 32, 62, 63, 120; pieces 0–6; €307 and the 16-day example; season passes
-  per the owner's rule (late start, released days); missing rows.
+  (late start, released days, cap at Stagionale for 120 days); missing rows.
 - Integration: tick/untick audit; undo rules incl. after the last day; parallel ticks give one
   entry; `needsActor`; staff refused on price save; migration up/down/up.
 - e2e: prices page from the menu, it/en; paid tick + Undo; quick-book suggestion follows sunbeds.
@@ -72,8 +73,6 @@ user menu in `src/app/(app)/layout.tsx`; booking panel and quick book; `messages
 7. `feat:` suggestion and tick in the panel and quick book. 8. `test:` e2e; full lint/type/test.
 
 ## Open questions
-- Season passes: do released days come off the count? Is Stagionale a cap (the price never goes
-  above it) or only applied by hand?
 - A paid/unpaid badge on map tiles (needs palette OK, ADR 0017)? Left out by default.
 - Payment PIN (ADR 0025): left out while paid is only a tick.
 - Refunds on cancelled bookings; till integration (PROGRESS).
