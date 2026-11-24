@@ -27,6 +27,9 @@
 - Accessibility: screen readers out of scope (owner, 2026-11-20); the season-tile badge is deferred; palette changes need owner OK (ADR 0017).
 - Live map: midnight "today" rolls over at the next refresh. Phones: portrait-tablet sheet? Android: DayNight, min 7.0, auto-retry? Tailscale terms: who signs up?
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; `formatEur` cents; search/admin not live; FK restrict; "Ripristina" undo; initials for cancelled names; quick book "Another suggestion" resets the form.
+- Till (fiscal receipts): later, can the app send each sale to the club's registered till (RT) on the
+  local network so the till prints and transmits the receipt? Needs the till's make and model (owner
+  to confirm). Until then staff ring up on the till; the app only suggests a price and marks paid.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
 - Sessions can't pull Docker images, reach Google Maven or push tags. Playwright works with the system Chrome: symlink `/opt/pw-browsers/chromium*-1243` to the `-1254` names, then `npx playwright test` against a local Postgres (all 85 specs pass).
