@@ -1,7 +1,14 @@
-import type { Kysely } from "kysely";
+import { sql, type Kysely } from "kysely";
 import { z } from "zod";
 import type { DB } from "@/db/types";
-import { LIST_DAYS, type PriceList, type PriceRow } from "./suggest";
+import {
+  LIST_DAYS,
+  piecesOf,
+  suggestPrice,
+  type PriceList,
+  type PriceRow,
+  type Suggestion,
+} from "./suggest";
 
 /** Highest price an admin can enter for one row: €100,000 (the column allows more). */
 export const MAX_PRICE_CENTS = 10_000_000;
@@ -124,4 +131,43 @@ export async function previousPrices(
     .executeTakeFirst();
   if (!row) return null;
   return { seasonName: row.name, entries: await listPrices(db, row.id) };
+}
+
+/** The suggested price of one booking now, as the map computes it (ADR 0029). */
+export async function bookingSuggestion(
+  db: Kysely<DB>,
+  bookingId: number,
+): Promise<Suggestion | null> {
+  const row = await db
+    .selectFrom("booking")
+    .select((eb) => [
+      "booking.deckchairs",
+      eb
+        .selectFrom("season")
+        .select("season.id")
+        .whereRef("season.start_date", "<=", "booking.start_date")
+        .whereRef("season.end_date", ">=", "booking.start_date")
+        .limit(1)
+        .as("seasonId"),
+      eb
+        .selectFrom("spot_day as sd")
+        .innerJoin("booking_spot as bs", "bs.id", "sd.booking_spot_id")
+        .select(sql<number>`count(distinct sd.date)::int`.as("n"))
+        .whereRef("bs.booking_id", "=", "booking.id")
+        .where("sd.state", "<>", "released")
+        .as("days"),
+    ])
+    .where("booking.id", "=", bookingId)
+    .executeTakeFirst();
+  if (!row?.seasonId) return null;
+  const spots = await db
+    .selectFrom("booking_spot")
+    .innerJoin("spot", "spot.id", "booking_spot.spot_id")
+    .select(["spot.kind", "booking_spot.sunbeds"])
+    .where("booking_spot.booking_id", "=", bookingId)
+    .where("booking_spot.current", "=", true)
+    .execute();
+  const list = (await loadPriceLists(db, [row.seasonId])).get(row.seasonId);
+  if (!list) return null;
+  return suggestPrice(list, piecesOf(spots, row.deckchairs), row.days ?? 0);
 }

@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { defaultLocale, isLocale } from "@/i18n/config";
-import { formatBookingDate, formatTimestamp } from "@/i18n/format";
+import { formatBookingDate, formatCents, formatTimestamp } from "@/i18n/format";
 import { ACTIVITY_CAP, mayUndo, type ActivityEntry, type Viewer } from "@/lib/booking/audit";
 import { UndoButton } from "./undo-button";
 
@@ -93,6 +93,17 @@ export async function ActivityPanel({ entries, viewer }: Props) {
           bookings: Number(detail.bookings),
           umbrellas: Number(detail.umbrellas),
         });
+      case "paid":
+        return detail.suggestedCents === undefined
+          ? t("paid", { user, name, spots })
+          : t("paidAt", {
+              user,
+              name,
+              spots,
+              price: formatCents(Number(detail.suggestedCents), locale),
+            });
+      case "unpaid":
+        return t("unpaid", { user, name, spots });
       case "undo":
         return t("undo", { user, name, spots, action: entry.undoesAction ?? "other" });
       case "beach":

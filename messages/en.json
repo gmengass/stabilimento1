@@ -394,7 +394,7 @@
     "setLastDay": "{user} set the last day of {name}'s pass to {date}",
     "release": "{user} released {days, plural, one {# day} other {# days}} of {name}'s pass, {dates}",
     "restore": "{user} gave {name} back {days, plural, one {# day} other {# days}}, {dates}",
-    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} other {an undo}} of {name} ({spots})",
+    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} paid {the paid mark} unpaid {the cleared paid mark} other {an undo}} of {name} ({spots})",
     "beach": "{user} changed the beach settings",
     "beachHold": "{user} set the check-in time to {to} (was {from})",
     "season": "{what, select, create {{user} added a season} remove {{user} removed a season} other {{user} changed a season}}",
@@ -426,7 +426,10 @@
     "beachStock": "{user} set the stock of {area}: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "beachStockVenue": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "stockOff": "not tracked",
-    "overStock": "{text} (over the stock)"
+    "overStock": "{text} (over the stock)",
+    "paid": "{user} marked {name} as paid ({spots})",
+    "paidAt": "{user} marked {name} as paid ({spots}), suggested price {price}",
+    "unpaid": "{user} cleared the paid mark of {name} ({spots})"
   },
   "search": {
     "label": "Find a booking by name or phone",

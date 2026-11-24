@@ -10,6 +10,7 @@ const {
   passesModule,
   quickBookModule,
   undoModule,
+  paidModule,
   cache,
   acting,
   limits,
@@ -43,6 +44,7 @@ const {
     suggestQuickBook: vi.fn(async () => ({ ok: true as const, suggestions: [] })),
   },
   undoModule: { undoEntry: vi.fn(async () => ({ ok: true as const })) },
+  paidModule: { setPaid: vi.fn(async () => ({ ok: true as const })) },
   cache: { revalidatePath: vi.fn() },
 }));
 
@@ -63,6 +65,7 @@ vi.mock("@/lib/booking/move", () => moveModule);
 vi.mock("@/lib/booking/passes", () => passesModule);
 vi.mock("@/lib/booking/quick-book", () => quickBookModule);
 vi.mock("@/lib/booking/undo", () => undoModule);
+vi.mock("@/lib/booking/paid", () => paidModule);
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("next/cache", () => cache);
 
@@ -78,6 +81,7 @@ const {
   uncheckAction,
   restoreNoShowAction,
   setHoldAction,
+  setPaidAction,
   suggestQuickBookAction,
   undoAction,
 } = await import("@/app/(app)/booking-actions");
@@ -109,6 +113,7 @@ const dayActions = [
   ["uncheckAction", uncheckAction, checkInModule.uncheck],
   ["restoreNoShowAction", restoreNoShowAction, checkInModule.restoreNoShow],
   ["setHoldAction", setHoldAction, checkInModule.setHold],
+  ["setPaidAction", setPaidAction, paidModule.setPaid],
 ] as const;
 
 beforeEach(() => {

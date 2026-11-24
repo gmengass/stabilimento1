@@ -15,6 +15,7 @@ import {
 import { isConflict, type Clash } from "./bookings";
 import { shortTime } from "./hold";
 import { applyFlags } from "./move";
+import { paidColumns, paidState } from "./paid";
 
 const undoSchema = z.object({ entryId: z.number().int().positive() });
 
@@ -262,6 +263,7 @@ async function setBooking(tx: Kysely<DB>, bookingId: number, state: BookingState
       ...(state.startDate !== undefined && { start_date: state.startDate }),
       ...(state.kind !== undefined && { kind: state.kind }),
       ...(state.holdUntil !== undefined && { hold_until: state.holdUntil }),
+      ...(state.paid !== undefined && paidColumns(state.paid)),
       cancelled_at: cancelled ? new Date() : null,
       cancelled_by: cancelled ? userId : null,
     })
@@ -311,13 +313,24 @@ async function undoIn(
   const bookingId = entry.booking_id;
   const booking = await tx
     .selectFrom("booking")
-    .select(["status", "start_date", "end_date", "kind", "hold_until"])
+    .select([
+      "status",
+      "start_date",
+      "end_date",
+      "kind",
+      "hold_until",
+      "paid_at",
+      "paid_by",
+      "paid_suggested_cents",
+    ])
     .where("id", "=", bookingId)
     .forUpdate()
     .executeTakeFirstOrThrow();
-  // Nothing from today on to change: undo would only flip the status of a finished booking.
+  // Nothing from today on to change: undo would only flip the status of a finished booking. A paid
+  // tick is the exception: passes are paid at the end (ADR 0029).
   const lastDay = [booking.end_date, change.before.endDate, change.after.endDate].sort().at(-1);
-  if (lastDay !== undefined && lastDay < today) return { ok: false, error: "ended" };
+  const paidOnly = change.after.paid !== undefined;
+  if (!paidOnly && lastDay !== undefined && lastDay < today) return { ok: false, error: "ended" };
   if (datesStarted(change, today)) return { ok: false, error: "started" };
   const current = fromToday(change, today);
   const { after } = change;
@@ -328,6 +341,8 @@ async function undoIn(
     (after.kind === undefined || booking.kind === after.kind) &&
     (after.holdUntil === undefined ||
       (booking.hold_until === null ? null : shortTime(booking.hold_until)) === after.holdUntil) &&
+    (after.paid === undefined ||
+      JSON.stringify(paidState(booking)) === JSON.stringify(after.paid)) &&
     (await checkInsAsLeft(tx, bookingId, current.checkIns ?? [])) &&
     (await spotsAsLeft(tx, change)) &&
     (await daysAsLeft(tx, bookingId, current, today));
