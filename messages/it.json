@@ -400,7 +400,7 @@
     "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} check_in {questo arrivo} uncheck {questo arrivo tolto} hold {questo arrivo in ritardo} paid {questo pagato} unpaid {questo pagato tolto} other {questo ripristino}}: {name} ({spots})",
     "beach": "{user} ha modificato le impostazioni della spiaggia",
     "beachHold": "{user} ha impostato l'orario di arrivo alle {to} (prima {from})",
-    "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} other {{user} ha modificato una stagione}}",
+    "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} prices {{user} ha modificato il listino prezzi} other {{user} ha modificato una stagione}}",
     "undoButton": "Ripristina",
     "undoLabel": "Ripristina com'era prima: {text}",
     "undoing": "Ripristino…",
@@ -485,7 +485,7 @@
       "saved": "Prezzi salvati.",
       "badRows": "Inserisci entrambi i prezzi, in euro, in queste righe: {rows}.",
       "errors": {
-        "invalid": "Controlla i prezzi: euro interi o euro e centesimi, fino a 100.000 €.",
+        "invalid": "Controlla i prezzi: euro interi o euro e centesimi, fino a 10.000 €.",
         "notFound": "Non trovato: ricarica la pagina.",
         "forbidden": "Solo gli amministratori possono farlo.",
         "generic": "Qualcosa è andato storto. Riprova."

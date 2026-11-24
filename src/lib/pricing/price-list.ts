@@ -10,8 +10,11 @@ import {
   type Suggestion,
 } from "./suggest";
 
-/** Highest price an admin can enter for one row: €100,000 (the column allows more). */
-export const MAX_PRICE_CENTS = 10_000_000;
+/**
+ * Highest price an admin can enter for one row: €10,000. Even 60 bundles for a 366-day stay stay
+ * far below the integer columns' limit (60 × 12 blocks × €10,000).
+ */
+export const MAX_PRICE_CENTS = 1_000_000;
 
 /** One row as the admin edits it: `days` null is the season row (Stagionale). */
 export interface PriceEntry extends PriceRow {
@@ -133,14 +136,22 @@ export async function previousPrices(
   return { seasonName: row.name, entries: await listPrices(db, row.id) };
 }
 
-/** The suggested price of one booking now, as the map computes it (ADR 0029). */
-export async function bookingSuggestion(
+/**
+ * The suggested price of each booking now (ADR 0029): its first day picks the season, pieces come
+ * from its current umbrellas and deckchairs, days are its days less released ones. The map and the
+ * paid tick both use this, so a tick's snapshot always matches what the panel shows.
+ */
+export async function bookingSuggestions(
   db: Kysely<DB>,
-  bookingId: number,
-): Promise<Suggestion | null> {
-  const row = await db
+  bookingIds: number[],
+): Promise<Map<number, Suggestion | null>> {
+  const ids = [...new Set(bookingIds)];
+  const result = new Map<number, Suggestion | null>();
+  if (ids.length === 0) return result;
+  const bookings = await db
     .selectFrom("booking")
     .select((eb) => [
+      "booking.id",
       "booking.deckchairs",
       eb
         .selectFrom("season")
@@ -157,19 +168,34 @@ export async function bookingSuggestion(
         .where("sd.state", "<>", "released")
         .as("days"),
     ])
-    .where("booking.id", "=", bookingId)
-    .executeTakeFirst();
-  if (!row?.seasonId) return null;
+    .where("booking.id", "in", ids)
+    .execute();
   const spots = await db
     .selectFrom("booking_spot")
     .innerJoin("spot", "spot.id", "booking_spot.spot_id")
-    .select(["spot.kind", "booking_spot.sunbeds"])
-    .where("booking_spot.booking_id", "=", bookingId)
+    .select(["booking_spot.booking_id as bookingId", "spot.kind", "booking_spot.sunbeds"])
+    .where("booking_spot.booking_id", "in", ids)
     .where("booking_spot.current", "=", true)
     .execute();
-  const list = (await loadPriceLists(db, [row.seasonId])).get(row.seasonId);
-  if (!list) return null;
-  return suggestPrice(list, piecesOf(spots, row.deckchairs), row.days ?? 0);
+  const seasonIds = [...new Set(bookings.flatMap((b) => (b.seasonId ? [b.seasonId] : [])))];
+  const lists = await loadPriceLists(db, seasonIds);
+  for (const booking of bookings) {
+    const list = booking.seasonId ? lists.get(booking.seasonId) : undefined;
+    const own = spots.filter((s) => s.bookingId === booking.id);
+    result.set(
+      booking.id,
+      list ? suggestPrice(list, piecesOf(own, booking.deckchairs), booking.days ?? 0) : null,
+    );
+  }
+  return result;
+}
+
+/** The suggested price of one booking now. */
+export async function bookingSuggestion(
+  db: Kysely<DB>,
+  bookingId: number,
+): Promise<Suggestion | null> {
+  return (await bookingSuggestions(db, [bookingId])).get(bookingId) ?? null;
 }
 
 /** The id of the season that contains this day, if any. */

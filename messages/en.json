@@ -400,7 +400,7 @@
     "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} paid {the paid mark} unpaid {the cleared paid mark} other {an undo}} of {name} ({spots})",
     "beach": "{user} changed the beach settings",
     "beachHold": "{user} set the check-in time to {to} (was {from})",
-    "season": "{what, select, create {{user} added a season} remove {{user} removed a season} other {{user} changed a season}}",
+    "season": "{what, select, create {{user} added a season} remove {{user} removed a season} prices {{user} changed the price list} other {{user} changed a season}}",
     "undoButton": "Undo",
     "undoLabel": "Undo: {text}",
     "undoing": "Undoing…",
@@ -485,7 +485,7 @@
       "saved": "Prices saved.",
       "badRows": "Fill in both prices, in euros, on these rows: {rows}.",
       "errors": {
-        "invalid": "Check the prices: whole euros or euros and cents, up to €100,000.",
+        "invalid": "Check the prices: whole euros or euros and cents, up to €10,000.",
         "notFound": "Not found: reload the page.",
         "forbidden": "Only admins can do this.",
         "generic": "Something went wrong. Try again."

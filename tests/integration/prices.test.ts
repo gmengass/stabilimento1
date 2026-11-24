@@ -100,7 +100,7 @@ describe("savePrices and listPrices", () => {
     ["a row for 32 days", [{ days: 32, single: 1, bundle: 1 }]],
     ["a negative price", [{ days: 1, single: -1, bundle: 1 }]],
     ["a fractional price", [{ days: 1, single: 1.5, bundle: 1 }]],
-    ["a price over €100,000", [{ days: 1, single: 10_000_001, bundle: 1 }]],
+    ["a price over €10,000", [{ days: 1, single: 1_000_001, bundle: 1 }]],
   ])("refuses %s and keeps the list", async (_, bad) => {
     await savePrices(db, { seasonId, rows: rows() });
     expect(await savePrices(db, { seasonId, rows: bad })).toEqual({ ok: false, error: "invalid" });

@@ -6,8 +6,8 @@ import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/
 import { writeEntry, type DayRow } from "./audit";
 import { areaOfBooking, overStock, type OverStockDay } from "./stock";
 import { multiLine, singleLine } from "@/lib/text";
-import { loadPriceLists } from "@/lib/pricing/price-list";
-import { piecesOf, suggestPrice, type BookingPrice } from "@/lib/pricing/suggest";
+import { bookingSuggestions } from "@/lib/pricing/price-list";
+import type { BookingPrice } from "@/lib/pricing/suggest";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -447,20 +447,6 @@ async function loadSpotDays(
       "booking.paid_at as paidAt",
       "booking.paid_suggested_cents as paidSuggestedCents",
       "payer.name as paidByName",
-      eb
-        .selectFrom("season")
-        .select("season.id")
-        .whereRef("season.start_date", "<=", "booking.start_date")
-        .whereRef("season.end_date", ">=", "booking.start_date")
-        .limit(1)
-        .as("seasonId"),
-      eb
-        .selectFrom("spot_day as sd")
-        .innerJoin("booking_spot as bs", "bs.id", "sd.booking_spot_id")
-        .select(sql<number>`count(distinct sd.date)::int`.as("n"))
-        .whereRef("bs.booking_id", "=", "booking.id")
-        .where("sd.state", "<>", "released")
-        .as("chargedDays"),
       sql<string | null>`to_char(booking.hold_until, 'HH24:MI')`.as("holdUntil"),
       sql<string>`to_char(coalesce(booking.hold_until, venue.default_hold_until), 'HH24:MI')`.as(
         "holdTime",
@@ -501,16 +487,16 @@ async function loadSpotDays(
     .where("spot_day.state", "=", state)
     .orderBy("booking.id")
     .execute();
-  const seasonIds = [...new Set(rows.flatMap((row) => (row.seasonId ? [row.seasonId] : [])))];
-  const lists = await loadPriceLists(db, seasonIds);
+  const suggestions = await bookingSuggestions(
+    db,
+    rows.map((row) => row.bookingId),
+  );
   return Object.fromEntries(
     rows.map((row) => {
-      const { spotId, spots, releasedDays, checkedIn, seasonId, chargedDays, ...rest } = row;
+      const { spotId, spots, releasedDays, checkedIn, ...rest } = row;
       const { paidAt, paidByName, paidSuggestedCents, ...occupant } = rest;
-      const list = seasonId ? lists.get(seasonId) : undefined;
-      const pieces = piecesOf(spots ?? [], occupant.deckchairs);
       const price: BookingPrice = {
-        suggestion: list ? suggestPrice(list, pieces, chargedDays ?? 0) : null,
+        suggestion: suggestions.get(occupant.bookingId) ?? null,
         paid:
           paidAt === null
             ? null

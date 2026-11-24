@@ -6,10 +6,12 @@ import type { DB } from "@/db/types";
 import { loadBeach, setupBeach } from "@/lib/beach/layout";
 import { listActivity, type Viewer } from "@/lib/booking/audit";
 import { cancelBooking, createBooking, loadOccupancy } from "@/lib/booking/bookings";
+import { moveBooking } from "@/lib/booking/move";
 import { setPaid } from "@/lib/booking/paid";
+import { createSeasonPass, endSeasonPass } from "@/lib/booking/passes";
 import { createSeason, listSeasons } from "@/lib/booking/seasons";
 import { undoEntry } from "@/lib/booking/undo";
-import { savePrices } from "@/lib/pricing/price-list";
+import { bookingSuggestion, savePrices } from "@/lib/pricing/price-list";
 import { priceChangedSincePaid } from "@/lib/pricing/suggest";
 import { stampToday } from "./audit-clock";
 import { testDatabaseUrl } from "./test-database";
@@ -194,6 +196,18 @@ describe("setPaid", () => {
   });
 });
 
+describe("the tick's price and the map's price", () => {
+  it("stay the same after a move to another umbrella", async () => {
+    const id = await book();
+    const move = { bookingId: id, spots: [{ fromSpotId: spot[101], toSpotId: spot[103] }] };
+    expect(await moveBooking(db, ANNA.id, move, BOOKED_ON)).toEqual({ ok: true });
+    await setPaid(db, ANNA.id, { bookingId: id, paid: true }, AT);
+    const price = (await loadOccupancy(db, areaId, "2027-07-10"))[spot[103]].price;
+    expect(price.suggestion?.totalCents).toBe((await bookingSuggestion(db, id))?.totalCents);
+    expect(priceChangedSincePaid(price)).toBe(false);
+  });
+});
+
 describe("undoing a paid tick", () => {
   it("lets the author undo it, even after the booking's last day", async () => {
     const id = await book();
@@ -228,6 +242,45 @@ describe("undoing a paid tick", () => {
     const entryId = await lastEntryId();
     await setPaid(db, ANNA.id, { bookingId: id, paid: false });
     expect(await undo(entryId, ANNA)).toEqual({ ok: false, error: "changed" });
+  });
+
+  it("changes only the tick, even after the pass's last day was set", async () => {
+    const seasonId = (await listSeasons(db))[0].id;
+    const sold = await createSeasonPass(
+      db,
+      ANNA.id,
+      {
+        seasonId,
+        startDate: "2027-07-01",
+        customerName: "Bianchi",
+        spots: [{ spotId: spot[102], sunbeds: 2 }],
+      },
+      BOOKED_ON,
+    );
+    if (!sold.ok) throw new Error(sold.error);
+    await setPaid(db, ANNA.id, { bookingId: sold.bookingId, paid: true }, AT);
+    const paidEntry = await lastEntryId();
+    await endSeasonPass(
+      db,
+      ANNA.id,
+      { bookingId: sold.bookingId, lastDay: "2027-07-20" },
+      BOOKED_ON,
+    );
+    expect(await undo(paidEntry, ANNA)).toEqual({ ok: true });
+    const row = await db
+      .selectFrom("booking")
+      .select(["end_date", "status", "paid_at"])
+      .where("id", "=", sold.bookingId)
+      .executeTakeFirstOrThrow();
+    expect(row).toEqual({ end_date: "2027-07-20", status: "active", paid_at: null });
+  });
+
+  it("refuses once the booking was cancelled, and never brings it back", async () => {
+    const id = await book();
+    await setPaid(db, ANNA.id, { bookingId: id, paid: true }, AT);
+    const paidEntry = await lastEntryId();
+    await cancelBooking(db, ANNA.id, { bookingId: id }, BOOKED_ON);
+    expect(await undo(paidEntry, ANNA)).toEqual({ ok: false, error: "changed" });
   });
 
   it("can undo the undo", async () => {
