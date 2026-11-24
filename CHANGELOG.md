@@ -8,6 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   band with the orange stripe holds the title and Close, the main button of each panel (and Quick
   book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
   cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
+- Booking panel, every theme: with one umbrella, sunbeds and deckchairs sit on one line (the
+  umbrella number moves above it when the panel is narrow); with several, each umbrella keeps its
+  sunbeds row and deckchairs are on one line below. An open booking reads "101 · 2 lettini · 1
+  sdraio" (the word "Ombrellone" is dropped from these lines).
 
 ## [0.18.0] - 2026-11-24
 Update with `scripts/update.sh v0.18.0` (migration 0018; no new APK). Pick Arturo or Sera per
