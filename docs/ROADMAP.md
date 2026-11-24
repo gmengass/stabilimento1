@@ -66,8 +66,10 @@ Each item ships something staff can use on the box.
 - [x] Prices, first version (owner, 2026-11-24): a suggested price from the club's price list
   (2027 prices) and a "paid" tick box on the booking; receipts stay on the club's till (#102,
   v0.17.0, ADR 0029)
-- [ ] Arturo (sand) and Sera (night blue) themes with sun tiles and status marks (owner,
-  2026-11-24, #105, ADR 0031)
+- [x] Arturo (sand) and Sera (night blue) themes with sun tiles and status marks (owner,
+  2026-11-24, #105, v0.18.0, ADR 0031)
+- [ ] Arturo and Sera booking panel: green band, orange main button, outlined buttons (owner,
+  2026-11-24, #107)
 - [ ] Payments recorded at the desk (amounts, method), daily cash-up report. Season passes are paid
   at the end, once the holder knows their last day (owner, 2026-11-14) (shelved by owner 2026-11-24)
 - [ ] Cabins: book and price the club's cabins (on the price list; not modelled yet, owner
