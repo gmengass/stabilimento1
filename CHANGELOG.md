@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Search results and the admin pages (Beach settings, Seasons, price list) say when bookings or
+  the setup changed on another device, with a Reload button; the Prezzi page updates itself
+  (ADR 0030, migration 0018).
 
 ## [0.17.0] - 2026-11-24
 Update with `scripts/update.sh v0.17.0` (migration 0017; no new APK). Then enter the 2027 prices.

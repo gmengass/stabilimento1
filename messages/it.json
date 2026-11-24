@@ -506,5 +506,10 @@
       "changedSincePaid": "Il prezzo è cambiato da quando è stato segnato pagato.",
       "changedSincePaidFrom": "Il prezzo è cambiato da quando è stato segnato pagato (era {price})."
     }
+  },
+  "live": {
+    "bookingsChanged": "Le prenotazioni sono cambiate su un altro dispositivo.",
+    "setupChanged": "Impostazioni della spiaggia, stagioni o prezzi sono cambiati su un altro dispositivo. Ricarica prima di salvare, o potresti sovrascriverli.",
+    "reload": "Ricarica"
   }
 }

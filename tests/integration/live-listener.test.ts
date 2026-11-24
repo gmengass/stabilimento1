@@ -78,6 +78,15 @@ describe("startListener", () => {
     expect(b).toEqual(["changed"]);
   });
 
+  it("tells subscribers 'setup' on a setup_changed notification (ADR 0030)", async () => {
+    await startListener(testDatabaseUrl());
+    const events = record();
+    await sql`select pg_notify('setup_changed', '')`.execute(db);
+    await notify();
+    expect(await eventually(() => events.length >= 2)).toBe(true);
+    expect(events).toEqual(["setup", "changed"]);
+  });
+
   it("ignores other channels", async () => {
     await startListener(testDatabaseUrl());
     const events = record();

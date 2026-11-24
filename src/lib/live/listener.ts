@@ -4,7 +4,8 @@ import type { LiveEvent } from "./sse";
 // One LISTEN connection per process, outside the pool, fanned out to every open stream
 // (ADR 0019). Kept on globalThis so dev hot reloads don't open a second connection.
 
-const CHANNEL = "map_changed";
+/** Postgres channel → the event it becomes (ADR 0019, ADR 0030). */
+const CHANNELS: Record<string, LiveEvent> = { map_changed: "changed", setup_changed: "setup" };
 const RECONNECT_MIN_MS = 500;
 const RECONNECT_MAX_MS = 10_000;
 
@@ -75,11 +76,12 @@ async function connect(isReconnect: boolean): Promise<void> {
   client.on("error", lost);
   client.on("end", lost);
   client.on("notification", (message) => {
-    if (message.channel === CHANNEL) publish("changed");
+    const event = CHANNELS[message.channel];
+    if (event) publish(event);
   });
   try {
     await client.connect();
-    await client.query(`LISTEN ${CHANNEL}`);
+    for (const channel of Object.keys(CHANNELS)) await client.query(`LISTEN ${channel}`);
   } catch (error) {
     await discard(client);
     throw error;

@@ -17,6 +17,7 @@ import {
   setStockAction,
   updateSpotAction,
 } from "./actions";
+import { ownWrite } from "@/lib/live/own-write";
 
 type Outcome = EditResult | { ok: false; error: "forbidden" };
 type Feedback = { ok: true } | { ok: false; error: EditError | "forbidden" | "generic" } | null;
@@ -31,7 +32,7 @@ function useEdit() {
   function run(call: () => Promise<Outcome>, onOk?: () => void) {
     startTransition(async () => {
       try {
-        const result = await call();
+        const result = await ownWrite(call);
         setFeedback(result);
         if (result.ok) onOk?.();
       } catch {
