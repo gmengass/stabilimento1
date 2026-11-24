@@ -254,13 +254,38 @@ export function NewBookingForm(props: NewProps) {
     });
   }
 
+  /** Deckchairs are for the whole booking: on the umbrella's row when there is only one. */
+  const single = spots.length === 1;
+  const deckchairsField = (
+    <label className="flex items-center gap-1 text-sm">
+      {t("deckchairs")}
+      <select
+        name="deckchairs"
+        value={Math.min(deckchairs, maxDeckchairs)}
+        onChange={(e) => setDeckchairs(Number(e.target.value))}
+        data-testid="booking-deckchairs"
+        className={field}
+      >
+        {Array.from({ length: maxDeckchairs + 1 }, (_, n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
   return (
     <form onSubmit={onSubmit} onChange={stock.clear} className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold sun:hidden">{t("newTitle", { area: areaName })}</h2>
-      <ul className="flex flex-col gap-2">
+      <ul className="@container flex flex-col gap-2">
         {spots.map((spot) => (
-          <li key={spot.id} className="flex items-center gap-2 text-sm">
-            <span className="w-12 font-semibold">{spot.number}</span>
+          <li key={spot.id} className="flex flex-wrap items-center gap-2 text-sm">
+            <span
+              className={`w-12 font-semibold ${single ? "basis-full @[21rem]:basis-auto" : ""}`}
+            >
+              {spot.number}
+            </span>
             <label className="flex items-center gap-1">
               {t("sunbeds")}
               <select
@@ -275,6 +300,7 @@ export function NewBookingForm(props: NewProps) {
                 ))}
               </select>
             </label>
+            {single && deckchairsField}
             <button
               type="button"
               onClick={() => onRemove(spot.id)}
@@ -286,22 +312,7 @@ export function NewBookingForm(props: NewProps) {
           </li>
         ))}
       </ul>
-      <label className="flex items-center gap-1 text-sm">
-        {t("deckchairs")}
-        <select
-          name="deckchairs"
-          value={Math.min(deckchairs, maxDeckchairs)}
-          onChange={(e) => setDeckchairs(Number(e.target.value))}
-          data-testid="booking-deckchairs"
-          className={field}
-        >
-          {Array.from({ length: maxDeckchairs + 1 }, (_, n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
+      {!single && deckchairsField}
       <label className="flex flex-col gap-1 text-sm">
         {t("customerName")}
         <input
@@ -842,10 +853,22 @@ export function BookingDetails({ occupant, date, today, onClose, onMove }: Detai
           : t("range", { from: formatDate(occupant.startDate), to: formatDate(occupant.endDate) })}
       </p>
       <ul className="text-sm">
-        {occupant.spots.map((s) => (
-          <li key={s.number}>{t("spotLine", { number: s.number, sunbeds: s.sunbeds })}</li>
-        ))}
-        {occupant.deckchairs > 0 && (
+        {occupant.spots.length === 1 && occupant.deckchairs > 0 ? (
+          <li data-testid="booking-deckchairs-line">
+            {t("spotAndDeckchairs", {
+              spot: t("spotLine", {
+                number: occupant.spots[0].number,
+                sunbeds: occupant.spots[0].sunbeds,
+              }),
+              deckchairs: t("deckchairsLine", { count: occupant.deckchairs }),
+            })}
+          </li>
+        ) : (
+          occupant.spots.map((s) => (
+            <li key={s.number}>{t("spotLine", { number: s.number, sunbeds: s.sunbeds })}</li>
+          ))
+        )}
+        {occupant.spots.length > 1 && occupant.deckchairs > 0 && (
           <li data-testid="booking-deckchairs-line">
             {t("deckchairsLine", { count: occupant.deckchairs })}
           </li>

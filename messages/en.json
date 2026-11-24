@@ -221,7 +221,7 @@
     "saving": "Saving…",
     "close": "Close",
     "range": "{from} – {to}",
-    "spotLine": "Umbrella {number} · {sunbeds, plural, one {# sunbed} other {# sunbeds}}",
+    "spotLine": "{number} · {sunbeds, plural, one {# sunbed} other {# sunbeds}}",
     "deckchairsLine": "{count, plural, one {# deckchair} other {# deckchairs}}",
     "cancel": "Cancel booking",
     "cancelConfirm": "Cancel the whole booking, for every umbrella and every day?",
@@ -305,7 +305,8 @@
       "more": "{count, plural, one {and # more day} other {and # more days}}",
       "sunbedsOver": "{count, plural, one {# sunbed over} other {# sunbeds over}}",
       "deckchairsOver": "{count, plural, one {# deckchair over} other {# deckchairs over}}"
-    }
+    },
+    "spotAndDeckchairs": "{spot} · {deckchairs}"
   },
   "areas": {
     "tabsLabel": "Beach spaces",

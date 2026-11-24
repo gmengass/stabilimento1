@@ -221,7 +221,7 @@
     "saving": "Salvataggio…",
     "close": "Chiudi",
     "range": "{from} – {to}",
-    "spotLine": "Ombrellone {number} · {sunbeds, plural, one {# lettino} other {# lettini}}",
+    "spotLine": "{number} · {sunbeds, plural, one {# lettino} other {# lettini}}",
     "deckchairsLine": "{count, plural, one {# sdraio} other {# sdraie}}",
     "cancel": "Annulla prenotazione",
     "cancelConfirm": "Annullare tutta la prenotazione, per ogni ombrellone e ogni giorno?",
@@ -305,7 +305,8 @@
       "more": "{count, plural, one {e # altro giorno} other {e altri # giorni}}",
       "sunbedsOver": "{count, plural, one {# lettino in più} other {# lettini in più}}",
       "deckchairsOver": "{count, plural, one {# sdraio in più} other {# sdraie in più}}"
-    }
+    },
+    "spotAndDeckchairs": "{spot} · {deckchairs}"
   },
   "areas": {
     "tabsLabel": "Spazi spiaggia",
