@@ -7,6 +7,7 @@ import { formatCents, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
 import { listSeasons, loadOpenSeason } from "@/lib/booking/seasons";
 import { listPrices } from "@/lib/pricing/price-list";
+import { LiveRefresh } from "@/components/live-refresh";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("prices");
@@ -33,6 +34,7 @@ export default async function PricesPage() {
   const entries = season ? await listPrices(getDb(), season.id) : [];
   return (
     <PageMain className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-4 p-4">
+      <LiveRefresh signals={["setup"]} />
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">
           {season ? t("heading", { name: season.name }) : t("title")}

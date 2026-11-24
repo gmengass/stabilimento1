@@ -1,55 +1,35 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { createLiveConnection } from "@/lib/live/live-connection";
-import { createRefreshScheduler } from "@/lib/live/refresh-scheduler";
+import { useEffect, useRef } from "react";
+import { createRefreshScheduler, type RefreshScheduler } from "@/lib/live/refresh-scheduler";
+import type { LiveSignal } from "@/lib/live/live-connection";
+import { LiveReconnecting } from "./live-reconnecting";
+import { useLiveConnection } from "./use-live-connection";
+
+const MAP: readonly LiveSignal[] = ["changed"];
 
 /**
- * Keeps the map current (ADR 0019): listens to /api/live and reloads the page's server data on
- * every signal, and once after each (re)connect to catch up on anything missed.
+ * Keeps a read-only page current (ADR 0019): reloads its server data on every signal it follows,
+ * and once after each (re)connect to catch up on anything missed. The map follows `changed`.
  */
-export function LiveRefresh() {
-  const t = useTranslations("map");
+export function LiveRefresh({ signals = MAP }: { signals?: readonly LiveSignal[] }) {
   const router = useRouter();
-  const [showNotice, setShowNotice] = useState(false);
+  const scheduler = useRef<RefreshScheduler>(undefined);
 
   useEffect(() => {
-    const scheduler = createRefreshScheduler({ refresh: () => router.refresh() });
-    const connection = createLiveConnection({
-      createSource: () => new EventSource("/api/live"),
-      isOnline: () => navigator.onLine,
-      onRefresh: () => scheduler.notify(),
-      onNotice: setShowNotice,
-    });
-    const onOffline = () => connection.offline();
-    const onOnline = () => connection.online();
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") connection.visible();
-    };
-
-    connection.start();
-    window.addEventListener("offline", onOffline);
-    window.addEventListener("online", onOnline);
-    document.addEventListener("visibilitychange", onVisibility);
+    const next = createRefreshScheduler({ refresh: () => router.refresh() });
+    scheduler.current = next;
     return () => {
-      window.removeEventListener("offline", onOffline);
-      window.removeEventListener("online", onOnline);
-      document.removeEventListener("visibilitychange", onVisibility);
-      connection.dispose();
-      scheduler.dispose();
+      next.dispose();
+      scheduler.current = undefined;
     };
   }, [router]);
 
-  if (!showNotice) return null;
-  return (
-    <p
-      role="status"
-      data-testid="live-status"
-      className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100"
-    >
-      {t("liveReconnecting")}
-    </p>
-  );
+  const reconnecting = useLiveConnection({
+    signals,
+    catchUpOnOpen: true,
+    onSignal: () => scheduler.current?.notify(),
+  });
+  return reconnecting ? <LiveReconnecting /> : null;
 }

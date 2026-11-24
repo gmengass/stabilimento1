@@ -3,6 +3,7 @@ import {
   createLiveConnection,
   NOTICE_DELAY_MS,
   WATCHDOG_MS,
+  type LiveConnectionOptions,
   type LiveSource,
 } from "@/lib/live/live-connection";
 
@@ -15,12 +16,12 @@ class FakeSource implements LiveSource {
   close() {
     this.closed = true;
   }
-  emit(type: "open" | "error" | "changed" | "resync") {
+  emit(type: "open" | "error" | "changed" | "setup" | "resync") {
     this.listeners.get(type)?.();
   }
 }
 
-function setup(online = true) {
+function setup(online = true, extra: Partial<LiveConnectionOptions> = {}) {
   const sources: FakeSource[] = [];
   const state = { online };
   const onRefresh = vi.fn();
@@ -35,6 +36,7 @@ function setup(online = true) {
     onRefresh,
     onNotice,
     random: () => 0,
+    ...extra,
   });
   const latest = () => sources[sources.length - 1];
   const noticeShown = () => onNotice.mock.calls.at(-1)?.[0] === true;
@@ -186,5 +188,56 @@ describe("createLiveConnection", () => {
     connection.dispose();
     expect(latest().closed).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+describe("createLiveConnection for pages that only offer a reload (ADR 0030)", () => {
+  it("follows only the events it is given, plus resync", () => {
+    const { connection, latest, onRefresh } = setup(true, { signals: ["setup"] });
+    connection.start();
+    latest().emit("open");
+    onRefresh.mockClear();
+    latest().emit("changed");
+    expect(onRefresh).not.toHaveBeenCalled();
+    latest().emit("setup");
+    latest().emit("resync");
+    expect(onRefresh).toHaveBeenCalledTimes(2);
+    connection.dispose();
+  });
+
+  it("the map ignores setup signals by default", () => {
+    const { connection, latest, onRefresh } = setup();
+    connection.start();
+    latest().emit("open");
+    onRefresh.mockClear();
+    latest().emit("setup");
+    expect(onRefresh).not.toHaveBeenCalled();
+    connection.dispose();
+  });
+
+  it("without catch-up, the routine reopen every 5 minutes signals nothing", () => {
+    const { connection, latest, onRefresh } = setup(true, { catchUpOnOpen: false });
+    connection.start();
+    latest().emit("open");
+    latest().emit("error");
+    vi.advanceTimersByTime(60_000);
+    latest().emit("open");
+    expect(onRefresh).not.toHaveBeenCalled();
+    connection.dispose();
+  });
+
+  it("checks the session, not onRefresh, on the second failure in a row", () => {
+    const onSessionCheck = vi.fn();
+    const { connection, latest, onRefresh } = setup(true, {
+      catchUpOnOpen: false,
+      onSessionCheck,
+    });
+    connection.start();
+    latest().emit("error");
+    vi.advanceTimersByTime(60_000);
+    latest().emit("error");
+    expect(onSessionCheck).toHaveBeenCalledTimes(1);
+    expect(onRefresh).not.toHaveBeenCalled();
+    connection.dispose();
   });
 });

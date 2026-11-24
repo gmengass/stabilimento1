@@ -506,5 +506,10 @@
       "changedSincePaid": "The price changed since it was marked paid.",
       "changedSincePaidFrom": "The price changed since it was marked paid (it was {price})."
     }
+  },
+  "live": {
+    "bookingsChanged": "Bookings changed on another device.",
+    "setupChanged": "Beach settings, seasons or prices changed on another device. Reload before saving, or you may overwrite them.",
+    "reload": "Reload"
   }
 }

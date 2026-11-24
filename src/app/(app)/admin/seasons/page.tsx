@@ -6,6 +6,7 @@ import { formatBookingDate, venueToday } from "@/i18n/format";
 import { listSeasons, nextSeasonDraft, openSeason } from "@/lib/booking/seasons";
 import { PageMain } from "@/components/page-main";
 import { NewSeasonForm, SeasonCard } from "./season-forms";
+import { LiveNotice } from "@/components/live-notice";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("seasons");
@@ -22,6 +23,7 @@ export default async function SeasonsPage() {
   const locale = await getLocale();
   return (
     <PageMain className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+      <LiveNotice kind="setup" />
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <p className="text-sm text-gray-700 dark:text-gray-300">{t("intro")}</p>
       {seasons.length === 0 ? (

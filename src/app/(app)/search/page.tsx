@@ -15,6 +15,7 @@ import {
   searchBookings,
   type SearchResult,
 } from "@/lib/booking/search";
+import { LiveNotice } from "@/components/live-notice";
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
@@ -44,6 +45,7 @@ export default async function Search(props: PageProps<"/search">) {
 
   return (
     <PageMain className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
+      <LiveNotice kind="bookings" />
       <Link href={mapHref} className="flex min-h-11 items-center self-start underline">
         {t("back")}
       </Link>

@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { listSeasons } from "@/lib/booking/seasons";
 import { listPrices, previousPrices } from "@/lib/pricing/price-list";
 import { PriceEditor } from "./price-editor";
+import { LiveNotice } from "@/components/live-notice";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("prices.admin");
@@ -27,6 +28,7 @@ export default async function SeasonPricesPage(
   const source = entries.length === 0 ? await previousPrices(getDb(), season.id) : null;
   return (
     <PageMain className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-6">
+      <LiveNotice kind="setup" />
       <Link href="/admin/seasons" className="text-sm underline">
         {t("back")}
       </Link>
