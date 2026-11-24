@@ -10,6 +10,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
 - The band's title starts with the umbrella number and is a little smaller, so it fits in full:
   "101 · Rossi Mario", "104 · Nuova prenotazione".
+- Booking panel, every theme: with one umbrella, sunbeds and deckchairs sit on one line (the
+  umbrella number moves above it when the panel is narrow); with several, each umbrella keeps its
+  sunbeds row and deckchairs are on one line below. An open booking reads "101 · 2 lettini · 1
+  sdraio" (the word "Ombrellone" is dropped from these lines).
 
 ### Fixed
 - Arturo: undone entries in today's activity list were too faint on the sand background; they
