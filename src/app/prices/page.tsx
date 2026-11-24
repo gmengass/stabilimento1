@@ -8,6 +8,10 @@ import { requireUser } from "@/lib/auth/session";
 import { listSeasons, loadOpenSeason } from "@/lib/booking/seasons";
 import { listPrices } from "@/lib/pricing/price-list";
 import { LiveRefresh } from "@/components/live-refresh";
+import type { LiveSignal } from "@/lib/live/live-connection";
+
+/** The price list changes only with the setup (ADR 0030). */
+const SETUP: readonly LiveSignal[] = ["setup"];
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("prices");
@@ -34,7 +38,7 @@ export default async function PricesPage() {
   const entries = season ? await listPrices(getDb(), season.id) : [];
   return (
     <PageMain className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-4 p-4">
-      <LiveRefresh signals={["setup"]} />
+      <LiveRefresh signals={SETUP} />
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">
           {season ? t("heading", { name: season.name }) : t("title")}

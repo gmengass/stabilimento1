@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import type { SeasonError, SeasonResult, SeasonRow } from "@/lib/booking/seasons";
 import { createSeasonAction, removeSeasonAction, updateSeasonAction } from "./actions";
+import { ownWrite } from "@/lib/live/own-write";
 
 type ActionResult = SeasonResult | { ok: false; error: "forbidden" };
 type Done = "saved" | "added";
@@ -20,7 +21,7 @@ function useSeasonAction() {
   function submit(call: () => Promise<ActionResult>, done: Done, onDone?: () => void) {
     startTransition(async () => {
       try {
-        const result = await call();
+        const result = await ownWrite(call);
         setFeedback(result.ok ? { kind: "done", key: done } : { kind: "error", key: result.error });
         if (result.ok) onDone?.();
       } catch {
