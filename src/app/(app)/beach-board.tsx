@@ -369,15 +369,26 @@ export function BeachBoard({
       />
     ) : null;
 
-  /** The panel's title, shown on the green band in Arturo and Sera (the forms hide their own). */
+  /** The panel's title on the green band in Arturo and Sera (the forms hide their own). */
+  const titleFor = (numbers: number[], what: string) =>
+    ts("bandTitle", { numbers: numbers.toSorted((x, y) => x - y).join(", "), what });
   const panelTitle =
     open && targets
-      ? tb("moveTitle")
+      ? titleFor(
+          open.spots.map((s) => s.number),
+          ts("bandMove"),
+        )
       : open
-        ? open.customerName
+        ? titleFor(
+            open.spots.map((s) => s.number),
+            open.customerName,
+          )
         : freeSelected.length > 0
-          ? tb("newTitle", { area: areaName })
-          : t("title", { area: areaName });
+          ? titleFor(
+              freeSelected.map((s) => s.number),
+              ts("bandNew"),
+            )
+          : ts("bandQuick");
 
   /** What the panel shows: new content opens a collapsed sheet again, toggling umbrellas doesn't. */
   const panelKey = open
@@ -501,7 +512,7 @@ export function BeachBoard({
           >
             <h2
               title={panelTitle}
-              className="mr-auto hidden min-w-0 truncate text-lg font-semibold sun:block"
+              className="mr-auto hidden min-w-0 truncate text-[15px] font-semibold sun:block"
             >
               {panelTitle}
             </h2>

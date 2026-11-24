@@ -8,6 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   band with the orange stripe holds the title and Close, the main button of each panel (and Quick
   book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
   cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
+- The band's title starts with the umbrella number and is a little smaller, so it fits in full:
+  "101 · Rossi Mario", "104 · Nuova prenotazione".
 
 ### Fixed
 - Arturo: undone entries in today's activity list were too faint on the sand background; they

@@ -81,7 +81,9 @@ test("arturo: green band, white panel, orange main button, green outlined button
     stripeWidth: "4px",
     display: "flex",
   });
-  await expect(page.locator("[data-panel-band] h2")).toHaveText(/\S/);
+  const title = page.locator("[data-panel-band] h2");
+  await expect(title).toHaveText(/^\d+ · Nuova prenotazione$/);
+  await expect(title).toHaveCSS("font-size", "15px");
   expect((await style(page, "aside")).background).toBe("rgb(255, 255, 255)");
   expect(await style(page, 'aside form button[type="submit"]')).toMatchObject({
     background: ORANGE,
@@ -96,6 +98,7 @@ test("arturo: green band, white panel, orange main button, green outlined button
 test("arturo: the cancel confirmation is dark red", async ({ page, context, baseURL }) => {
   await useTheme(context, baseURL, "arturo");
   await bookAndOpen(page, "2097-08-02");
+  await expect(page.locator("[data-panel-band] h2")).toHaveText(/^\d+ · Panel \d+$/);
   const trigger = page.locator("aside button", { hasText: itMessages.booking.cancel });
   await expect(trigger).toHaveCSS("color", "rgb(139, 26, 26)");
   await trigger.click();

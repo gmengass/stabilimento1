@@ -387,7 +387,11 @@
   "sheet": {
     "label": "Booking panel",
     "collapse": "Collapse",
-    "expand": "Expand"
+    "expand": "Expand",
+    "bandNew": "New booking",
+    "bandMove": "Move booking",
+    "bandQuick": "Quick book",
+    "bandTitle": "{numbers} · {what}"
   },
   "activity": {
     "title": "Today's activity",
