@@ -1,23 +1,23 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.16.0` (tagged 2026-11-24 on the #100 merge) is deployed on the box, with the APK rebuilt as
-  "Stabilimento Arturo" and the club icon. Backups are not set up on the box yet.
-- PR #102 (`feat/prices-payments`, open): Milestone 2 prices, first version (ADR 0029).
+- `v0.17.0` (tagged 2026-11-24 on the #102 merge: prices, first version, ADR 0029) is being
+  deployed by the owner; `v0.16.0` (APK "Stabilimento Arturo", club icon) runs on the box until
+  then. Backups are not set up on the box yet.
 ## Done this session
 - Owner scoped prices (2026-11-24): a suggested price from the club's list (2027 prices) and a
   "paid" tick; receipts stay on the till. Plan `docs/plans/prices-payments.md`, ADR 0029.
-- #102: price list per season (admin, copied from the previous season), suggested price with
+- #102 (merged, v0.17.0): price list per season (admin, copied from the previous season), suggested price with
   discount in the panel and quick book, paid tick (audited, undoable, warns if the price changes),
   "Prezzi" page in the top bar, migration 0017, `formatCents`. Reviewer and security agents ran.
 ## Next up
-1. Owner: review and merge #102, then enter the 2027 prices on the box (Seasons → Price list).
+1. Owner: `scripts/update.sh v0.17.0` on the box, then enter the 2027 prices (Seasons → Price list).
 2. Owner: set up backups on the box (RUNBOOK; delete `feat/backups`).
 3. Owner decisions: GDPR retention and phone masking (security item), tablet session length and design, "Trusted certificate" before the rest of Milestone 2.
 ## Open questions
 - Till (fiscal receipts): later, can the app send each sale to the club's registered till (RT) on the
   local network so the till prints and transmits the receipt? Needs the till's make and model (owner).
-- Prices next: payment entries with amounts and a daily cash-up; refunds on cancelled bookings; a
+- Prices next (payments and cash-up: roadmap): refunds on cancelled bookings; a
   paid badge on map tiles (palette OK, ADR 0017); a payment PIN (ADR 0025); cabins (roadmap item).
 - Prices review notes: a price-list change logs no before/after amounts; admin actions have no
   rate limit (ADR 0027); no test prices a standalone sunbed spot; Android full screen for Prezzi?
