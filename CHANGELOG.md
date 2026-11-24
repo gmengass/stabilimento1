@@ -3,6 +3,10 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.18.0] - 2026-11-24
+Update with `scripts/update.sh v0.18.0` (migration 0018; no new APK). Pick Arturo or Sera per
+tablet in the user menu → Theme.
 ### Added
 - Search results and the admin pages (Beach settings, Seasons, price list) say when bookings or
   the setup changed on another device, with a Reload button; the Prezzi page updates itself
