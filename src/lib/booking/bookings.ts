@@ -1,11 +1,13 @@
 import { sql, type Kysely } from "kysely";
 import { z } from "zod";
-import type { BookingKind, DB, SpotDayState } from "@/db/types";
+import type { BookingKind, DB, SpotDayState, SpotKind } from "@/db/types";
 import { isBookingDate, venueToday } from "@/i18n/format";
 import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import { writeEntry, type DayRow } from "./audit";
 import { areaOfBooking, overStock, type OverStockDay } from "./stock";
 import { multiLine, singleLine } from "@/lib/text";
+import { bookingSuggestions } from "@/lib/pricing/price-list";
+import type { BookingPrice } from "@/lib/pricing/suggest";
 
 /** Longest day / multi-day booking. Whole seasons are season passes (`passes.ts`). */
 export const MAX_BOOKING_DAYS = 60;
@@ -398,7 +400,7 @@ export interface Occupant {
   /** Days the holder gave back, counted from spot_day so it can't drift (ADR 0004). */
   releasedDays: number;
   /** Every umbrella in the booking with its sunbeds, so staff see the whole group. */
-  spots: { spotId: number; number: number; sunbeds: number }[];
+  spots: { spotId: number; number: number; sunbeds: number; kind: SpotKind }[];
   /** Deckchairs asked for with the booking (ADR 0020). */
   deckchairs: number;
   /** Checked in on the day loaded (ADR 0015). */
@@ -409,6 +411,8 @@ export interface Occupant {
   holdTime: string;
   /** The venue's check-in time ("HH:MM"), set by an admin (ADR 0018). */
   usualHoldTime: string;
+  /** The suggested price and the paid tick (ADR 0029). */
+  price: BookingPrice;
 }
 
 /**
@@ -429,6 +433,7 @@ async function loadSpotDays(
     .innerJoin("spot", "spot.id", "spot_day.spot_id")
     .innerJoin("area", "area.id", "spot.area_id")
     .innerJoin("venue", "venue.id", "area.venue_id")
+    .leftJoin("user as payer", "payer.id", "booking.paid_by")
     .select((eb) => [
       "spot_day.spot_id as spotId",
       "booking.id as bookingId",
@@ -439,6 +444,9 @@ async function loadSpotDays(
       "booking.end_date as endDate",
       "booking.notes",
       "booking.deckchairs",
+      "booking.paid_at as paidAt",
+      "booking.paid_suggested_cents as paidSuggestedCents",
+      "payer.name as paidByName",
       sql<string | null>`to_char(booking.hold_until, 'HH24:MI')`.as("holdUntil"),
       sql<string>`to_char(coalesce(booking.hold_until, venue.default_hold_until), 'HH24:MI')`.as(
         "holdTime",
@@ -465,7 +473,8 @@ async function loadSpotDays(
         .innerJoin("spot as s", "s.id", "other.spot_id")
         .select(
           sql<Occupant["spots"]>`json_agg(
-            json_build_object('spotId', s.id, 'number', s.number, 'sunbeds', other.sunbeds)
+            json_build_object('spotId', s.id, 'number', s.number, 'sunbeds', other.sunbeds,
+              'kind', s.kind)
               order by s.number
           )`.as("spots"),
         )
@@ -478,16 +487,36 @@ async function loadSpotDays(
     .where("spot_day.state", "=", state)
     .orderBy("booking.id")
     .execute();
+  const suggestions = await bookingSuggestions(
+    db,
+    rows.map((row) => row.bookingId),
+  );
   return Object.fromEntries(
-    rows.map(({ spotId, spots, releasedDays, checkedIn, ...occupant }) => [
-      spotId,
-      {
-        ...occupant,
-        checkedIn: Boolean(checkedIn),
-        releasedDays: releasedDays ?? 0,
-        spots: spots ?? [],
-      },
-    ]),
+    rows.map((row) => {
+      const { spotId, spots, releasedDays, checkedIn, ...rest } = row;
+      const { paidAt, paidByName, paidSuggestedCents, ...occupant } = rest;
+      const price: BookingPrice = {
+        suggestion: suggestions.get(occupant.bookingId) ?? null,
+        paid:
+          paidAt === null
+            ? null
+            : {
+                at: new Date(paidAt).toISOString(),
+                byName: paidByName ?? "",
+                suggestedCents: paidSuggestedCents,
+              },
+      };
+      return [
+        spotId,
+        {
+          ...occupant,
+          checkedIn: Boolean(checkedIn),
+          releasedDays: releasedDays ?? 0,
+          spots: spots ?? [],
+          price,
+        },
+      ];
+    }),
   );
 }
 

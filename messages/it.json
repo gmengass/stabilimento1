@@ -35,6 +35,7 @@
   },
   "appShell": {
     "map": "Mappa spiaggia",
+    "prices": "Prezzi",
     "beach": "Impostazioni spiaggia",
     "staff": "Personale",
     "signedInAs": "Accesso come {name}",
@@ -246,7 +247,8 @@
       "season": "Gli abbonamenti stagionali non vengono mai liberati all'orario di tenuta.",
       "invalidHold": "Scrivi un orario come 13:30.",
       "stock": "Lettini o sdraie in magazzino non sufficienti.",
-      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
+      "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova.",
+      "cancelled": "Questa prenotazione è stata annullata."
     },
     "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
@@ -343,7 +345,8 @@
       "seasonEnded": "Questa stagione è già finita."
     },
     "defaultName": "Stagione {year}",
-    "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date})."
+    "nextAfter": "Potrai aggiungere la prossima stagione quando {name} sarà finita (ultimo giorno {date}).",
+    "prices": "Listino prezzi"
   },
   "quickBook": {
     "open": "Prenotazione rapida",
@@ -371,7 +374,9 @@
       "generic": "Qualcosa è andato storto. Riprova.",
       "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova."
     },
-    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta."
+    "edited": "Scelta manuale: gli ombrelloni sono diversi dalla proposta.",
+    "price": "Prezzo suggerito {price} per {pieces, plural, one {# pezzo} other {# pezzi}}",
+    "priceDiscount": "Prezzo suggerito {price} per {pieces, plural, one {# pezzo} other {# pezzi}}, sconto {percent}% sul prezzo giornaliero"
   },
   "sheet": {
     "label": "Pannello prenotazione",
@@ -392,10 +397,10 @@
     "setLastDay": "{user} ha fissato l'ultimo giorno dell'abbonamento di {name} al {date}",
     "release": "{user} ha liberato {days, plural, one {# giorno} other {# giorni}} dell'abbonamento di {name}, {dates}",
     "restore": "{user} ha restituito a {name} {days, plural, one {# giorno} other {# giorni}}, {dates}",
-    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} check_in {questo arrivo} uncheck {questo arrivo tolto} hold {questo arrivo in ritardo} other {questo ripristino}}: {name} ({spots})",
+    "undo": "{user} ha ripristinato com'era prima di {action, select, book {questa prenotazione} cancel {questo annullamento} set_last_day {questo ultimo giorno} release {questa liberazione} restore {questa restituzione} move {questo spostamento} check_in {questo arrivo} uncheck {questo arrivo tolto} hold {questo arrivo in ritardo} paid {questo pagato} unpaid {questo pagato tolto} other {questo ripristino}}: {name} ({spots})",
     "beach": "{user} ha modificato le impostazioni della spiaggia",
     "beachHold": "{user} ha impostato l'orario di arrivo alle {to} (prima {from})",
-    "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} other {{user} ha modificato una stagione}}",
+    "season": "{what, select, create {{user} ha aggiunto una stagione} remove {{user} ha eliminato una stagione} prices {{user} ha modificato il listino prezzi} other {{user} ha modificato una stagione}}",
     "undoButton": "Ripristina",
     "undoLabel": "Ripristina com'era prima: {text}",
     "undoing": "Ripristino…",
@@ -424,7 +429,10 @@
     "beachStock": "{user} ha impostato la scorta di {area}: lettini {sunbeds}, sdraie {deckchairs}",
     "beachStockVenue": "{user} ha impostato la scorta: lettini {sunbeds}, sdraie {deckchairs}",
     "stockOff": "non contati",
-    "overStock": "{text} (oltre la scorta)"
+    "overStock": "{text} (oltre la scorta)",
+    "paid": "{user} ha segnato {name} come pagato ({spots})",
+    "paidAt": "{user} ha segnato {name} come pagato ({spots}), prezzo suggerito {price}",
+    "unpaid": "{user} ha tolto il pagato a {name} ({spots})"
   },
   "search": {
     "label": "Cerca una prenotazione per nome o telefono",
@@ -451,5 +459,52 @@
     "cancel": "Annulla",
     "empty": "Non ci sono account del personale tra cui scegliere.",
     "failed": "Scelta non riuscita. Riprova."
+  },
+  "prices": {
+    "title": "Prezzi",
+    "heading": "Prezzi {name}",
+    "days": "Giorni",
+    "daysRow": "{count, plural, one {# giorno} other {# giorni}}",
+    "season": "Stagionale",
+    "single": "Un pezzo",
+    "bundle": "Ombrellone + 2 pezzi",
+    "piecesNote": "Ogni ombrellone, lettino e sdraio è un pezzo.",
+    "close": "Chiudi",
+    "empty": "Nessun prezzo inserito per questa stagione.",
+    "noSeason": "Oggi non c'è una stagione.",
+    "admin": {
+      "title": "Listino prezzi",
+      "heading": "Listino prezzi: {name}",
+      "back": "Torna alle stagioni",
+      "intro": "Prezzi in euro per un pezzo (ombrellone, lettino o sdraio) e per un ombrellone con 2 pezzi, per numero di giorni. La riga stagionale è il massimo che può costare un soggiorno. Lascia vuota una riga senza prezzo.",
+      "copied": "Compilato da {name}: controlla i prezzi e salva per usarli in questa stagione.",
+      "singleFor": "Un pezzo, {row}",
+      "bundleFor": "Ombrellone + 2 pezzi, {row}",
+      "hint": "Scrivi gli euro, ad es. 77 o 77,50.",
+      "save": "Salva prezzi",
+      "saved": "Prezzi salvati.",
+      "badRows": "Inserisci entrambi i prezzi, in euro, in queste righe: {rows}.",
+      "errors": {
+        "invalid": "Controlla i prezzi: euro interi o euro e centesimi, fino a 10.000 €.",
+        "notFound": "Non trovato: ricarica la pagina.",
+        "forbidden": "Solo gli amministratori possono farlo.",
+        "generic": "Qualcosa è andato storto. Riprova."
+      }
+    },
+    "panel": {
+      "title": "Prezzo",
+      "suggested": "Prezzo suggerito",
+      "basis": "{days, plural, one {# giorno} other {# giorni}}, {pieces, plural, one {# pezzo} other {# pezzi}}",
+      "bundles": "{count} × {price} (ombrellone + 2)",
+      "singles": "{count} × {price}",
+      "plus": "{first} + {second}",
+      "line": "{basis} · {parts}",
+      "discount": "Sconto {amount} ({percent}%) sul prezzo giornaliero",
+      "noPrice": "Nessun prezzo suggerito: il listino della stagione non ha un prezzo per questa prenotazione.",
+      "paid": "Pagato",
+      "paidBy": "Segnato pagato da {name}, {at}",
+      "changedSincePaid": "Il prezzo è cambiato da quando è stato segnato pagato.",
+      "changedSincePaidFrom": "Il prezzo è cambiato da quando è stato segnato pagato (era {price})."
+    }
   }
 }

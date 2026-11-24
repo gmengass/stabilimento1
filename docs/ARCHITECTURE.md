@@ -24,7 +24,8 @@ screens within seconds. Customers never use the app. They are contact details on
   the current one has ended
 - **Booking**: customer, kind (day | multi_day | season), start_date (a season pass's first day),
   end_date (inclusive local dates), season, status, notes, hold_until (optional override),
-  deckchairs (0 to 2 per umbrella, ADR 0020)
+  deckchairs (0 to 2 per umbrella, ADR 0020); paid_at, paid_by, paid_suggested_cents (the
+  "paid" tick and the suggested price when it was ticked, ADR 0029)
 - **BookingSpot**: booking, spot, sunbeds (how many go with this umbrella), current (false once
   a move took the booking off this umbrella; its used days stay on record)
 - **SpotDay**: spot, date, booking_spot, state (booked | released | no_show). Unique per (spot, date)
@@ -34,6 +35,8 @@ screens within seconds. Customers never use the app. They are contact details on
   (inside its `book` audit entry)
 - **AuditLog**: user (null only for the automatic `no_show` run), action, booking, before/after,
   timestamp
+- **Price**: season, days (1 to 31, or null for the season row), single_cents, bundle_cents.
+  The suggested price is computed from it, never stored (ADR 0029)
 - **Payment** (later): booking, amount, method (cash/card at desk), staff user
 
 ## Invariants

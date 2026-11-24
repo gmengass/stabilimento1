@@ -46,6 +46,7 @@ const booking = (bookingId: number, sunbeds: number[], deckchairs: number) => {
         holdUntil: null,
         holdTime: "11:00",
         usualHoldTime: "11:00",
+        price: { suggestion: null, paid: null },
       },
     ]),
   );

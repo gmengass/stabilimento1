@@ -3,10 +3,11 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent } from "react";
 import { defaultLocale, isLocale } from "@/i18n/config";
-import { formatBookingDate } from "@/i18n/format";
+import { formatBookingDate, formatCents } from "@/i18n/format";
 import { MAX_DECKCHAIRS_PER_UMBRELLA, MAX_SPOTS_PER_BOOKING } from "@/lib/beach/limits";
 import type { OpenSeason } from "@/lib/booking/seasons";
 import type { Suggestion } from "@/lib/booking/suggest";
+import type { Suggestion as Price } from "@/lib/pricing/suggest";
 import { suggestQuickBookAction } from "./booking-actions";
 
 /** What staff typed into quick book, handed to the booking form with the suggested umbrellas. */
@@ -25,6 +26,8 @@ export interface QuickBookDraft {
 export interface QuickBookPick {
   draft: QuickBookDraft;
   suggestions: Suggestion[];
+  /** The suggested price for what was asked (ADR 0029); null when it can't be priced. */
+  price: Price | null;
 }
 
 type ErrorKey =
@@ -98,10 +101,11 @@ export function QuickBookForm(props: FormProps) {
           areaId,
           umbrellas: draft.umbrellas,
           sunbeds: draft.sunbeds,
+          deckchairs: draft.deckchairs,
           startDate: draft.startDate,
           endDate: draft.endDate,
         });
-        if (result.ok) onSuggested({ draft, suggestions: result.suggestions });
+        if (result.ok) onSuggested({ draft, suggestions: result.suggestions, price: result.price });
         else if (result.error === "noFit") setFailure({ key: "noFit", free: result.free });
         else setFailure({ key: result.error });
       } catch {
@@ -290,6 +294,15 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
               : tb("range", { from: format(startDate), to: format(endDate) }),
         })}
       </p>
+      {pick.price && (
+        <p data-testid="quick-book-price">
+          {t(pick.price.discountPercent > 0 ? "priceDiscount" : "price", {
+            price: formatCents(pick.price.totalCents, isLocale(locale) ? locale : defaultLocale),
+            pieces: pick.price.pieces,
+            percent: pick.price.discountPercent,
+          })}
+        </p>
+      )}
       <p className="text-gray-700 dark:text-gray-300">{t("editHint")}</p>
       <div className="flex gap-2">
         {pick.suggestions.length > 1 && (

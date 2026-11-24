@@ -1,18 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/lib/auth/session";
 
-const { actor, audit, seasons } = vi.hoisted(() => {
+const { actor, audit, seasons, prices } = vi.hoisted(() => {
   const ok = () => vi.fn(async () => ({ ok: true as const }));
   return {
     actor: { current: null as CurrentUser | null },
     audit: { writeEntry: vi.fn(async () => 1) },
     seasons: { createSeason: ok(), updateSeason: ok(), removeSeason: ok() },
+    prices: { savePrices: ok() },
   };
 });
 
 vi.mock("@/lib/auth/session", () => ({ readCurrentUser: vi.fn(async () => actor.current) }));
 vi.mock("@/lib/booking/seasons", () => seasons);
 vi.mock("@/lib/booking/audit", () => audit);
+vi.mock("@/lib/pricing/price-list", () => prices);
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
@@ -32,6 +34,7 @@ const cases = [
   ["createSeasonAction", actions.createSeasonAction, seasons.createSeason],
   ["updateSeasonAction", actions.updateSeasonAction, seasons.updateSeason],
   ["removeSeasonAction", actions.removeSeasonAction, seasons.removeSeason],
+  ["savePricesAction", actions.savePricesAction, prices.savePrices],
 ] as const;
 
 beforeEach(() => vi.clearAllMocks());

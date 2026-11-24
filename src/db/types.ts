@@ -98,6 +98,9 @@ export interface Booking {
   id: Generated<number>;
   kind: BookingKind;
   notes: Generated<string>;
+  paid_at: Timestamp | null;
+  paid_by: string | null;
+  paid_suggested_cents: number | null;
   season_id: number | null;
   start_date: string;
   status: Generated<BookingStatus>;
@@ -126,6 +129,16 @@ export interface LoginFailure {
   first_failed_at: Timestamp;
   key: string;
   locked_until: Timestamp | null;
+}
+
+export interface Price {
+  bundle_cents: number;
+  created_at: Generated<Timestamp>;
+  days: number | null;
+  id: Generated<number>;
+  season_id: number;
+  single_cents: number;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface Season {
@@ -219,6 +232,7 @@ export interface DB {
   booking_spot: BookingSpot;
   check_in: CheckIn;
   login_failure: LoginFailure;
+  price: Price;
   season: Season;
   session: Session;
   spot: Spot;

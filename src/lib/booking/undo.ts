@@ -9,12 +9,14 @@ import {
   type CheckInFlag,
   type DayRow,
   type MovedDay,
+  type PaidState,
   type RecordedChange,
   type Viewer,
 } from "./audit";
 import { isConflict, type Clash } from "./bookings";
 import { shortTime } from "./hold";
 import { applyFlags } from "./move";
+import { paidColumns, paidState } from "./paid";
 
 const undoSchema = z.object({ entryId: z.number().int().positive() });
 
@@ -311,10 +313,31 @@ async function undoIn(
   const bookingId = entry.booking_id;
   const booking = await tx
     .selectFrom("booking")
-    .select(["status", "start_date", "end_date", "kind", "hold_until"])
+    .select([
+      "status",
+      "start_date",
+      "end_date",
+      "kind",
+      "hold_until",
+      "paid_at",
+      "paid_by",
+      "paid_suggested_cents",
+    ])
     .where("id", "=", bookingId)
     .forUpdate()
     .executeTakeFirstOrThrow();
+  // A paid tick changes nothing but the tick, so only the tick needs to be as it left it, and it can
+  // be undone after the last day: passes are paid at the end (ADR 0029).
+  if (change.after.paid !== undefined) {
+    if (booking.status !== "active" || !samePaid(paidState(booking), change.after.paid))
+      return { ok: false, error: "changed" };
+    await tx
+      .updateTable("booking")
+      .set(paidColumns(change.before.paid ?? null))
+      .where("id", "=", bookingId)
+      .execute();
+    return recordUndo(tx, viewer, entryId, entry.undoes_id, bookingId, reversed(change));
+  }
   // Nothing from today on to change: undo would only flip the status of a finished booking.
   const lastDay = [booking.end_date, change.before.endDate, change.after.endDate].sort().at(-1);
   if (lastDay !== undefined && lastDay < today) return { ok: false, error: "ended" };
@@ -341,6 +364,26 @@ async function undoIn(
   const clashes = await takenSince(tx, reverse);
   if (clashes.length > 0) return { ok: false, error: "taken", clashes };
   await apply(tx, bookingId, reverse, viewer.id);
+  return recordUndo(tx, viewer, entryId, entry.undoes_id, bookingId, reverse);
+}
+
+/** Two paid states are the same tick: same person, time and price (or both unticked). */
+function samePaid(a: PaidState | null, b: PaidState | null): boolean {
+  if (a === null || b === null) return a === b;
+  return (
+    a.by === b.by && Date.parse(a.at) === Date.parse(b.at) && a.suggestedCents === b.suggestedCents
+  );
+}
+
+/** Writes the undo's own entry and marks the original undone (an undone undo stands again). */
+async function recordUndo(
+  tx: Kysely<DB>,
+  viewer: Viewer,
+  entryId: number,
+  undoesId: number | null,
+  bookingId: number,
+  reverse: RecordedChange,
+): Promise<UndoResult> {
   const undoId = await writeEntry(tx, {
     userId: viewer.id,
     action: "undo",
@@ -354,11 +397,11 @@ async function undoIn(
     .where("id", "=", entryId)
     .execute();
   // Undoing an undo puts the original change back, so the original no longer reads as undone.
-  if (entry.undoes_id !== null) {
+  if (undoesId !== null) {
     await tx
       .updateTable("audit_log")
       .set({ undone_by_id: null })
-      .where("id", "=", entry.undoes_id)
+      .where("id", "=", undoesId)
       .execute();
   }
   return { ok: true };

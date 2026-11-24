@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   addDays,
   formatBookingDate,
-  formatEur,
+  formatCents,
   formatShortWeekdayDate,
   formatTimestamp,
   formatWeekdayDate,
@@ -57,15 +57,15 @@ describe("formatWeekdayDate and formatShortWeekdayDate", () => {
   });
 });
 
-describe("formatEur", () => {
+describe("formatCents", () => {
   it.each([
-    [1234.5, "it", "1.234,50 €"],
-    [1234.5, "en", "€1,234.50"],
+    [123450, "it", "1.234,50 €"],
+    [123450, "en", "€1,234.50"],
     [0, "it", "0,00 €"],
     [0, "en", "€0.00"],
-    [1234567.891, "it", "1.234.567,89 €"],
+    [123456789, "it", "1.234.567,89 €"],
   ] as const)("formats %d in %s as %s", (amount, locale, expected) => {
-    expect(normalizeSpaces(formatEur(amount, locale))).toBe(expected);
+    expect(normalizeSpaces(formatCents(amount, locale))).toBe(expected);
   });
 });
 

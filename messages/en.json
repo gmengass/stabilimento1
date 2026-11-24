@@ -35,6 +35,7 @@
   },
   "appShell": {
     "map": "Beach map",
+    "prices": "Prices",
     "beach": "Beach settings",
     "staff": "Staff",
     "signedInAs": "Signed in as {name}",
@@ -246,7 +247,8 @@
       "season": "Season passes are never freed at the hold time.",
       "invalidHold": "Enter a time like 13:30.",
       "stock": "Not enough sunbeds or deckchairs in stock.",
-      "rateLimited": "Too many actions in a short time. Wait a minute and try again."
+      "rateLimited": "Too many actions in a short time. Wait a minute and try again.",
+      "cancelled": "This booking was cancelled."
     },
     "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
@@ -343,7 +345,8 @@
       "seasonEnded": "This season has already ended."
     },
     "defaultName": "Season {year}",
-    "nextAfter": "You can add the next season once {name} has ended (last day {date})."
+    "nextAfter": "You can add the next season once {name} has ended (last day {date}).",
+    "prices": "Price list"
   },
   "quickBook": {
     "open": "Quick book",
@@ -371,7 +374,9 @@
       "generic": "Something went wrong. Try again.",
       "rateLimited": "Too many actions in a short time. Wait a minute and try again."
     },
-    "edited": "Your own choice: the umbrellas differ from the suggestion."
+    "edited": "Your own choice: the umbrellas differ from the suggestion.",
+    "price": "Suggested price {price} for {pieces, plural, one {# piece} other {# pieces}}",
+    "priceDiscount": "Suggested price {price} for {pieces, plural, one {# piece} other {# pieces}}, {percent}% off the daily price"
   },
   "sheet": {
     "label": "Booking panel",
@@ -392,10 +397,10 @@
     "setLastDay": "{user} set the last day of {name}'s pass to {date}",
     "release": "{user} released {days, plural, one {# day} other {# days}} of {name}'s pass, {dates}",
     "restore": "{user} gave {name} back {days, plural, one {# day} other {# days}}, {dates}",
-    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} other {an undo}} of {name} ({spots})",
+    "undo": "{user} undid {action, select, book {the booking} cancel {the cancellation} set_last_day {the last day} release {the release} restore {the give-back} move {the move} check_in {the check-in} uncheck {the removed check-in} hold {the late arrival} paid {the paid mark} unpaid {the cleared paid mark} other {an undo}} of {name} ({spots})",
     "beach": "{user} changed the beach settings",
     "beachHold": "{user} set the check-in time to {to} (was {from})",
-    "season": "{what, select, create {{user} added a season} remove {{user} removed a season} other {{user} changed a season}}",
+    "season": "{what, select, create {{user} added a season} remove {{user} removed a season} prices {{user} changed the price list} other {{user} changed a season}}",
     "undoButton": "Undo",
     "undoLabel": "Undo: {text}",
     "undoing": "Undoing…",
@@ -424,7 +429,10 @@
     "beachStock": "{user} set the stock of {area}: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "beachStockVenue": "{user} set the stock: sunbeds {sunbeds}, deckchairs {deckchairs}",
     "stockOff": "not tracked",
-    "overStock": "{text} (over the stock)"
+    "overStock": "{text} (over the stock)",
+    "paid": "{user} marked {name} as paid ({spots})",
+    "paidAt": "{user} marked {name} as paid ({spots}), suggested price {price}",
+    "unpaid": "{user} cleared the paid mark of {name} ({spots})"
   },
   "search": {
     "label": "Find a booking by name or phone",
@@ -451,5 +459,52 @@
     "cancel": "Cancel",
     "empty": "There are no staff accounts to choose from.",
     "failed": "Could not choose. Try again."
+  },
+  "prices": {
+    "title": "Prices",
+    "heading": "Prices {name}",
+    "days": "Days",
+    "daysRow": "{count, plural, one {# day} other {# days}}",
+    "season": "Season",
+    "single": "One piece",
+    "bundle": "Umbrella + 2 pieces",
+    "piecesNote": "Each umbrella, sunbed and deckchair is one piece.",
+    "close": "Close",
+    "empty": "No prices entered for this season yet.",
+    "noSeason": "There is no season today.",
+    "admin": {
+      "title": "Price list",
+      "heading": "Price list: {name}",
+      "back": "Back to seasons",
+      "intro": "Prices in euros for one piece (umbrella, sunbed or deckchair) and for an umbrella with 2 pieces, by number of days. The season row is the most any stay can cost. Leave a row empty if there is no price for it.",
+      "copied": "Filled in from {name}: check the prices and save to use them for this season.",
+      "singleFor": "One piece, {row}",
+      "bundleFor": "Umbrella + 2 pieces, {row}",
+      "hint": "Type euros, e.g. 77 or 77,50.",
+      "save": "Save prices",
+      "saved": "Prices saved.",
+      "badRows": "Fill in both prices, in euros, on these rows: {rows}.",
+      "errors": {
+        "invalid": "Check the prices: whole euros or euros and cents, up to €10,000.",
+        "notFound": "Not found: reload the page.",
+        "forbidden": "Only admins can do this.",
+        "generic": "Something went wrong. Try again."
+      }
+    },
+    "panel": {
+      "title": "Price",
+      "suggested": "Suggested price",
+      "basis": "{days, plural, one {# day} other {# days}}, {pieces, plural, one {# piece} other {# pieces}}",
+      "bundles": "{count} × {price} (umbrella + 2)",
+      "singles": "{count} × {price}",
+      "plus": "{first} + {second}",
+      "line": "{basis} · {parts}",
+      "discount": "Discount {amount} ({percent}%) on the daily price",
+      "noPrice": "No suggested price: the season's price list has no price for this booking.",
+      "paid": "Paid",
+      "paidBy": "Marked paid by {name}, {at}",
+      "changedSincePaid": "The price changed since it was marked paid.",
+      "changedSincePaidFrom": "The price changed since it was marked paid (it was {price})."
+    }
   }
 }

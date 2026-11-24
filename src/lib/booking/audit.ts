@@ -18,6 +18,8 @@ export type AuditAction =
   | "uncheck"
   | "hold"
   | "no_show"
+  | "paid"
+  | "unpaid"
   | "undo"
   | "beach"
   | "season";
@@ -45,6 +47,15 @@ export interface BookingState {
   kind?: BookingKind;
   /** Recorded by a hold change ("HH:MM" or null for the venue's time); others leave it out. */
   holdUntil?: string | null;
+  /** Recorded by a paid or unpaid tick (ADR 0029); others leave it out. */
+  paid?: PaidState | null;
+}
+
+/** Who ticked a booking paid, when (ISO, UTC), and the suggested price then (ADR 0029). */
+export interface PaidState {
+  at: string;
+  by: string;
+  suggestedCents: number | null;
 }
 
 /** Whether the booking was checked in on a day, before and after the change (ADR 0015). */

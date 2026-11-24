@@ -32,6 +32,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <Link href="/" className="flex min-h-11 items-center">
           {t("map")}
         </Link>
+        <Link href="/prices" className="flex min-h-11 min-w-11 items-center justify-center">
+          {t("prices")}
+        </Link>
         {user.role === "admin" && (
           <>
             <Link href="/admin/beach" className="flex min-h-11 items-center">

@@ -15,6 +15,7 @@ import type {
   UncheckResult,
 } from "@/lib/booking/check-in";
 import { moveBooking, type MoveResult } from "@/lib/booking/move";
+import { setPaid, type PaidResult } from "@/lib/booking/paid";
 import * as passes from "@/lib/booking/passes";
 import type { DaysResult, EndPassResult } from "@/lib/booking/passes";
 import { suggestQuickBook, type QuickSuggestResult } from "@/lib/booking/quick-book";
@@ -130,6 +131,15 @@ export async function setHoldAction(input: unknown): Promise<HoldResult | Refuse
   const actor = await actorFor();
   if (!actor.ok) return actor;
   const result = await checkIns.setHold(getDb(), actor.actorId, input);
+  if (result.ok || refreshes(result.error)) revalidatePath("/");
+  return result;
+}
+
+/** Any staff member ticks a booking paid or clears it (ADR 0029); it can be undone. */
+export async function setPaidAction(input: unknown): Promise<PaidResult | Refused> {
+  const actor = await actorFor();
+  if (!actor.ok) return actor;
+  const result = await setPaid(getDb(), actor.actorId, input);
   if (result.ok || refreshes(result.error)) revalidatePath("/");
   return result;
 }

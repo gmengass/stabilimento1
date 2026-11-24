@@ -105,10 +105,11 @@ export function formatTimestamp(at: Date, locale: Locale): string {
   }).format(at);
 }
 
-export function formatEur(amount: number, locale: Locale): string {
+/** Money is stored in whole cents (ADR 0029) and shown in euros. */
+export function formatCents(cents: number, locale: Locale): string {
   return new Intl.NumberFormat(intlTag[locale], {
     style: "currency",
     currency: "EUR",
     useGrouping: "always",
-  }).format(amount);
+  }).format(cents / 100);
 }
