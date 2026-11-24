@@ -9,6 +9,7 @@ import type { Occupant } from "@/lib/booking/bookings";
 import { priceChangedSincePaid, type Suggestion } from "@/lib/pricing/suggest";
 import { setPaidAction } from "./booking-actions";
 import { ErrorLine, type Failure } from "./booking-panel";
+import { sunNoteBox } from "@/components/button-classes";
 
 function useMoney() {
   const requested = useLocale();
@@ -72,7 +73,7 @@ export function PriceBox({ occupant }: { occupant: Occupant }) {
     <section
       aria-label={t("title")}
       data-testid="price-box"
-      className="flex flex-col gap-1 rounded border p-3"
+      className={`flex flex-col gap-1 rounded border p-3 ${sunNoteBox}`}
     >
       {suggestion ? (
         <>

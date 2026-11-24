@@ -13,6 +13,7 @@ import {
   useStockWarning,
   type Failure,
 } from "./booking-panel";
+import { sunPrimary, sunSecondary } from "@/components/button-classes";
 
 /** Where each of the booking's umbrellas goes: spot id → the new umbrella's id and number. */
 export type MoveTargets = Record<number, { spotId: number; number: number }>;
@@ -107,7 +108,7 @@ export function MoveForm(props: Props) {
       className="flex flex-col gap-3"
       data-testid="move-form"
     >
-      <h2 className="text-lg font-semibold">{t("moveTitle")}</h2>
+      <h2 className="text-lg font-semibold sun:hidden">{t("moveTitle")}</h2>
       <p className="text-sm text-gray-700 dark:text-gray-300">{t("moveHint")}</p>
       {active && (
         <p role="status" className="text-sm font-semibold text-blue-800 dark:text-blue-300">
@@ -131,7 +132,7 @@ export function MoveForm(props: Props) {
                 type="button"
                 onClick={() => onKeep(s.spotId)}
                 disabled={!target}
-                className="min-h-11 rounded border px-3 py-2 disabled:opacity-60"
+                className={`min-h-11 rounded border px-3 py-2 disabled:opacity-60 ${sunSecondary}`}
               >
                 {t("moveKeep")}
               </button>
@@ -182,11 +183,15 @@ export function MoveForm(props: Props) {
         <button
           type="submit"
           disabled={pending || !distinct}
-          className="min-h-11 flex-1 rounded bg-blue-700 px-3 py-2 font-semibold text-white disabled:opacity-60"
+          className={`min-h-11 flex-1 rounded bg-blue-700 px-3 py-2 font-semibold text-white disabled:opacity-60 ${sunPrimary}`}
         >
           {pending ? t("saving") : stock.days ? t("moveAnyway") : t("moveConfirm")}
         </button>
-        <button type="button" onClick={onBack} className="min-h-11 flex-1 rounded border px-3 py-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className={`min-h-11 flex-1 rounded border px-3 py-2 ${sunSecondary}`}
+        >
           {t("moveBack")}
         </button>
       </div>

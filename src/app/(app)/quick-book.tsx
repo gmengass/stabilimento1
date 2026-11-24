@@ -9,6 +9,7 @@ import type { OpenSeason } from "@/lib/booking/seasons";
 import type { Suggestion } from "@/lib/booking/suggest";
 import type { Suggestion as Price } from "@/lib/pricing/suggest";
 import { suggestQuickBookAction } from "./booking-actions";
+import { sunNoteBox, sunPrimary, sunSecondary } from "@/components/button-classes";
 
 /** What staff typed into quick book, handed to the booking form with the suggested umbrellas. */
 export interface QuickBookDraft {
@@ -116,7 +117,7 @@ export function QuickBookForm(props: FormProps) {
 
   return (
     <form onSubmit={onSubmit} data-testid="quick-book-form" className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">{t("title", { area: areaName })}</h2>
+      <h2 className="text-lg font-semibold sun:hidden">{t("title", { area: areaName })}</h2>
       <label className="flex flex-col gap-1 text-sm">
         {tb("customerName")}
         <input
@@ -235,11 +236,11 @@ export function QuickBookForm(props: FormProps) {
           type="submit"
           disabled={pending}
           data-testid="quick-book-suggest"
-          className="flex-1 rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60"
+          className={`flex-1 rounded bg-blue-700 px-3 py-3 font-semibold text-white disabled:opacity-60 ${sunPrimary}`}
         >
           {pending ? t("searching") : t("suggest")}
         </button>
-        <button type="button" onClick={onClose} className="rounded border px-3 py-3">
+        <button type="button" onClick={onClose} className="rounded border px-3 py-3 sun:hidden">
           {tb("close")}
         </button>
       </div>
@@ -271,7 +272,9 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
   const { startDate, endDate } = pick.draft;
   const format = (d: string) => formatBookingDate(d, isLocale(locale) ? locale : defaultLocale);
   return (
-    <div className="flex flex-col gap-2 rounded bg-blue-50 dark:bg-blue-950 p-3 text-sm">
+    <div
+      className={`flex flex-col gap-2 rounded bg-blue-50 dark:bg-blue-950 p-3 text-sm ${sunNoteBox}`}
+    >
       {edited ? (
         <p data-testid="quick-book-edited" className="font-semibold">
           {t("edited")}
@@ -310,7 +313,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
             type="button"
             onClick={onAnother}
             data-testid="quick-book-another"
-            className="min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2"
+            className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 ${sunSecondary}`}
           >
             {t("another")}
           </button>
@@ -318,7 +321,7 @@ export function SuggestionBar({ pick, index, edited, onAnother, onChange }: BarP
         <button
           type="button"
           onClick={(event) => onChange(event.detail === 0)}
-          className="min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2"
+          className={`min-h-11 rounded border bg-white dark:bg-gray-900 px-3 py-2 ${sunSecondary}`}
         >
           {t("change")}
         </button>
