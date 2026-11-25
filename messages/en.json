@@ -256,7 +256,6 @@
       "rateLimited": "Too many actions in a short time. Wait a minute and try again.",
       "cancelled": "This booking was cancelled."
     },
-    "notesHint": "No health or payment details here.",
     "seasonPass": "Season pass",
     "firstDay": "First day",
     "sellPass": "{count, plural, one {Sell a season pass for # umbrella} other {Sell a season pass for # umbrellas}}",

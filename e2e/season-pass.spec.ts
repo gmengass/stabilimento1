@@ -45,6 +45,12 @@ test("a season pass without a last day runs to the season's end and can be ended
   const panel = page.locator("aside");
   // Day-booking mode fills "to" with the map date; ticking "season pass" must not keep it.
   await expect(panel.locator('input[name="endDate"]')).toHaveValue(FIRST_DAY);
+  // The season-pass option sits below the dates (owner, 2026-11-25).
+  const below = await panel.locator('input[name="endDate"]').evaluate((end) => {
+    const box = end.closest("form")!.querySelector('input[type="checkbox"]')!;
+    return Boolean(end.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(below).toBe(true);
   await panel.locator('input[type="checkbox"]').check();
   await expect(panel.locator('input[name="startDate"]')).toHaveValue(FIRST_DAY);
   await expect(panel.locator('input[name="endDate"]')).toHaveValue("");
