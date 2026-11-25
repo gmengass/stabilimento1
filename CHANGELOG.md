@@ -4,22 +4,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Changed
-- In Arturo and Sera the booking panel matches the top bar (docs/plans/theme-panel.md): a green
-  band with the orange stripe holds the title and Close, the main button of each panel (and Quick
-  book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
-  cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
+- New booking form: "Abbonamento stagionale" is below the dates instead of above them, and the
+  line under Note ("Non scrivere qui dati sanitari o di pagamento") is gone.
+
+## [0.18.2] - 2026-11-24
+Update with `scripts/update.sh v0.18.2` (no migration; no new APK).
+### Changed
 - The band's title starts with the umbrella number and is a little smaller, so it fits in full:
   "101 · Rossi Mario", "104 · Nuova prenotazione".
 - Booking panel, every theme: with one umbrella, sunbeds and deckchairs sit on one line (the
   umbrella number moves above it when the panel is narrow); with several, each umbrella keeps its
   sunbeds row and deckchairs are on one line below. An open booking reads "101 · 2 lettini · 1
   sdraio" (the word "Ombrellone" is dropped from these lines).
-- New booking form: "Abbonamento stagionale" is below the dates instead of above them, and the
-  line under Note ("Non scrivere qui dati sanitari o di pagamento") is gone.
 
 ### Fixed
 - Arturo: undone entries in today's activity list were too faint on the sand background; they
   now meet the contrast minimum.
+
+## [0.18.1] - 2026-11-24
+Update with `scripts/update.sh v0.18.1` (no migration; no new APK).
+### Changed
+- In Arturo and Sera the booking panel matches the top bar (docs/plans/theme-panel.md): a green
+  band with the orange stripe holds the title and Close, the main button of each panel (and Quick
+  book on the map) is orange, the other buttons are outlined in green (grey-blue in Sera), and
+  cancelling a booking is dark red. Light, Dark and Automatic are unchanged.
 
 ## [0.18.0] - 2026-11-24
 Update with `scripts/update.sh v0.18.0` (migration 0018; no new APK). Pick Arturo or Sera per
