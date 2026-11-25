@@ -334,17 +334,6 @@ export function NewBookingForm(props: NewProps) {
           className={field}
         />
       </label>
-      {openSeason && (
-        <label className="flex min-h-11 items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={asPass}
-            onChange={(e) => togglePass(e.target.checked)}
-            className="size-5"
-          />
-          {t("seasonPass")}
-        </label>
-      )}
       {/* Keys: without them React reuses the "to" input, and its date would end the pass. */}
       {season ? (
         <div key="pass" className="flex flex-col gap-1">
@@ -402,6 +391,17 @@ export function NewBookingForm(props: NewProps) {
             />
           </label>
         </div>
+      )}
+      {openSeason && (
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={asPass}
+            onChange={(e) => togglePass(e.target.checked)}
+            className="size-5"
+          />
+          {t("seasonPass")}
+        </label>
       )}
       {startsToday && (
         <label className="flex min-h-11 items-center gap-2 text-sm">
