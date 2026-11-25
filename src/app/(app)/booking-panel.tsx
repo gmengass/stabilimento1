@@ -418,7 +418,6 @@ export function NewBookingForm(props: NewProps) {
       <label className="flex flex-col gap-1 text-sm">
         {t("notes")}
         <textarea name="notes" maxLength={500} rows={2} className={field} />
-        <span className="text-gray-600 dark:text-gray-400">{t("notesHint")}</span>
       </label>
       <button
         type="submit"

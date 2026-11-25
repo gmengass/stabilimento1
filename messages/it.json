@@ -256,7 +256,6 @@
       "rateLimited": "Troppe azioni in poco tempo. Attendi un minuto e riprova.",
       "cancelled": "Questa prenotazione è stata annullata."
     },
-    "notesHint": "Non scrivere qui dati sanitari o di pagamento.",
     "seasonPass": "Abbonamento stagionale",
     "firstDay": "Primo giorno",
     "sellPass": "{count, plural, one {Vendi un abbonamento per # ombrellone} other {Vendi un abbonamento per # ombrelloni}}",
