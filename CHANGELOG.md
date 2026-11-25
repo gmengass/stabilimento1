@@ -14,6 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   umbrella number moves above it when the panel is narrow); with several, each umbrella keeps its
   sunbeds row and deckchairs are on one line below. An open booking reads "101 · 2 lettini · 1
   sdraio" (the word "Ombrellone" is dropped from these lines).
+- New booking form: "Abbonamento stagionale" is below the dates instead of above them.
 
 ### Fixed
 - Arturo: undone entries in today's activity list were too faint on the sand background; they
