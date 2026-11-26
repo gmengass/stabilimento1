@@ -75,3 +75,37 @@ test("a typed date opens only on Enter, never half-typed", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.waitForURL(/date=2090-07-10/);
 });
+
+test("the arrows, calendar and search are 44 px icon buttons that keep their names", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByTestId("date-nav");
+  const buttons = [
+    nav.getByRole("link", { name: "Giorno prima" }),
+    nav.getByRole("link", { name: "Giorno dopo" }),
+    nav.locator("label", { hasText: "Calendario" }),
+    page.getByRole("search").getByRole("button", { name: "Cerca" }),
+  ];
+  for (const button of buttons) {
+    await expect(button).toBeVisible();
+    await expect(button.locator("svg")).toBeVisible();
+    const box = (await button.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  await expect(buttons[0]!).toHaveAttribute("title", "Giorno prima");
+  await expect(buttons[3]!).toHaveAttribute("title", "Cerca");
+});
+
+test("on a phone, another day's calendar button drops its icon so the bar fits", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/");
+  await page.getByTestId("date-nav").getByRole("link", { name: "Giorno dopo" }).click();
+  await page.waitForURL(/date=/);
+  const nav = page.getByTestId("date-nav");
+  await expect(nav.locator("label svg")).toBeHidden();
+  expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+});
