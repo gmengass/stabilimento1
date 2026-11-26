@@ -3,6 +3,12 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Club logo on the sign-in page, at the left of the top bar (it opens the map) and on Prezzi, from
+  `logo.png` and `logo-dark.png` in a folder on the box (`BRANDING_DIR`, `CLUB_NAME` in `.env`;
+  RUNBOOK, "Club name and logo"). Dark backgrounds use the dark version. Without the folder,
+  nothing changes. Update with `scripts/update.sh`, then add the two lines to `.env`.
+
 ### Changed
 - In Arturo and Sera the booking panel matches the top bar (docs/plans/theme-panel.md): a green
   band with the orange stripe holds the title and Close, the main button of each panel (and Quick

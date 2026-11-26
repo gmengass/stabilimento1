@@ -83,6 +83,11 @@ services:
       APP_URL: ${APP_URL:?set APP_URL in .env}
       TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      CLUB_NAME: ${CLUB_NAME:-}
+      BRANDING_DIR: /branding
+    # The club's logo stays on the box (RUNBOOK, "Club name and logo"); empty folder without one.
+    volumes:
+      - ${BRANDING_DIR:-./deploy/no-branding}:/branding:ro
     # No host port: clients must come through Caddy, which sets X-Real-IP for the login rate
     # limit (ADR 0008).
     depends_on:

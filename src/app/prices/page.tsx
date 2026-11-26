@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { ClubLogo } from "@/components/club-logo";
 import { PageMain } from "@/components/page-main";
 import { getDb } from "@/db/client";
 import { formatCents, venueToday } from "@/i18n/format";
 import { requireUser } from "@/lib/auth/session";
+import { getBranding } from "@/lib/branding";
 import { listSeasons, loadOpenSeason } from "@/lib/booking/seasons";
 import { listPrices } from "@/lib/pricing/price-list";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -36,13 +38,17 @@ export default async function PricesPage() {
   const locale = await getLocale();
   const season = await seasonToShow();
   const entries = season ? await listPrices(getDb(), season.id) : [];
+  const branding = await getBranding();
   return (
     <PageMain className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-4 p-4">
       <LiveRefresh signals={SETUP} />
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">
-          {season ? t("heading", { name: season.name }) : t("title")}
-        </h1>
+        <div className="flex items-center gap-4">
+          <ClubLogo branding={branding} backdrop="page" className="h-20 w-auto" />
+          <h1 className="text-2xl font-semibold">
+            {season ? t("heading", { name: season.name }) : t("title")}
+          </h1>
+        </div>
         <Link
           href="/"
           className="flex min-h-11 items-center rounded border px-4 py-2 text-base font-semibold"

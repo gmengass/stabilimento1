@@ -155,6 +155,18 @@ They stay on the box, out of the public repository:
   their own shape. `legacy.png` is shown as it is, so give it a round or transparent outline.
 - Then rebuild and install over the old app (below).
 
+**Club name and logo** (optional; without them the pages show no logo). Like the icon, they stay on
+the box:
+- `CLUB_NAME` in `.env`: the club's name, read aloud to screen readers in place of the logo, e.g.
+  `CLUB_NAME=Hotel Residence Arturo` (up to 60 characters).
+- `BRANDING_DIR` in `.env`: the full path of a folder holding `logo.png` and, optionally,
+  `logo-dark.png` for dark backgrounds (the top bar in Arturo and Sera, and Sera, Dark or Automatic
+  at night). It can be the `ANDROID_ICON_DIR` folder. PNG only (no SVG), up to 1 MB each, about
+  800 px wide with a transparent background; give both files the same size and framing. Without
+  `logo-dark.png`, dark backgrounds show `logo.png` on a cream backing.
+- The folder must be readable by the app (`chmod 755` on the folder, `644` on the files). Then
+  `docker compose up -d app`. Browsers keep the old logo for up to an hour.
+
 **Install on each device:**
 1. Copy the APK by USB cable or stick. Don't send it through a chat app or email. With the stick
    back in the box, check `sha256sum` of the file on it against the APK SHA-256 the script printed.
