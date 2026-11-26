@@ -49,3 +49,12 @@ export function SearchIcon() {
     </Icon>
   );
 }
+
+export function LogoutIcon() {
+  return (
+    <Icon>
+      <path d="M14 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3" />
+      <path d="M9 12h12M17 8l4 4-4 4" />
+    </Icon>
+  );
+}

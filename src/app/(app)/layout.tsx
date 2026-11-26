@@ -6,6 +6,7 @@ import { ClubLogo } from "@/components/club-logo";
 import { ActingBadge, ActingProvider } from "@/components/acting";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { LogoutIcon } from "@/components/icons";
 import { UserMenu } from "@/components/user-menu";
 import { currentActing, listActingChoices } from "@/lib/auth/acting";
 import { logout } from "@/lib/auth/actions";
@@ -59,14 +60,18 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <div className="flex flex-col gap-3">
             <LanguageSwitcher />
             <ThemeSwitcher current={theme} />
+            <form action={logout} className="border-t pt-3">
+              <button
+                type="submit"
+                className="flex min-h-11 w-full items-center gap-2 rounded border px-3"
+              >
+                <LogoutIcon />
+                {t("logout")}
+              </button>
+            </form>
           </div>
         </UserMenu>
         <ActingBadge />
-        <form action={logout}>
-          <button type="submit" className="min-h-11 rounded border px-3 py-2">
-            {t("logout")}
-          </button>
-        </form>
       </nav>
       {children}
     </ActingProvider>
