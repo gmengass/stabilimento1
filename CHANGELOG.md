@@ -3,6 +3,11 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The day's counts above the map show an icon and "free / total" instead of a sentence: an umbrella
+  for "Ombrelloni liberi", a sunbed for "Lettini liberi", a sunbed with a box for "Lettini in
+  magazzino" and a deckchair for "Sdraie". Arturo and Sera colour them like the club's umbrellas
+  and sunbeds. Screen readers and mouse tooltips still give the full sentence.
 
 ## [0.18.4] - 2026-11-26
 Update with `scripts/update.sh v0.18.4` (no migration; no new APK).
