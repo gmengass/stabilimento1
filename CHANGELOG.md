@@ -4,6 +4,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Changed
+- The sea band has a small wave on each side of "MARE" and the space name. On phones the name is a
+  little smaller so it fits; a very long name is cut short with "…".
+
+## [0.18.7] - 2026-11-26
+Update with `scripts/update.sh v0.18.7` (no migration; no new APK).
+### Changed
 - The beach-space buttons above the map are gone. With two or more spaces, the banner's map link
   names the space being viewed, and the ▾ button beside it lists the spaces; picking one keeps the
   day being viewed. With one space the banner is unchanged.
