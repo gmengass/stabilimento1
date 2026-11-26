@@ -79,6 +79,10 @@ Each item ships something staff can use on the box.
 - [x] Icons instead of words in the day counts (owner, 2026-11-26, PR #121)
 - [x] Beach space picked from a menu in the banner instead of tabs above the map; the sea band
   names the space (owner, 2026-11-26, PR #123, v0.18.7, ADR 0032)
+- [x] A wave on each side of the sea band (owner, 2026-11-26, PR #124, v0.19.0)
+- [x] Booking search opens from a magnifier next to the calendar (owner, 2026-11-26, PR #125,
+  v0.19.0)
+- [x] User button in the banner shows only the name (owner, 2026-11-26, PR #126, v0.19.0)
 - [ ] Payments recorded at the desk (amounts, method), daily cash-up report. Season passes are paid
   at the end, once the holder knows their last day (owner, 2026-11-14) (shelved by owner 2026-11-24)
 - [ ] Cabins: book and price the club's cabins (on the price list; not modelled yet, owner

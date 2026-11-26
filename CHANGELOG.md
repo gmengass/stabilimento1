@@ -3,6 +3,9 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.19.0] - 2026-11-26
+Update with `scripts/update.sh v0.19.0` (no migration; no new APK).
 ### Changed
 - The search field above the map is gone: a magnifier after the calendar opens it, ready to type.
   On a tablet it opens on the same row; on a phone it takes the date bar's place until you close
