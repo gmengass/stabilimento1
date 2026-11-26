@@ -17,7 +17,7 @@ function freeSpots(page: Page) {
 
 /** "… 11 / 12" → [11, 12], for the umbrellas then the sunbeds. */
 async function counts(page: Page): Promise<number[][]> {
-  const spans = page.getByTestId("day-counts").locator("span");
+  const spans = page.getByTestId("day-counts").locator("[data-count]");
   const texts = await spans.allInnerTexts();
   return texts.map((text) => (text.match(/(\d+) \/ (\d+)/) ?? []).slice(1).map(Number));
 }

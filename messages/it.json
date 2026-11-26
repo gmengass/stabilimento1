@@ -144,6 +144,7 @@
     "countSunbeds": "Lettini liberi: {free} / {total}",
     "countSunbedStock": "Lettini in magazzino liberi: {free} / {total}",
     "countDeckchairStock": "Sdraie libere: {free} / {total}",
+    "countValue": "{free} / {total}",
     "countOver": "({count} oltre la scorta)",
     "markBooked": "P",
     "markSeason": "S",
