@@ -4,6 +4,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Changed
+- On a shared tablet, the tablet's name stays at the far right of the banner; "Operatore: …" and
+  "Non sono io" now sit just before it (#128).
+
+## [0.19.0] - 2026-11-26
+Update with `scripts/update.sh v0.19.0` (no migration; no new APK).
+### Changed
 - The search field above the map is gone: a magnifier after the calendar opens it, ready to type.
   On a tablet it opens on the same row; on a phone it takes the date bar's place until you close
   it with ✕ or Escape. An empty field closes by itself when you tap elsewhere.
