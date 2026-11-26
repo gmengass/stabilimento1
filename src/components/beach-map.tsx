@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { MapLine, MapSpot } from "@/lib/beach/layout";
 import { statusMarkKey, type SpotView } from "@/lib/beach/status-mark";
+import { WavesIcon } from "./icons";
 
 export type { SpotView };
 
@@ -95,10 +96,12 @@ export function BeachMap({
         {/* As wide as the visible map and pinned left, so a wide map scrolls under its name. */}
         <div
           data-testid="sea-band"
-          className="sticky left-0 flex w-[100cqw] flex-wrap self-start items-baseline justify-center gap-x-3 rounded bg-sky-200 px-2 py-2 text-sky-900 sun:dark:bg-[#0c3b5e] sun:dark:text-[#bfe3f7]"
+          className="sticky left-0 flex w-[100cqw] self-start items-center justify-center gap-x-2 sm:gap-x-3 rounded bg-sky-200 px-2 py-2 text-sky-900 sun:dark:bg-[#0c3b5e] sun:dark:text-[#bfe3f7]"
         >
+          <WavesIcon />
           <span className="text-sm font-semibold tracking-widest uppercase">{t("sea")}</span>
-          <span className="text-2xl font-bold sm:text-3xl">{areaName}</span>
+          <span className="min-w-0 truncate text-xl font-bold sm:text-3xl">{areaName}</span>
+          <WavesIcon />
         </div>
         {lines.map((line) => (
           <section key={line.number} aria-label={t("line", { number: line.number })}>

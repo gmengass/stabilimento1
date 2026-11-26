@@ -126,3 +126,20 @@ export function CheckIcon() {
     </Icon>
   );
 }
+
+/** Two waves, drawn on each side of the sea band. Wider than the other icons. */
+export function WavesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 40 20"
+      className="h-4 w-8 shrink-0 sm:h-5 sm:w-10"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    >
+      <path d="M2 7c4-4 8-4 12 0s8 4 12 0 8-4 12 0M2 15c4-4 8-4 12 0s8 4 12 0 8-4 12 0" />
+    </svg>
+  );
+}
