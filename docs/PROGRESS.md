@@ -1,7 +1,7 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.18.6` tagged 2026-11-26 on the #121 merge (count icons), deploy not yet confirmed; `v0.18.4`, `v0.18.3` deployed (owner, 2026-11-26).
+- `v0.18.6` tagged 2026-11-26 on the #121 merge (count icons), deployed on the box (owner, 2026-11-26), as were `v0.18.4` and `v0.18.3`.
   `v0.18.5`: docs-only #119 merge, tagged by mistake, no app change. No migration, APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
 ## Done this session
 - #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera; in every theme a strip names a day other than
