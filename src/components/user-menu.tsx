@@ -1,16 +1,19 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { UserIcon } from "./icons";
 import { usePopover } from "./use-popover";
 
 interface Props {
-  /** Text of the button, e.g. "Signed in as Anna". */
+  /** Shown on the button: the logged-in user's name. */
+  name: string;
+  /** The button's full name for screen readers and the tooltip, e.g. "Signed in as Anna". */
   label: string;
   children: ReactNode;
 }
 
 /** The logged-in user's name is a button; its panel holds per-user settings such as the language. */
-export function UserMenu({ label, children }: Props) {
+export function UserMenu({ name, label, children }: Props) {
   const { open, setOpen, button, panelId, wrapperProps } = usePopover();
   return (
     <div {...wrapperProps} className="relative ml-auto">
@@ -19,10 +22,13 @@ export function UserMenu({ label, children }: Props) {
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
+        aria-label={label}
+        title={label}
         onClick={() => setOpen((value) => !value)}
-        className="min-h-11 rounded border px-3 py-2"
+        className="flex min-h-11 max-w-48 items-center gap-2 rounded border px-3 py-2"
       >
-        {label}
+        <UserIcon />
+        <span className="truncate">{name}</span>
       </button>
       <div
         id={panelId}

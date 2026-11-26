@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 ## [Unreleased]
 ### Changed
+- The logged-in user's button in the banner shows a person icon and the name only ("admin"),
+  not "Accesso come admin". Screen readers and the mouse tooltip still say "Accesso come admin".
 - The sea band has a small wave on each side of "MARE" and the space name. On phones the name is a
   little smaller so it fits; a very long name is cut short with "…".
 
