@@ -1,4 +1,4 @@
-/** Outline icons for icon-only buttons. Decorative: the button names itself (sr-only text). */
+/** Outline icons, always decorative: the button or count beside them names itself (sr-only text). */
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <svg

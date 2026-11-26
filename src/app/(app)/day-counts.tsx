@@ -14,18 +14,23 @@ interface CountProps {
   className?: string;
 }
 
-/** An icon and "free / total"; the sentence is the tooltip and what screen readers read. */
+/**
+ * An icon and "free / total". Screen readers read the sentence once (sr-only); the mouse tooltip
+ * sits on the hidden part, so nothing is announced twice.
+ */
 function Count({ icon, label, value, testId, extra, className = "" }: CountProps) {
+  const tooltip = extra ? [label, extra].join(" ") : label;
   return (
     <span
       data-count
       data-testid={testId}
-      title={label}
       className={`inline-flex items-center gap-1.5 ${className}`}
     >
-      {icon}
       <span className="sr-only">{label}</span>
-      <span aria-hidden="true">{value}</span>
+      <span aria-hidden="true" title={tooltip} className="inline-flex items-center gap-1.5">
+        {icon}
+        <span>{value}</span>
+      </span>
       {extra && <span>{extra}</span>}
     </span>
   );

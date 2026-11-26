@@ -103,6 +103,10 @@ describe("date controls contrast", () => {
   it.each([
     ["calendar icon on today, Arturo", "#1f3d2b", ARTURO],
     ["calendar icon on today, Sera", "#e8862a", SERA],
+    ["count icon outline, Arturo", "#171717", ARTURO],
+    ["count icon outline, Sera", "#ededed", SERA],
+    ["over-stock count, Arturo", "#92400e", ARTURO],
+    ["over-stock count, Sera", "#fcd34d", SERA],
   ])("%s is at least 3:1", (_name, fg, bg) => {
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(3);
   });

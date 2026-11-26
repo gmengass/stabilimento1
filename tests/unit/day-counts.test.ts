@@ -26,8 +26,9 @@ describe("DayCounts", () => {
   it("shows an icon and free / total instead of the sentence", async () => {
     await show();
     const umbrellas = screen.getByTestId("count-umbrellas");
-    expect(umbrellas.querySelector("svg[aria-hidden='true']")).not.toBeNull();
-    expect(umbrellas.querySelector("[aria-hidden='true']:not(svg)")?.textContent).toBe("11 / 12");
+    const shown = umbrellas.querySelector("span[aria-hidden='true']");
+    expect(shown?.querySelector("svg")).not.toBeNull();
+    expect(shown?.textContent).toBe("11 / 12");
     expect(screen.getByTestId("count-sunbeds").textContent).toContain("20 / 24");
   });
 
@@ -35,7 +36,10 @@ describe("DayCounts", () => {
     await show();
     const sunbeds = screen.getByTestId("count-sunbeds");
     expect(sunbeds.querySelector(".sr-only")?.textContent).toBe("countSunbeds 20 24");
-    expect(sunbeds.title).toBe("countSunbeds 20 24");
+    expect(sunbeds.querySelector("span[aria-hidden='true']")?.getAttribute("title")).toBe(
+      "countSunbeds 20 24",
+    );
+    expect(sunbeds.querySelectorAll("[title]")).toHaveLength(1);
   });
 
   it("hides stock counts that are not tracked", async () => {
@@ -50,6 +54,10 @@ describe("DayCounts", () => {
     expect(sunbeds.textContent).toContain("0 / 10");
     expect(sunbeds.textContent).toContain("countOver 2");
     expect(sunbeds.className).toContain("text-amber-800");
+    expect(sunbeds.querySelector(".sr-only")?.textContent).toBe("countSunbedStock 0 10");
+    expect(sunbeds.querySelector("[title]")?.getAttribute("title")).toBe(
+      "countSunbedStock 0 10 countOver 2",
+    );
     expect(screen.getByTestId("stock-deckchairs").className).not.toContain("amber");
   });
 
