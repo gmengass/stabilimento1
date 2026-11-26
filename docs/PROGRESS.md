@@ -8,10 +8,11 @@
 - #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
   ahead orange, "Torna a oggi" yellow, calendar in the day's colour); in every theme a strip names a
   day other than today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved, notes fixed.
-- #117 (open, `feat/date-bar-icons`, CI green): arrows, calendar and magnifying-glass icon buttons (44 px,
+- #117 (merged, `feat/date-bar-icons`): arrows, calendar and magnifying-glass icon buttons (44 px,
   sr-only names + tooltips); phones show a short weekday ("mer 25 nov") so the bar fits. Reviewer approved.
+- `feat/logout-button` (open): "Esci" moved into the user menu, under language and theme, with an icon.
 ## Next up
-1. Owner: merge #117; tag and deploy (v0.18.3 deploy unconfirmed; #116 and #117 are untagged) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
+1. Owner: merge the logout PR; tag and deploy (v0.18.3 deploy unconfirmed; #116, #117 untagged) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
 3. Owner: try Arturo/Sera outdoors (date bar and day strip too); 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
 ## Open questions
