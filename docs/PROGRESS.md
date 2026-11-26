@@ -1,22 +1,22 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.18.0` (tagged 2026-11-24 on the #105 merge) is deployed on the box (owner, 2026-11-24): live
-  notices on search and admin (#104, ADR 0030, migration 0018) and the Arturo and Sera themes with
-  sun tiles (#105, ADR 0031). APK unchanged since v0.16.0. No backups on the box yet.
-- PR #107 (`feat/theme-panel`, open): Arturo/Sera booking panel (plan `docs/plans/theme-panel.md`).
+- `v0.18.2` (tagged 2026-11-24 on the #109 merge) is deployed on the box (owner, 2026-11-25).
+  v0.18.1 (#107) and v0.18.2 (#108, #109, #110) need no migration and no new APK; APK unchanged
+  since v0.16.0. No backups on the box yet. No PRs open.
+- On `main`, not tagged: #111 (season-pass option below the dates, no hint under Note).
+- Tag `v.0.18.1` is a mistaken duplicate of `v0.18.1` (same commit); the owner may delete it.
 ## Done this session
-- Owner chose the themes (2026-11-24): Arturo (sand) and Sera (night blue), both with the green
-  banner and orange stripe; sun tiles 64 × 72 px, number 18px, name 14px, marks 12px; Automatic,
-  Light and Dark stay for now (may go later). Payments at the desk is shelved (owner, 2026-11-24).
-- #105 (merged, v0.18.0): themes, sun tiles with status marks (P/B, ✓, S, ?), panel column only
-  while a panel is open (map and Beach settings).
-- #107: in Arturo/Sera the panel gets a green band (title, Close), orange main buttons, green or
-  grey-blue outlined buttons, dark red cancel. 1533 unit/integration and 124 e2e pass; reviewed.
+- Docs synced with the repository: changelog sections for 0.18.1 and 0.18.2, roadmap panel item
+  ticked (#107), this file (branch `docs/release-0.18.2`).
+- Owner, 2026-11-24: themes per ADR 0031 (shipped #105, #107–#109); payments at the desk shelved.
 ## Next up
-1. Owner: review and merge #106 and #107; try Arturo or Sera on a desk tablet outdoors.
-2. Owner: enter the 2027 prices on the box (Seasons → Price list); set up backups (RUNBOOK; delete `feat/backups`).
-3. Owner: describe the cabins (how many, day or season, tied to an umbrella?) so Cabins can start; decisions for GDPR retention and phone masking.
+1. Cabins (`feat/cabins`, roadmap Milestone 2; payments at the desk, listed first, is shelved).
+   Blocked: owner to describe the cabins (how many, day or season, tied to an umbrella?).
+   Unblocked alternative: Regular-customer history (`feat/customer-history`).
+2. Owner: try Arturo or Sera on a desk tablet outdoors; enter the 2027 prices on the box (Seasons →
+   Price list); set up backups (RUNBOOK; delete `feat/backups`); tag #111 when ready.
+3. Owner: decisions for GDPR retention and phone masking.
 ## Open questions
 - Themes: with a panel open on a 1280px tablet the map scrolls sideways, and tiles reflow when the panel opens (a quick second tap can miss); fixed track widths? Theme the activity list's "Ripristina" buttons? Remove Light/Dark later? Android full brightness in sun themes (APK rebuild)?
 - Till (fiscal receipts): can the app send each sale to the club's registered till (RT) on the local network? Needs the till's make and model (owner).
