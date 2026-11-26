@@ -10,6 +10,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   nothing changes. Update with `scripts/update.sh`, then add the two lines to `.env`.
 
 ### Changed
+- Small tablets in landscape (from 768 px wide, such as the Galaxy Tab A7 Lite) show the booking
+  panel beside the map instead of below it. Portrait is unchanged.
 - New booking form: "Abbonamento stagionale" is below the dates instead of above them, and the
   line under Note ("Non scrivere qui dati sanitari o di pagamento") is gone.
 

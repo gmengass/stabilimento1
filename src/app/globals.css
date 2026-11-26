@@ -15,6 +15,19 @@
   }
 }
 
+/*
+ * `side:` puts a panel beside the map instead of below it: from `lg` in any orientation, and from
+ * `md` in landscape (small tablets such as the Galaxy Tab A7 Lite are under 1024 px wide there).
+ */
+@custom-variant side {
+  @media (width >= 64rem) {
+    @slot;
+  }
+  @media (width >= 48rem) and (orientation: landscape) {
+    @slot;
+  }
+}
+
 @custom-variant sun (&:where([data-theme="arturo"], [data-theme="arturo"] *, [data-theme="sera"], [data-theme="sera"] *));
 
 :root {
