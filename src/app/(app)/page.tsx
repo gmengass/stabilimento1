@@ -28,6 +28,7 @@ import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
 import { PageMain } from "@/components/page-main";
 import { DayCounts } from "./day-counts";
+import { DayStrip, calendarToneClass, dayNavClass, dayTone } from "./day-tone";
 
 export default async function Home(props: PageProps<"/">) {
   const user = await requireUser();
@@ -103,12 +104,15 @@ export default async function Home(props: PageProps<"/">) {
         >
           <Link
             href={at(addDays(date, -1))}
-            className="flex min-h-11 items-center rounded border px-3"
+            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.previous}`}
           >
             {t("previousDay")}
           </Link>
           {date === today ? (
-            <Link href={at()} className="flex min-h-11 items-center rounded border px-3">
+            <Link
+              href={at()}
+              className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.today}`}
+            >
               <span>
                 {t("todayPrefix")} <DayText label={dayLabel} />
               </span>
@@ -117,14 +121,14 @@ export default async function Home(props: PageProps<"/">) {
             <Link
               href={at()}
               data-testid="go-to-today"
-              className="flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950"
+              className={`flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950 ${dayNavClass.goToToday}`}
             >
               {t("goToToday")}
             </Link>
           )}
           <Link
             href={at(addDays(date, 1))}
-            className="flex min-h-11 items-center rounded border px-3"
+            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.next}`}
           >
             {t("nextDay")}
           </Link>
@@ -133,9 +137,11 @@ export default async function Home(props: PageProps<"/">) {
             date={date}
             areaId={beach.areaId}
             label={date === today ? undefined : dayLabel}
+            toneClass={calendarToneClass[dayTone(date, today)]}
           />
         </nav>
       </div>
+      <DayStrip date={date} today={today} day={dayLabel.full} />
       <BookingSearch date={date} areaId={beach.areaId} />
       <DayCounts counts={counts} stock={stock} />
       <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
