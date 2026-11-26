@@ -74,6 +74,7 @@ export default async function Home(props: PageProps<"/">) {
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
   const tone = dayTone(date, today);
+  const isToday = tone === "today";
   const dayLabel = {
     full: formatWeekdayDate(date, dayLocale),
     short: formatShortWeekdayDate(date, dayLocale),
@@ -109,7 +110,7 @@ export default async function Home(props: PageProps<"/">) {
           >
             {t("previousDay")}
           </Link>
-          {tone === "today" ? (
+          {isToday ? (
             <Link
               href={at()}
               className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.today}`}
@@ -137,7 +138,7 @@ export default async function Home(props: PageProps<"/">) {
             key={date}
             date={date}
             areaId={beach.areaId}
-            label={tone === "today" ? undefined : dayLabel}
+            label={isToday ? undefined : dayLabel}
             toneClass={calendarToneClass[tone]}
           />
         </nav>
