@@ -89,7 +89,11 @@ test("on a phone the space name is cut short and the date bar still fits", async
     const box = await toggle.boundingBox();
     expect(box!.width).toBeGreaterThanOrEqual(44);
     expect(box!.height).toBeGreaterThanOrEqual(44);
-    await expect(page.getByTestId("sea-band")).toContainText(name);
+    const sea = page.getByTestId("sea-band");
+    await expect(sea).toContainText(name);
+    // A wave on each side; a long name is cut short instead of pushing them off the band.
+    await expect(sea.locator("svg")).toHaveCount(2);
+    expect(await sea.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   } finally {
     await removeArea(page, id);
   }
