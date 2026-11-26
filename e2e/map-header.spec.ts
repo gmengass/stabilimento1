@@ -85,7 +85,7 @@ test("the arrows, calendar and search are 44 px icon buttons that keep their nam
     nav.getByRole("link", { name: "Giorno prima" }),
     nav.getByRole("link", { name: "Giorno dopo" }),
     nav.locator("label", { hasText: "Calendario" }),
-    page.getByRole("search").getByRole("button", { name: "Cerca" }),
+    page.getByTestId("search-toggle"),
   ];
   for (const button of buttons) {
     await expect(button).toBeVisible();
@@ -95,7 +95,7 @@ test("the arrows, calendar and search are 44 px icon buttons that keep their nam
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
   await expect(buttons[0]!).toHaveAttribute("title", "Giorno prima");
-  await expect(buttons[3]!).toHaveAttribute("title", "Cerca");
+  await expect(buttons[3]!).toHaveAttribute("title", "Cerca una prenotazione");
   await expect(buttons[1]!).toHaveAttribute("title", "Giorno dopo");
   await expect(buttons[2]!).toHaveAttribute("title", "Calendario");
 });

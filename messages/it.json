@@ -110,6 +110,7 @@
     "heading": "{area}, {date}",
     "todayPrefix": "Oggi:",
     "goToToday": "Torna a oggi",
+    "goToTodayShort": "Oggi",
     "nextDay": "Giorno dopo",
     "viewingYesterday": "Stai guardando {day} (ieri)",
     "viewingTomorrow": "Stai guardando {day} (domani)",
@@ -466,7 +467,8 @@
     "back": "← Torna alla mappa",
     "kind": "{kind, select, day {Prenotazione giornaliera} multi_day {Più giorni} season {Abbonamento stagionale} other {Una prenotazione}}",
     "umbrellas": "{count, plural, one {Ombrellone {numbers}} other {Ombrelloni {numbers}}}",
-    "rateLimited": "Troppe ricerche in poco tempo. Attendi un minuto e riprova."
+    "rateLimited": "Troppe ricerche in poco tempo. Attendi un minuto e riprova.",
+    "close": "Chiudi la ricerca"
   },
   "acting": {
     "title": "Chi sta facendo questa operazione?",

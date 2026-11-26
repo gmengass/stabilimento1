@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { BookingSearch } from "@/components/booking-search";
+import { SearchForm } from "@/components/search-form";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
 import { formatBookingDate, isBookingDate, venueToday } from "@/i18n/format";
@@ -50,7 +50,7 @@ export default async function Search(props: PageProps<"/search">) {
         {t("back")}
       </Link>
       <h1 className="text-xl font-semibold">{t("title")}</h1>
-      <BookingSearch date={date} areaId={areaId} query={query} />
+      <SearchForm date={date} areaId={areaId} query={query} />
       {short ? (
         <p>{t("short")}</p>
       ) : limited ? (

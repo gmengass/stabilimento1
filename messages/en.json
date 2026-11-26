@@ -110,6 +110,7 @@
     "heading": "{area}, {date}",
     "todayPrefix": "Today:",
     "goToToday": "Go to today",
+    "goToTodayShort": "Today",
     "nextDay": "Next day",
     "viewingYesterday": "You're looking at {day} (yesterday)",
     "viewingTomorrow": "You're looking at {day} (tomorrow)",
@@ -466,7 +467,8 @@
     "back": "← Back to the map",
     "kind": "{kind, select, day {Day booking} multi_day {Multi-day booking} season {Season pass} other {A booking}}",
     "umbrellas": "{count, plural, one {Umbrella {numbers}} other {Umbrellas {numbers}}}",
-    "rateLimited": "Too many searches in a short time. Wait a minute and try again."
+    "rateLimited": "Too many searches in a short time. Wait a minute and try again.",
+    "close": "Close search"
   },
   "acting": {
     "title": "Who is doing this?",
