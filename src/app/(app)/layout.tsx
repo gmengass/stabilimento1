@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db/client";
 import { ClubLogo } from "@/components/club-logo";
 import { ActingBadge, ActingProvider } from "@/components/acting";
+import { AreaMenu } from "@/components/area-menu";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LogoutIcon } from "@/components/icons";
@@ -11,6 +12,8 @@ import { UserMenu } from "@/components/user-menu";
 import { currentActing, listActingChoices } from "@/lib/auth/acting";
 import { logout } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/session";
+import { AREA_COOKIE } from "@/lib/beach/area-cookie";
+import { listAreas } from "@/lib/beach/layout";
 import { getBranding } from "@/lib/branding";
 import { MAIN_CONTENT_ID } from "@/components/page-main";
 import { THEME_COOKIE, resolveTheme } from "@/theme/config";
@@ -19,10 +22,12 @@ import { THEME_COOKIE, resolveTheme } from "@/theme/config";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations("appShell");
-  const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const cookieStore = await cookies();
+  const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
   const choices = user.communal ? await listActingChoices(getDb()) : [];
   const acting = await currentActing(getDb(), user);
   const branding = await getBranding();
+  const areas = await listAreas(getDb());
   return (
     <ActingProvider communal={user.communal} choices={choices} initialName={acting?.name ?? null}>
       <a
@@ -36,10 +41,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         data-banner
         className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm sun:border-b-[5px] sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec]"
       >
-        <Link href="/" className="flex min-h-11 items-center gap-2">
-          <ClubLogo branding={branding} decorative backdrop="banner" className="h-10" />
-          {t("map")}
-        </Link>
+        <AreaMenu
+          areas={areas}
+          remembered={cookieStore.get(AREA_COOKIE)?.value ?? null}
+          logo={<ClubLogo branding={branding} decorative backdrop="banner" className="h-10" />}
+        />
         <Link href="/prices" className="flex min-h-11 min-w-11 items-center justify-center">
           {t("prices")}
         </Link>

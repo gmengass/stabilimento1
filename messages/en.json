@@ -43,7 +43,8 @@
     "signedInAs": "Signed in as {name}",
     "logout": "Log out",
     "seasons": "Seasons",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "pickArea": "Choose the beach space"
   },
   "staff": {
     "title": "Staff accounts",
@@ -125,7 +126,7 @@
     "bookingGone": "That booking was changed elsewhere, so it is no longer open here.",
     "moveTargetTaken": "An umbrella you chose for the move was just taken, so the move was reset.",
     "liveReconnecting": "Not live, reconnecting…",
-    "seaOf": "Sea · {area}",
+    "sea": "Sea",
     "spotSeason": "Umbrella {number}, season pass of {name}",
     "spotReleased": "Umbrella {number}, free: released by {name}",
     "legendSeason": "Season passes: {count}",
