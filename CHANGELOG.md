@@ -3,11 +3,15 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.18.3] - 2026-11-26
+Update with `scripts/update.sh v0.18.3` (no migration; no new APK), then add `CLUB_NAME` and
+`BRANDING_DIR` to `.env` for the logo.
 ### Added
 - Club logo on the sign-in page, at the left of the top bar (it opens the map) and on Prezzi, from
   `logo.png` and `logo-dark.png` in a folder on the box (`BRANDING_DIR`, `CLUB_NAME` in `.env`;
   RUNBOOK, "Club name and logo"). Dark backgrounds use the dark version. Without the folder,
-  nothing changes. Update with `scripts/update.sh`, then add the two lines to `.env`.
+  nothing changes.
 
 ### Changed
 - Small tablets in landscape (from 768 px wide, such as the Galaxy Tab A7 Lite) show the booking
