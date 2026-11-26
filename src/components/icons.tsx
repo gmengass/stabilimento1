@@ -151,3 +151,12 @@ export function CloseIcon() {
     </Icon>
   );
 }
+
+export function UserIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+    </Icon>
+  );
+}

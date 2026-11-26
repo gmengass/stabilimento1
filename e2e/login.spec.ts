@@ -60,9 +60,16 @@ test("the seeded admin logs in, logs out, and back does not reopen the app", asy
   const logout = page.getByRole("button", { name: itMessages.appShell.logout });
   // "Esci" is the last thing in the logged-in user's menu, under language and theme.
   await expect(logout).toBeHidden();
-  await page
-    .getByRole("button", { name: itMessages.appShell.signedInAs.replace("{name}", "").trim() })
-    .click();
+  const user = page.getByRole("button", {
+    name: itMessages.appShell.signedInAs.replace("{name}", "").trim(),
+  });
+  // The button shows only the name; the full "Accesso come …" is its accessible name and tooltip.
+  await expect(user).toHaveText(ADMIN_USERNAME);
+  await expect(user).toHaveAttribute(
+    "title",
+    itMessages.appShell.signedInAs.replace("{name}", ADMIN_USERNAME),
+  );
+  await user.click();
   await expect(logout).toBeVisible();
 
   await logout.click();

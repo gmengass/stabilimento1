@@ -8,6 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
   On a tablet it opens on the same row; on a phone it takes the date bar's place until you close
   it with ✕ or Escape. An empty field closes by itself when you tap elsewhere.
 - On phones, "Torna a oggi" is shortened to "Oggi" so the magnifier fits beside the date controls.
+- The logged-in user's button in the banner shows a person icon and the name only ("admin"),
+  not "Accesso come admin". Screen readers and the mouse tooltip still say "Accesso come admin".
 - The sea band has a small wave on each side of "MARE" and the space name. On phones the name is a
   little smaller so it fits; a very long name is cut short with "…".
 

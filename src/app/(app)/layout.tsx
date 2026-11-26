@@ -64,7 +64,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             </Link>
           </>
         )}
-        <UserMenu label={t("signedInAs", { name: user.name })}>
+        <UserMenu name={user.name} label={t("signedInAs", { name: user.name })}>
           <div className="flex flex-col gap-3">
             <LanguageSwitcher />
             <ThemeSwitcher current={theme} />
