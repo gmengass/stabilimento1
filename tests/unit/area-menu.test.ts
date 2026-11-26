@@ -72,6 +72,8 @@ describe("pickArea", () => {
     ["99", "2", 2],
     [null, "99", 1],
     ["abc", "x1", 1],
+    ["abc", "2", 2],
+    [null, "2.5", 1],
     ["", "", 1],
   ])("skips ids that match no space (url %o, cookie %o)", (url, cookie, expected) => {
     expect(pickArea(areas, url, cookie)?.id).toBe(expected);

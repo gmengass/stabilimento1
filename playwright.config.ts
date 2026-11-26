@@ -42,7 +42,7 @@ export default defineConfig({
       // After every other spec: a stock set here would warn their bookings too (ADR 0021).
       name: "stock",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["chromium", "phone"],
+      dependencies: ["chromium", "phone", "spaces"],
       testMatch: /stock\.spec\.ts/,
     },
   ],

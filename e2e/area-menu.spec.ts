@@ -94,3 +94,30 @@ test("on a phone the space name is cut short and the date bar still fits", async
     await removeArea(page, id);
   }
 });
+
+test("a stale link opens the space last viewed; a removed space falls back to the first", async ({
+  page,
+}) => {
+  await ensureBeach(page);
+  const name = `Scogli ${Date.now() % 100_000}`;
+  const id = await addArea(page, name);
+  const sea = page.getByTestId("sea-band");
+  let removed = false;
+  try {
+    await page.goto(`/?area=${id}`);
+    await expect(sea).toContainText(name);
+    for (const stale of ["999999999", "abc"]) {
+      await page.goto(`/?area=${stale}`);
+      // The redirect also names the day.
+      await page.waitForURL(new RegExp(`/\\?area=${id}&date=`));
+      await expect(page.getByTestId("area-menu-map")).toContainText(name);
+    }
+    await removeArea(page, id);
+    removed = true;
+    await page.goto("/");
+    await expect(sea).not.toContainText(name);
+    await expect(page.getByTestId("area-menu-map")).toHaveCount(0);
+  } finally {
+    if (!removed) await removeArea(page, id);
+  }
+});
