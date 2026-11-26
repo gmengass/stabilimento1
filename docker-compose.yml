@@ -86,8 +86,14 @@ services:
       CLUB_NAME: ${CLUB_NAME:-}
       BRANDING_DIR: /branding
     # The club's logo stays on the box (RUNBOOK, "Club name and logo"); empty folder without one.
+    # A dedicated folder only: never the home folder, ~/secrets or this checkout. A wrong path
+    # fails instead of creating an empty root-owned folder.
     volumes:
-      - ${BRANDING_DIR:-./deploy/no-branding}:/branding:ro
+      - type: bind
+        source: ${BRANDING_DIR:-./deploy/no-branding}
+        target: /branding
+        read_only: true
+        bind: { create_host_path: false }
     # No host port: clients must come through Caddy, which sets X-Real-IP for the login rate
     # limit (ADR 0008).
     depends_on:

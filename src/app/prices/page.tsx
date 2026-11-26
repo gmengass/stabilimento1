@@ -43,8 +43,8 @@ export default async function PricesPage() {
     <PageMain className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-4 p-4">
       <LiveRefresh signals={SETUP} />
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <ClubLogo branding={branding} backdrop="page" className="h-20 w-auto" />
+        <div className="flex min-w-0 items-center gap-4">
+          <ClubLogo branding={branding} backdrop="page" className="h-20 min-w-0" />
           <h1 className="text-2xl font-semibold">
             {season ? t("heading", { name: season.name }) : t("title")}
           </h1>

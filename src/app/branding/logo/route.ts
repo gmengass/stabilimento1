@@ -10,7 +10,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   return new Response(new Uint8Array(logo), {
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=86400",
       "X-Content-Type-Options": "nosniff",
     },
   });

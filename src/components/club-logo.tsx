@@ -1,4 +1,4 @@
-import type { Branding } from "@/lib/branding";
+import type { Branding, LogoInfo, LogoVariant } from "@/lib/branding";
 
 /** Where the logo sits: on the page background, or on the top bar (dark green in Arturo and Sera). */
 type Backdrop = "page" | "banner";
@@ -17,27 +17,40 @@ const DARK_LOGO: Record<Backdrop, string> = {
   page: "hidden dark:block",
   banner: "hidden dark:block sun:block",
 };
+/** Height comes from the caller; a wide logo shrinks to fit instead of pushing the page sideways. */
+const FIT = "w-auto max-w-full object-contain";
+
+function logoSrc(variant: LogoVariant, info: LogoInfo): string {
+  const query = new URLSearchParams({ v: info.version });
+  if (variant === "dark") query.set("variant", "dark");
+  return `/branding/logo?${query}`;
+}
 
 /** The club's logo from the box, or nothing when none is set up. */
 export function ClubLogo({ branding, backdrop, className, decorative = false }: Props) {
-  if (!branding.hasLogo) return null;
+  const { light, dark } = branding;
+  if (!light) return null;
   const alt = decorative ? "" : (branding.name ?? "");
-  const light = LIGHT_LOGO[backdrop];
+  const lightMode = dark ? LIGHT_LOGO[backdrop].withDark : LIGHT_LOGO[backdrop].alone;
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- served by /branding/logo */}
       <img
-        src="/branding/logo"
+        src={logoSrc("light", light)}
+        width={light.width}
+        height={light.height}
         alt={alt}
-        className={`${className} ${branding.hasDarkLogo ? light.withDark : light.alone}`}
+        className={`${className} ${FIT} ${lightMode}`}
         draggable={false}
       />
-      {branding.hasDarkLogo && (
+      {dark && (
         // eslint-disable-next-line @next/next/no-img-element -- served by /branding/logo
         <img
-          src="/branding/logo?variant=dark"
+          src={logoSrc("dark", dark)}
+          width={dark.width}
+          height={dark.height}
           alt={alt}
-          className={`${className} ${DARK_LOGO[backdrop]}`}
+          className={`${className} ${FIT} ${DARK_LOGO[backdrop]}`}
           draggable={false}
         />
       )}

@@ -22,7 +22,7 @@ export default async function LoginPage() {
         <LanguageSwitcher />
       </header>
       <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
-        <ClubLogo branding={branding} backdrop="page" className="h-44 w-auto" />
+        <ClubLogo branding={branding} backdrop="page" className="h-44" />
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <LoginForm />
       </main>

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NextRequest } from "next/server";
@@ -11,10 +11,21 @@ vi.mock("next/server", async (importOriginal) => ({
   connection: async () => undefined,
 }));
 
-const PNG = Buffer.concat([
-  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-  Buffer.from("rest of the image"),
-]);
+/** A PNG header (signature + IHDR with width and height) followed by filler. */
+function png(width: number, height: number, rest = "rest of the image"): Buffer {
+  const ihdr = Buffer.alloc(16);
+  ihdr.writeUInt32BE(13, 0);
+  ihdr.write("IHDR", 4, "latin1");
+  ihdr.writeUInt32BE(width, 8);
+  ihdr.writeUInt32BE(height, 12);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    ihdr,
+    Buffer.from(rest),
+  ]);
+}
+
+const PNG = png(800, 600);
 
 let dir: string;
 
@@ -50,6 +61,13 @@ describe("readLogo", () => {
     expect(await readLogo("light")).toBeNull();
   });
 
+  it("refuses a PNG signature with no valid IHDR, or a zero size", async () => {
+    writeFileSync(join(dir, "logo.png"), PNG.subarray(0, 12));
+    expect(await readLogo("light")).toBeNull();
+    writeFileSync(join(dir, "logo.png"), png(0, 600));
+    expect(await readLogo("light")).toBeNull();
+  });
+
   it("refuses a PNG over 1 MB and accepts one exactly at the cap", async () => {
     writeFileSync(join(dir, "logo.png"), Buffer.concat([PNG, Buffer.alloc(1024 * 1024)]));
     expect(await readLogo("light")).toBeNull();
@@ -61,14 +79,25 @@ describe("readLogo", () => {
 
 describe("getBranding", () => {
   it("reports no logo and no name when nothing is set up", async () => {
-    expect(await getBranding()).toEqual({ name: null, hasLogo: false, hasDarkLogo: false });
+    expect(await getBranding()).toEqual({ name: null, light: null, dark: null });
   });
 
   it("uses the dark logo only when the normal one exists too", async () => {
     writeFileSync(join(dir, "logo-dark.png"), PNG);
-    expect(await getBranding()).toMatchObject({ hasLogo: false, hasDarkLogo: false });
+    expect(await getBranding()).toMatchObject({ light: null, dark: null });
+    writeFileSync(join(dir, "logo.png"), png(400, 300));
+    const branding = await getBranding();
+    expect(branding.light).toMatchObject({ width: 400, height: 300 });
+    expect(branding.dark).toMatchObject({ width: 800, height: 600 });
+  });
+
+  it("changes the version when the file is replaced", async () => {
     writeFileSync(join(dir, "logo.png"), PNG);
-    expect(await getBranding()).toMatchObject({ hasLogo: true, hasDarkLogo: true });
+    utimesSync(join(dir, "logo.png"), 1_000, 1_000);
+    const before = (await getBranding()).light?.version;
+    writeFileSync(join(dir, "logo.png"), png(800, 600, "a new image"));
+    utimesSync(join(dir, "logo.png"), 2_000, 2_000);
+    expect((await getBranding()).light?.version).not.toBe(before);
   });
 
   it("trims the club name and caps it at 60 characters", async () => {
@@ -99,7 +128,7 @@ describe("GET /branding/logo", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("image/png");
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
-    expect(response.headers.get("Cache-Control")).toBe("public, max-age=3600");
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=86400");
     expect(Buffer.from(await response.arrayBuffer())).toEqual(PNG);
   });
 

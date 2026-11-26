@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-1 text-sm sun:border-b-[5px] sun:border-b-[#e8862a] sun:bg-[#1f3d2b] sun:text-[#fbf6ec]"
       >
         <Link href="/" className="flex min-h-11 items-center gap-2">
-          <ClubLogo branding={branding} decorative backdrop="banner" className="h-10 w-auto" />
+          <ClubLogo branding={branding} decorative backdrop="banner" className="h-10" />
           {t("map")}
         </Link>
         <Link href="/prices" className="flex min-h-11 min-w-11 items-center justify-center">
