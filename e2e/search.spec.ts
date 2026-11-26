@@ -93,24 +93,30 @@ test("the magnifier opens the field, focused; ✕, Escape and an empty field clo
 
   // Leaving it empty closes it; with text in it, it stays open.
   await toggle.click();
-  await page.getByTestId("date-nav").locator("a").first().focus();
+  const previous = page.getByTestId("date-nav").locator("a").first();
+  await previous.focus();
   await expect(page.getByRole("search")).toHaveCount(0);
+  await expect(previous, "focus stays where the user went").toBeFocused();
   await toggle.click();
   await field.fill("Rossi");
   await page.getByTestId("date-nav").locator("a").first().focus();
   await expect(field).toHaveValue("Rossi");
 });
 
-test("on a tablet the field opens beside the date controls", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/");
-  await page.getByTestId("search-toggle").click();
-  const nav = (await page.getByTestId("date-nav").boundingBox())!;
-  const form = (await page.getByRole("search").boundingBox())!;
-  await expect(page.getByTestId("date-nav")).toBeVisible();
-  expect(form.x).toBeGreaterThanOrEqual(nav.x + nav.width);
-  expect(Math.abs(form.y - nav.y)).toBeLessThan(4);
-});
+for (const width of [768, 1280]) {
+  test(`on a ${width}px tablet the field opens beside the date controls`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    // Another day: the calendar button shows the full date, the widest the bar gets.
+    await page.goto("/?date=2090-07-12");
+    await page.getByTestId("search-toggle").click();
+    const nav = (await page.getByTestId("date-nav").boundingBox())!;
+    const form = (await page.getByRole("search").boundingBox())!;
+    await expect(page.getByTestId("date-nav")).toBeVisible();
+    expect(form.x).toBeGreaterThanOrEqual(nav.x + nav.width);
+    expect(Math.abs(form.y - nav.y)).toBeLessThan(4);
+    expect(form.x + form.width).toBeLessThanOrEqual(width);
+  });
+}
 
 test("on a phone the magnifier fits beside the date controls on another day", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

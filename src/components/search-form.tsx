@@ -10,22 +10,17 @@ interface Props {
   date: string;
   areaId?: number;
   query?: string;
-  id?: string;
-  /** In the date bar: focus on open, and close with ✕, Escape, or leaving it empty. */
-  onClose?: () => void;
+  /**
+   * In the date bar: focus on open, and close with ✕ or Escape (`returnFocus` true) or by leaving
+   * it empty (false: focus stays where the user went).
+   */
+  onClose?: (returnFocus: boolean) => void;
   /** Width classes; the search page's form fills its column. */
   className?: string;
 }
 
 /** A plain GET form to `/search`, so Back returns to it. */
-export function SearchForm({
-  date,
-  areaId,
-  query,
-  id,
-  onClose,
-  className = "w-full max-w-md",
-}: Props) {
+export function SearchForm({ date, areaId, query, onClose, className = "w-full max-w-md" }: Props) {
   const t = useTranslations("search");
   const input = useRef<HTMLInputElement>(null);
 
@@ -36,17 +31,16 @@ export function SearchForm({
   function onKeyDown(event: KeyboardEvent<HTMLFormElement>) {
     if (event.key !== "Escape" || !onClose) return;
     event.preventDefault();
-    onClose();
+    onClose(true);
   }
 
   function onBlur(event: FocusEvent<HTMLFormElement>) {
     if (!onClose || event.currentTarget.contains(event.relatedTarget)) return;
-    if (!input.current?.value.trim()) onClose();
+    if (!input.current?.value.trim()) onClose(false);
   }
 
   return (
     <form
-      id={id}
       action="/search"
       role="search"
       onKeyDown={onKeyDown}
@@ -78,7 +72,7 @@ export function SearchForm({
         <button
           type="button"
           title={t("close")}
-          onClick={onClose}
+          onClick={() => onClose(true)}
           className="flex min-h-11 w-11 shrink-0 items-center justify-center rounded border"
         >
           <CloseIcon />
