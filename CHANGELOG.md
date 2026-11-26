@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The beach-space buttons above the map are gone. With two or more spaces, the banner's map link
+  names the space being viewed, and the ▾ button beside it lists the spaces; picking one keeps the
+  day being viewed. With one space the banner is unchanged.
+- The sea band names the space in large bold letters ("MARE Spiaggia principale"), and stays in
+  view while a wide map scrolls sideways on a phone.
+- The map reopens the space last viewed on that tablet or phone, also after Prezzi, the admin
+  pages or a restart of the app.
 
 ## [0.18.6] - 2026-11-26
 Update with `scripts/update.sh v0.18.6` (no migration; no new APK).

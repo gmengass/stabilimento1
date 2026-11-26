@@ -1,7 +1,7 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AreaTabs } from "@/components/area-tabs";
 import { BookingSearch } from "@/components/booking-search";
 import { DateJump, DayText } from "@/components/date-jump";
 import { ArrowLeftIcon, ArrowRightIcon } from "@/components/icons";
@@ -19,7 +19,8 @@ import {
 } from "@/i18n/format";
 import { currentActing, viewerFor } from "@/lib/auth/acting";
 import { requireUser } from "@/lib/auth/session";
-import { listAreas, loadBeach, parseAreaId } from "@/lib/beach/layout";
+import { AREA_COOKIE, pickArea } from "@/lib/beach/area-cookie";
+import { listAreas, loadBeach } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
 import { loadNoShows, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import { loadDayCounts } from "@/lib/booking/counts";
@@ -38,8 +39,14 @@ export default async function Home(props: PageProps<"/">) {
   const { date: requested, area, booking } = await props.searchParams;
   const today = venueToday();
   const date = isBookingDate(requested) ? requested : today;
-  const requestedArea = parseAreaId(area);
-  const beach = await loadBeach(getDb(), requestedArea);
+  // The space in the URL, else the one last viewed on this device, else the first: the same rule
+  // as the banner's space menu, so both always name the same space.
+  const picked = pickArea(
+    await listAreas(getDb()),
+    typeof area === "string" ? area : null,
+    (await cookies()).get(AREA_COOKIE)?.value,
+  );
+  const beach = await loadBeach(getDb(), picked?.id);
 
   if (!beach) {
     return (
@@ -60,7 +67,6 @@ export default async function Home(props: PageProps<"/">) {
   const released = await loadReleased(getDb(), beach.areaId, date);
   const noShows = await loadNoShows(getDb(), beach.areaId, date);
   const openSeason = await loadOpenSeason(getDb(), today);
-  const areas = await listAreas(getDb());
   const activity = await listActivity(getDb(), venueDayStart(today));
   // From a search result: open that booking's panel, if it is on this day.
   const initialBooking =
@@ -71,7 +77,7 @@ export default async function Home(props: PageProps<"/">) {
     return `/?${query}`;
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
-  if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
+  if (area !== undefined && area !== String(beach.areaId)) redirect(at(date));
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
   const tone = dayTone(date, today);
@@ -94,11 +100,6 @@ export default async function Home(props: PageProps<"/">) {
   return (
     <PageMain className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <AreaTabs
-          areas={areas}
-          currentId={beach.areaId}
-          hrefOf={Object.fromEntries(areas.map((a) => [a.id, `/?area=${a.id}&date=${date}`]))}
-        />
         <h1 className="sr-only">{t("heading", { area: beach.areaName, date: day })}</h1>
         <nav
           aria-label={t("dateNav")}

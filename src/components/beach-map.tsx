@@ -56,7 +56,7 @@ const labelKey = {
 } as const satisfies Record<SpotView, string>;
 
 interface Props {
-  /** Shown on the sea band, so the space is named right above the umbrellas. */
+  /** Shown large on the sea band, so the space is named right above the umbrellas. */
   areaName: string;
   lines: MapLine[];
   viewOf: (spot: MapSpot) => SpotView;
@@ -90,10 +90,15 @@ export function BeachMap({
   const t = useTranslations("map");
   const columns = Math.max(1, ...lines.flatMap((line) => line.spots.map((s) => s.position)));
   return (
-    <div data-testid="beach-map" className="overflow-x-auto">
+    <div data-testid="beach-map" className="@container overflow-x-auto">
       <div className="inline-flex min-w-full flex-col gap-2">
-        <div className="rounded bg-sky-200 py-2 text-center text-sm font-medium text-sky-900 sun:dark:bg-[#0c3b5e] sun:dark:text-[#bfe3f7]">
-          {t("seaOf", { area: areaName })}
+        {/* As wide as the visible map and pinned left, so a wide map scrolls under its name. */}
+        <div
+          data-testid="sea-band"
+          className="sticky left-0 flex w-[100cqw] flex-wrap self-start items-baseline justify-center gap-x-3 rounded bg-sky-200 px-2 py-2 text-sky-900 sun:dark:bg-[#0c3b5e] sun:dark:text-[#bfe3f7]"
+        >
+          <span className="text-sm font-semibold tracking-widest uppercase">{t("sea")}</span>
+          <span className="text-2xl font-bold sm:text-3xl">{areaName}</span>
         </div>
         {lines.map((line) => (
           <section key={line.number} aria-label={t("line", { number: line.number })}>

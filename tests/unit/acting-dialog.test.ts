@@ -80,7 +80,7 @@ describe("ActingProvider (ADR 0025)", () => {
     mount(call, { communal: true });
     fireEvent.click(screen.getByRole("button", { name: /go:/ }));
     await screen.findByText("Who is doing this?");
-    fireEvent.click(screen.getByRole("button", { name: "Bruno" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Bruno" }));
     await screen.findByText('go:{"ok":true}');
     expect(choose).toHaveBeenCalledWith({ staffId: "b1" });
     expect(call).toHaveBeenCalledTimes(2);
@@ -92,7 +92,7 @@ describe("ActingProvider (ADR 0025)", () => {
     mount(call, { communal: true });
     fireEvent.click(screen.getByRole("button", { name: /go:/ }));
     await screen.findByText("Who is doing this?");
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
     await screen.findByText("go:null");
     expect(call).toHaveBeenCalledTimes(1);
     expect(choose).not.toHaveBeenCalled();

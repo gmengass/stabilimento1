@@ -43,7 +43,8 @@
     "signedInAs": "Accesso come {name}",
     "logout": "Esci",
     "seasons": "Stagioni",
-    "skipToContent": "Vai al contenuto"
+    "skipToContent": "Vai al contenuto",
+    "pickArea": "Scegli lo spazio spiaggia"
   },
   "staff": {
     "title": "Account del personale",
@@ -125,7 +126,7 @@
     "bookingGone": "Quella prenotazione è stata modificata altrove, quindi non è più aperta qui.",
     "moveTargetTaken": "Un ombrellone scelto per lo spostamento è stato appena occupato, quindi lo spostamento è stato annullato.",
     "liveReconnecting": "Non aggiornato in tempo reale, riconnessione…",
-    "seaOf": "Mare · {area}",
+    "sea": "Mare",
     "spotSeason": "Ombrellone {number}, abbonamento stagionale di {name}",
     "spotReleased": "Ombrellone {number}, libero: liberato da {name}",
     "legendSeason": "Abbonamenti stagionali: {count}",

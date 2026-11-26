@@ -110,3 +110,19 @@ export function LogoutIcon() {
     </Icon>
   );
 }
+
+export function ChevronDownIcon() {
+  return (
+    <Icon>
+      <path d="M6 9l6 6 6-6" />
+    </Icon>
+  );
+}
+
+export function CheckIcon() {
+  return (
+    <Icon>
+      <path d="M5 12l5 5 9-10" />
+    </Icon>
+  );
+}
