@@ -75,7 +75,7 @@ Each item ships something staff can use on the box.
 - [x] Date bar coloured by day in Arturo and Sera, and a strip naming the day being viewed (owner,
   2026-11-26, PR #116)
 - [x] Icon buttons for previous day, next day, calendar and search (owner, 2026-11-26, PR #117)
-- [ ] "Esci" inside the logged-in user's menu (owner, 2026-11-26)
+- [x] "Esci" inside the logged-in user's menu (owner, 2026-11-26, PR #118)
 - [ ] Payments recorded at the desk (amounts, method), daily cash-up report. Season passes are paid
   at the end, once the holder knows their last day (owner, 2026-11-14) (shelved by owner 2026-11-24)
 - [ ] Cabins: book and price the club's cabins (on the price list; not modelled yet, owner

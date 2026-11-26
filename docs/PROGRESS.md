@@ -3,16 +3,16 @@
 ## Current state
 - `v0.18.2` (tagged 2026-11-24 on the #109 merge) deployed on the box (owner, 2026-11-25); no migration,
   APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
-- `v0.18.3` tagged 2026-11-26 on the #114 merge (#111, #113, #114); deploy not confirmed.
+- Tagged 2026-11-26, deploys not confirmed: `v0.18.3` on the #114 merge (#111, #113, #114), `v0.18.4` (latest) on the #118 merge (#116, #117, #118).
 ## Done this session
 - #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
   ahead orange, "Torna a oggi" yellow, calendar in the day's colour); in every theme a strip names a
   day other than today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved, notes fixed.
 - #117 (merged, `feat/date-bar-icons`): arrows, calendar and magnifying-glass icon buttons (44 px,
   sr-only names + tooltips); phones show a short weekday ("mer 25 nov") so the bar fits. Reviewer approved.
-- `feat/logout-button` (open): "Esci" moved into the user menu, under language and theme, with an icon.
+- #118 (merged, `feat/logout-button`): "Esci" moved into the user menu, under language and theme, with an icon.
 ## Next up
-1. Owner: merge the logout PR; tag and deploy (v0.18.3 deploy unconfirmed; #116, #117 untagged) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
+1. Owner: deploy v0.18.4 (v0.18.3 and v0.18.4 deploys unconfirmed) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
 3. Owner: try Arturo/Sera outdoors (date bar and day strip too); 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
 ## Open questions
