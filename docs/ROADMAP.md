@@ -76,6 +76,7 @@ Each item ships something staff can use on the box.
   2026-11-26, PR #116)
 - [x] Icon buttons for previous day, next day, calendar and search (owner, 2026-11-26, PR #117)
 - [x] "Esci" inside the logged-in user's menu (owner, 2026-11-26, PR #118)
+- [x] Icons instead of words in the day counts (owner, 2026-11-26, PR #121)
 - [ ] Payments recorded at the desk (amounts, method), daily cash-up report. Season passes are paid
   at the end, once the holder knows their last day (owner, 2026-11-14) (shelved by owner 2026-11-24)
 - [ ] Cabins: book and price the club's cabins (on the price list; not modelled yet, owner

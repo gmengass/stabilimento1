@@ -1,15 +1,15 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.18.4` (tagged 2026-11-26 on the #118 merge) deployed on the box (owner, 2026-11-26), as was `v0.18.3`; no migration,
-  APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
+- `v0.18.6` tagged 2026-11-26 on the #121 merge (count icons), deploy not yet confirmed; `v0.18.4`, `v0.18.3` deployed (owner, 2026-11-26).
+  `v0.18.5`: docs-only #119 merge, tagged by mistake, no app change. No migration, APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
 ## Done this session
-- #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
-  ahead orange, "Torna a oggi" yellow, calendar in the day's colour); in every theme a strip names a
-  day other than today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved, notes fixed.
-- #117 (merged, `feat/date-bar-icons`): arrows, calendar and magnifying-glass icon buttons (44 px,
-  sr-only names + tooltips); phones show a short weekday ("mer 25 nov") so the bar fits. Reviewer approved.
+- #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera; in every theme a strip names a day other than
+  today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved.
+- #117 (merged, `feat/date-bar-icons`): icon buttons for arrows, calendar, search (44 px, sr-only names + tooltips); short weekday on phones.
 - #118 (merged, `feat/logout-button`): "Esci" moved into the user menu, under language and theme, with an icon.
+- #121 (merged, `feat/count-icons`, owner request): day counts as icon + "free / total"; full sentence in sr-only text and tooltips.
+  #120 had merged into `docs/release-0.18.4` by mistake (stacked PR not retargeted); #121 brought it to main.
 ## Next up
 1. Owner: try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
@@ -33,7 +33,7 @@
 - Logo (#113, low): Caddy re-compresses PNGs; no per-response sandbox CSP on `/branding/logo`.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
-- Sessions can't pull Docker images, reach Google Maven or push tags. e2e: local Postgres 16 (`service postgresql start`), `.env` from the example, migrate + `db:seed-admin` only (the demo seed's 18-umbrella lines break `quick-book.spec`), export `.env` before `npx playwright test`; symlink `/opt/pw-browsers/*-1243` to `-1254`. 138 e2e tests (`playwright test --list`, setup excluded; #116 added 7, which pass with map-header, keyboard and a11y); 110 passed on a fresh database before #114.
+- Sessions can't pull Docker images, reach Google Maven or push tags. e2e: local Postgres 16 (`service postgresql start`), `.env` from the example, migrate + `db:seed-admin` only (the demo seed's 18-umbrella lines break `quick-book.spec`), export `.env` before `npx playwright test`; symlink `/opt/pw-browsers/*-1243` to `-1254`. Full e2e run: 141 passed (2026-11-26, setup project included).
 - Re-running e2e on a used database: once a day's first line is full, a just-booked umbrella's panel closes with "no longer free"; reset the database between full runs.
 - `check-in.spec` takes the last free umbrella; the others take the first.
 - Session background processes (Postgres, `npm run dev`) stop between turns: restart before tests.
