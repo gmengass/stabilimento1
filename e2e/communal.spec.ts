@@ -111,6 +111,11 @@ test.describe.serial("shared tablet account", () => {
     await expect(entry("Tablet first")).toContainText(accounts.anna.name);
     await expect(entry("Tablet first")).not.toContainText(accounts.tablet.name);
     await expect(tablet.getByTestId("acting-as")).toContainText(accounts.anna.name);
+    // The tablet account's name stays at the far right, after "Acting as …".
+    const badge = (await tablet.getByTestId("acting-as").boundingBox())!;
+    const userButton = tablet.getByRole("button", { name: /^(Accesso come|Signed in as) / });
+    const user = (await userButton.boundingBox())!;
+    expect(user.x).toBeGreaterThanOrEqual(badge.x + badge.width);
 
     await submitBooking(tablet, `Tablet second ${stamp}`);
     await expect(tablet.locator("aside")).toHaveCount(0);
