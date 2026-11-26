@@ -58,6 +58,11 @@ test("the seeded admin logs in, logs out, and back does not reopen the app", asy
   await logIn(page, ADMIN_USERNAME, ADMIN_PASSWORD);
   await expect(page).toHaveURL(/\/$/);
   const logout = page.getByRole("button", { name: itMessages.appShell.logout });
+  // "Esci" is the last thing in the logged-in user's menu, under language and theme.
+  await expect(logout).toBeHidden();
+  await page
+    .getByRole("button", { name: itMessages.appShell.signedInAs.replace("{name}", "").trim() })
+    .click();
   await expect(logout).toBeVisible();
 
   await logout.click();
