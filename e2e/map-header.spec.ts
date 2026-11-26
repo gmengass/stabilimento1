@@ -104,10 +104,10 @@ test("on a phone, another day's calendar button drops its icon so the bar fits",
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto("/");
-  await page.getByTestId("date-nav").getByRole("link", { name: "Giorno dopo" }).click();
-  await page.waitForURL(/date=/);
+  // A Wednesday: the longest Italian weekday, so the widest the bar gets.
+  await page.goto("/?date=2090-07-12");
   const nav = page.getByTestId("date-nav");
+  await expect(nav.locator("label").getByText("mer 12 lug", { exact: true })).toBeVisible();
   await expect(nav.locator("label svg")).toBeHidden();
   await expect(nav.locator("label")).not.toHaveAttribute("title");
   expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);

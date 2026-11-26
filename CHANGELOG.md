@@ -14,6 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 - "Giorno prima", "Giorno dopo", "Calendario" and "Cerca" are icon buttons (arrows, a calendar, a
   magnifying glass), so the date bar fits in one row on phones and small tablets. Screen readers
   and mouse tooltips still give their names; "Oggi" and "Torna a oggi" keep their words.
+- Phones show a short weekday in the date bar: "Oggi: gio 26 nov", "mer 25 nov".
 
 ## [0.18.3] - 2026-11-26
 Update with `scripts/update.sh v0.18.3` (no migration; no new APK), then add `CLUB_NAME` and
