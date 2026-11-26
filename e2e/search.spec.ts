@@ -54,6 +54,7 @@ test("search by name opens the booking's panel on its day", async ({ page }) => 
   const customer = `Cerca${Date.now()}`;
   await bookFirstFree(page, DAYS.search, customer);
   await page.goto("/");
+  await page.getByTestId("search-toggle").click();
   await page.getByRole("search").locator('input[name="q"]').fill(customer.toLowerCase());
   await page.getByRole("search").locator('button[type="submit"]').click();
   await page.waitForURL(/\/search\?/);
@@ -68,4 +69,55 @@ test("a too-short query shows a hint, not results", async ({ page }) => {
   await page.goto("/search?q=a");
   await expect(page.getByTestId("search-result")).toHaveCount(0);
   await expect(page.getByRole("search").locator('input[name="q"]')).toHaveValue("a");
+});
+
+test("the magnifier opens the field, focused; ✕, Escape and an empty field close it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const toggle = page.getByTestId("search-toggle");
+  const field = page.getByRole("search").locator('input[name="q"]');
+  await expect(page.getByRole("search")).toHaveCount(0);
+
+  await toggle.click();
+  await expect(field).toBeFocused();
+  await page.getByRole("search").locator('button[type="button"]').click();
+  await expect(page.getByRole("search")).toHaveCount(0);
+  await expect(toggle).toBeFocused();
+
+  await toggle.click();
+  await field.fill("Rossi");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("search")).toHaveCount(0);
+  await expect(toggle).toBeFocused();
+
+  // Leaving it empty closes it; with text in it, it stays open.
+  await toggle.click();
+  await page.getByTestId("date-nav").locator("a").first().focus();
+  await expect(page.getByRole("search")).toHaveCount(0);
+  await toggle.click();
+  await field.fill("Rossi");
+  await page.getByTestId("date-nav").locator("a").first().focus();
+  await expect(field).toHaveValue("Rossi");
+});
+
+test("on a tablet the field opens beside the date controls", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.getByTestId("search-toggle").click();
+  const nav = (await page.getByTestId("date-nav").boundingBox())!;
+  const form = (await page.getByRole("search").boundingBox())!;
+  await expect(page.getByTestId("date-nav")).toBeVisible();
+  expect(form.x).toBeGreaterThanOrEqual(nav.x + nav.width);
+  expect(Math.abs(form.y - nav.y)).toBeLessThan(4);
+});
+
+test("on a phone the magnifier fits beside the date controls on another day", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/?date=2093-08-20");
+  await expect(page.getByTestId("go-to-today")).toBeVisible();
+  const toggle = (await page.getByTestId("search-toggle").boundingBox())!;
+  const nav = (await page.getByTestId("date-nav").boundingBox())!;
+  expect(toggle.x + toggle.width).toBeLessThanOrEqual(390);
+  expect(Math.abs(toggle.y - nav.y)).toBeLessThan(4);
 });

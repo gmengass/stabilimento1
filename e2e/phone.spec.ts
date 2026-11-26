@@ -306,6 +306,10 @@ test("search at phone width opens the booking as a bottom sheet on its day", asy
 
   await page.goto("/");
   expect(await smallTapTargets(page)).toEqual([]);
+  // No room beside the date controls: the field takes their place until it is closed.
+  await page.getByTestId("search-toggle").tap();
+  await expect(page.getByTestId("date-nav")).toBeHidden();
+  expect(await smallTapTargets(page)).toEqual([]);
   await page.getByRole("search").locator('input[name="q"]').fill(customer);
   await page.getByRole("search").locator('button[type="submit"]').tap();
   await page.getByTestId("search-result").tap();
