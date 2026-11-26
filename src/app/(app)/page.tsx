@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { BookingSearch } from "@/components/booking-search";
+import { DateBarSearch } from "@/components/date-bar-search";
 import { DateJump, DayText } from "@/components/date-jump";
 import { ArrowLeftIcon, ArrowRightIcon } from "@/components/icons";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -101,56 +101,60 @@ export default async function Home(props: PageProps<"/">) {
     <PageMain className="flex w-full flex-col gap-4 p-4 max-md:has-[[data-sheet=collapsed]]:pb-24 max-md:has-[[data-sheet=open]]:pb-[60dvh]">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <h1 className="sr-only">{t("heading", { area: beach.areaName, date: day })}</h1>
-        <nav
-          aria-label={t("dateNav")}
-          data-testid="date-nav"
-          className="flex max-w-full shrink-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap"
-        >
-          <Link
-            href={at(addDays(date, -1))}
-            title={t("previousDay")}
-            className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.previous}`}
+        <DateBarSearch date={date} areaId={beach.areaId}>
+          <nav
+            aria-label={t("dateNav")}
+            data-testid="date-nav"
+            className="flex max-w-full shrink-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap"
           >
-            <ArrowLeftIcon />
-            <span className="sr-only">{t("previousDay")}</span>
-          </Link>
-          {isToday ? (
             <Link
-              href={at()}
-              className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.today}`}
+              href={at(addDays(date, -1))}
+              title={t("previousDay")}
+              className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.previous}`}
             >
-              <span>
-                {t("todayPrefix")} <DayText label={dayLabel} />
-              </span>
+              <ArrowLeftIcon />
+              <span className="sr-only">{t("previousDay")}</span>
             </Link>
-          ) : (
+            {isToday ? (
+              <Link
+                href={at()}
+                className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.today}`}
+              >
+                <span>
+                  {t("todayPrefix")} <DayText label={dayLabel} />
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href={at()}
+                data-testid="go-to-today"
+                className={`flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950 ${dayNavClass.goToToday}`}
+              >
+                <span className="max-sm:sr-only">{t("goToToday")}</span>
+                <span aria-hidden className="sm:hidden">
+                  {t("goToTodayShort")}
+                </span>
+              </Link>
+            )}
             <Link
-              href={at()}
-              data-testid="go-to-today"
-              className={`flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950 ${dayNavClass.goToToday}`}
+              href={at(addDays(date, 1))}
+              title={t("nextDay")}
+              className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.next}`}
             >
-              {t("goToToday")}
+              <ArrowRightIcon />
+              <span className="sr-only">{t("nextDay")}</span>
             </Link>
-          )}
-          <Link
-            href={at(addDays(date, 1))}
-            title={t("nextDay")}
-            className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.next}`}
-          >
-            <ArrowRightIcon />
-            <span className="sr-only">{t("nextDay")}</span>
-          </Link>
-          <DateJump
-            key={date}
-            date={date}
-            areaId={beach.areaId}
-            label={isToday ? undefined : dayLabel}
-            toneClass={calendarToneClass[tone]}
-          />
-        </nav>
+            <DateJump
+              key={date}
+              date={date}
+              areaId={beach.areaId}
+              label={isToday ? undefined : dayLabel}
+              toneClass={calendarToneClass[tone]}
+            />
+          </nav>
+        </DateBarSearch>
       </div>
       <DayStrip tone={tone} date={date} today={today} day={dayLabel.full} />
-      <BookingSearch date={date} areaId={beach.areaId} />
       <DayCounts counts={counts} stock={stock} />
       <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
         <span>{t("legendBooked", { count: booked })}</span>
