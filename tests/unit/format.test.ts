@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   addDays,
+  daysBetween,
   formatBookingDate,
   formatCents,
   formatShortWeekdayDate,
@@ -133,6 +134,20 @@ describe("addDays", () => {
     ["2026-10-24", 2, "2026-10-26"],
   ] as const)("%s + %i = %s, across month, year, leap day and DST changes", (date, days, out) => {
     expect(addDays(date, days)).toBe(out);
+  });
+});
+
+describe("daysBetween", () => {
+  it.each([
+    ["2026-07-10", "2026-07-10", 0],
+    ["2026-07-10", "2026-07-09", -1],
+    ["2026-07-10", "2026-07-11", 1],
+    ["2025-12-31", "2026-01-01", 1],
+    ["2026-03-28", "2026-03-30", 2],
+    ["2026-10-26", "2026-10-24", -2],
+    ["2028-02-28", "2028-03-01", 2],
+  ] as const)("%s to %s is %i, across year, DST and leap day", (from, to, out) => {
+    expect(daysBetween(from, to)).toBe(out);
   });
 });
 

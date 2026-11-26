@@ -28,6 +28,7 @@ import { ActivityPanel } from "./activity-panel";
 import { BeachBoard } from "./beach-board";
 import { PageMain } from "@/components/page-main";
 import { DayCounts } from "./day-counts";
+import { DayStrip, calendarToneClass, dayNavClass, dayTone } from "./day-tone";
 
 export default async function Home(props: PageProps<"/">) {
   const user = await requireUser();
@@ -72,6 +73,8 @@ export default async function Home(props: PageProps<"/">) {
   if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
+  const tone = dayTone(date, today);
+  const isToday = tone === "today";
   const dayLabel = {
     full: formatWeekdayDate(date, dayLocale),
     short: formatShortWeekdayDate(date, dayLocale),
@@ -103,12 +106,15 @@ export default async function Home(props: PageProps<"/">) {
         >
           <Link
             href={at(addDays(date, -1))}
-            className="flex min-h-11 items-center rounded border px-3"
+            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.previous}`}
           >
             {t("previousDay")}
           </Link>
-          {date === today ? (
-            <Link href={at()} className="flex min-h-11 items-center rounded border px-3">
+          {isToday ? (
+            <Link
+              href={at()}
+              className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.today}`}
+            >
               <span>
                 {t("todayPrefix")} <DayText label={dayLabel} />
               </span>
@@ -117,14 +123,14 @@ export default async function Home(props: PageProps<"/">) {
             <Link
               href={at()}
               data-testid="go-to-today"
-              className="flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950"
+              className={`flex min-h-11 items-center rounded border-2 border-amber-600 bg-amber-300 px-3 font-semibold text-amber-950 ${dayNavClass.goToToday}`}
             >
               {t("goToToday")}
             </Link>
           )}
           <Link
             href={at(addDays(date, 1))}
-            className="flex min-h-11 items-center rounded border px-3"
+            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.next}`}
           >
             {t("nextDay")}
           </Link>
@@ -132,10 +138,12 @@ export default async function Home(props: PageProps<"/">) {
             key={date}
             date={date}
             areaId={beach.areaId}
-            label={date === today ? undefined : dayLabel}
+            label={isToday ? undefined : dayLabel}
+            toneClass={calendarToneClass[tone]}
           />
         </nav>
       </div>
+      <DayStrip tone={tone} date={date} today={today} day={dayLabel.full} />
       <BookingSearch date={date} areaId={beach.areaId} />
       <DayCounts counts={counts} stock={stock} />
       <p className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">

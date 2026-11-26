@@ -75,3 +75,35 @@ describe("text contrast", () => {
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+// Date controls and the day strip (src/app/(app)/day-tone.tsx). Arturo's page is #fbf6ec, Sera's
+// #16232f; Light/Dark strips use the Tailwind palette.
+const ARTURO = "#fbf6ec";
+const SERA = "#16232f";
+const dayNav: [string, string, string][] = [
+  ["past, Arturo", "#5a3a10", "#ece4d3"],
+  ["past, Sera", "#d9cdb4", "#1e2f3d"],
+  ["today, Arturo and Sera", "#fbf6ec", "#1f3d2b"],
+  ["back to today", "#2a1402", "#ffc300"],
+  ["ahead, Arturo outline", "#2a1402", ARTURO],
+  ["ahead, Sera outline", "#fbf6ec", SERA],
+  ["ahead, Arturo calendar and strip", "#2a1402", "#fde7cf"],
+  ["ahead, Sera calendar and strip", "#fbf6ec", "#2a2418"],
+  ["strip past, light", "#1f2937", "#f3f4f6"],
+  ["strip past, dark", "#f3f4f6", "#1f2937"],
+  ["strip ahead, light", "#461901", "#fffbeb"],
+  ["strip ahead, dark", "#fffbeb", "#461901"],
+];
+
+describe("date controls contrast", () => {
+  it.each(dayNav)("%s is at least 4.5:1", (_name, fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each([
+    ["calendar icon on today, Arturo", "#1f3d2b", ARTURO],
+    ["calendar icon on today, Sera", "#e8862a", SERA],
+  ])("%s is at least 3:1", (_name, fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(3);
+  });
+});

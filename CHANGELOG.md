@@ -3,6 +3,14 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- When the map shows a day other than today, a line under the date bar names it: "Stai guardando
+  mercoledì 25 nov 2026 (ieri)", "(domani)", "(3 giorni fa)", "(tra 3 giorni)".
+
+### Changed
+- Arturo and Sera: the date bar is coloured by day. "Giorno prima" is sand, today is green,
+  "Giorno dopo" is outlined in orange and "Torna a oggi" is sunbed yellow; the calendar button
+  takes the colour of the day it shows.
 
 ## [0.18.3] - 2026-11-26
 Update with `scripts/update.sh v0.18.3` (no migration; no new APK), then add `CLUB_NAME` and

@@ -5,17 +5,15 @@
   APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
 - `v0.18.3` tagged 2026-11-26 on the #114 merge (#111, #113, #114); deploy not confirmed.
 ## Done this session
-- #112 (merged): changelog 0.18.1/0.18.2. #114 (merged): booking panel beside the map in landscape from 48rem.
-- #113 (merged) `feat/club-logo`: logo on sign-in, top bar and Prezzi from `logo.png`/`logo-dark.png` in
-  `BRANDING_DIR` on the box (RUNBOOK "Club name and logo"); dark version on dark backdrops. 1551
-  unit/integration pass; reviewer + security findings fixed. Owner now has a different logo: it
-  only needs new files on the box, no code change.
+- #116 (open, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
+  ahead orange, "Torna a oggi" yellow, calendar in the day's colour); in every theme a strip names a
+  day other than today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved, notes fixed.
 ## Next up
-1. Owner: deploy v0.18.3 and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
+1. Owner: merge #116 once CI is green; deploy v0.18.3 (or the next tag with #116) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
-3. Owner: try Arturo/Sera outdoors; 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
+3. Owner: try Arturo/Sera outdoors (date bar and day strip too); 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
 ## Open questions
-- Themes: with a panel open on a 1280px tablet the map scrolls sideways, and tiles reflow when the panel opens (a quick second tap can miss); fixed track widths? Theme the activity list's "Ripristina" buttons? Remove Light/Dark later? Android full brightness in sun themes (APK rebuild)?
+- Themes: with a panel open on a 1280px tablet the map scrolls sideways, and tiles reflow when the panel opens (a quick second tap can miss); fixed track widths? Theme the activity list's "Ripristina" buttons? Day colours on the date bar in Light/Dark too? Remove Light/Dark later? Android full brightness in sun themes (APK rebuild)?
 - Till (fiscal receipts): can the app send each sale to the club's registered till (RT) on the local network? Needs the till's make and model (owner).
 - Prices next: refunds on cancelled bookings; a paid badge on map tiles (ADR 0017/0031); a payment PIN (ADR 0025); cabins (roadmap item).
 - Prices review notes: a price-list change logs no before/after amounts; admin actions have no rate limit (ADR 0027); no test prices a standalone sunbed spot; Android full screen for Prezzi?
@@ -33,7 +31,7 @@
 - Logo (#113, low): Caddy re-compresses PNGs; no per-response sandbox CSP on `/branding/logo`.
 - Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
-- Sessions can't pull Docker images, reach Google Maven or push tags. e2e: local Postgres 16 (`service postgresql start`), `.env` from the example, migrate + `db:seed-admin` only (the demo seed's 18-umbrella lines break `quick-book.spec`), export `.env` before `npx playwright test`; symlink `/opt/pw-browsers/*-1243` to `-1254`. All 115 specs exist; 110 passed on a fresh database before #114, its 5 new ones pass.
+- Sessions can't pull Docker images, reach Google Maven or push tags. e2e: local Postgres 16 (`service postgresql start`), `.env` from the example, migrate + `db:seed-admin` only (the demo seed's 18-umbrella lines break `quick-book.spec`), export `.env` before `npx playwright test`; symlink `/opt/pw-browsers/*-1243` to `-1254`. 138 e2e tests (`playwright test --list`, setup excluded; #116 added 7, which pass with map-header, keyboard and a11y); 110 passed on a fresh database before #114.
 - Re-running e2e on a used database: once a day's first line is full, a just-booked umbrella's panel closes with "no longer free"; reset the database between full runs.
 - `check-in.spec` takes the last free umbrella; the others take the first.
 - Session background processes (Postgres, `npm run dev`) stop between turns: restart before tests.

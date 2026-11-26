@@ -40,6 +40,13 @@ export function addDays(date: string, days: number): string {
   return parsed.toISOString().slice(0, 10);
 }
 
+/** Whole days from `from` to `to` (both `YYYY-MM-DD`): negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round(
+    (parseBookingDate(to).getTime() - parseBookingDate(from).getTime()) / 86_400_000,
+  );
+}
+
 /** Today's booking day at the venue (Europe/Rome), whatever the server's own time zone. */
 export function venueToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
