@@ -70,7 +70,7 @@ Each item ships something staff can use on the box.
   2026-11-24, #105, v0.18.0, ADR 0031)
 - [x] Arturo and Sera booking panel: green band, orange main button, outlined buttons (owner,
   2026-11-24, #107)
-- [ ] Club logo on sign-in, top bar and Prezzi, from files in `BRANDING_DIR` on the box (owner,
+- [x] Club logo on sign-in, top bar and Prezzi, from files in `BRANDING_DIR` on the box (owner,
   2026-11-25, PR #113)
 - [ ] Payments recorded at the desk (amounts, method), daily cash-up report. Season passes are paid
   at the end, once the holder knows their last day (owner, 2026-11-14) (shelved by owner 2026-11-24)

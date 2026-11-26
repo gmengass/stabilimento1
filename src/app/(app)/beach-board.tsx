@@ -464,7 +464,7 @@ export function BeachBoard({
 
   return (
     <div
-      className={`grid grid-cols-1 gap-4 lg:items-start ${panel ? "lg:grid-cols-[minmax(0,1fr)_20rem]" : ""}`}
+      className={`grid grid-cols-1 gap-4 side:items-start ${panel ? "side:grid-cols-[minmax(0,1fr)_20rem]" : ""}`}
     >
       <div ref={mapArea} className="flex min-w-0 scroll-mt-2 flex-col gap-2">
         <button
@@ -492,7 +492,7 @@ export function BeachBoard({
         <p
           role="status"
           data-testid="live-panel-notice"
-          className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 lg:col-span-full dark:bg-amber-950 dark:text-amber-100"
+          className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-950 side:col-span-full dark:bg-amber-950 dark:text-amber-100"
         >
           {tm(noticeKey[notice])}
         </p>
@@ -504,7 +504,7 @@ export function BeachBoard({
           aria-label={ts("label")}
           data-sheet={collapsed ? "collapsed" : "open"}
           onKeyDown={onPanelKeyDown}
-          className="rounded border bg-background p-4 sun:border-[#d9cdb4] sun:bg-white sun:accent-[#1f3d2b] sun:dark:border-[#34495a] sun:dark:bg-[#1e2f3d] sun:dark:accent-[#e8862a] lg:sticky lg:top-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:pt-0 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_16px_rgb(0_0_0/0.2)]"
+          className="rounded border bg-background p-4 sun:border-[#d9cdb4] sun:bg-white sun:accent-[#1f3d2b] sun:dark:border-[#34495a] sun:dark:bg-[#1e2f3d] sun:dark:accent-[#e8862a] side:sticky side:top-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:pt-0 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_16px_rgb(0_0_0/0.2)]"
         >
           <div
             data-panel-band

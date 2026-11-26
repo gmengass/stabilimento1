@@ -3,7 +3,7 @@
 ## Current state
 - `v0.18.2` (tagged 2026-11-24 on the #109 merge) deployed on the box (owner, 2026-11-25); no migration,
   APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
-- On `main`, not tagged: #111 (season pass below the dates), #112 (docs). Open: PR #113 (club logo).
+- On `main`, not tagged: #111 (season pass below the dates), #112 (docs), #113 (club logo).
 ## Done this session
 - #112 (merged): changelog sections for 0.18.1/0.18.2, roadmap and progress synced.
 - PR #113 `feat/club-logo`: logo on sign-in, top bar and Prezzi from `logo.png`/`logo-dark.png` in
@@ -11,7 +11,7 @@
   unit/integration pass; reviewer + security findings fixed. Owner now has a different logo: it
   only needs new files on the box, no code change.
 ## Next up
-1. Owner: review and merge #113; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`; tag #111/#113 when ready.
+1. Owner: review and merge `feat/tablet-side-panel` (try it on the SM-T220 in landscape); put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`; tag #111/#113 and the tablet change when ready.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
 3. Owner: try Arturo/Sera outdoors; 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
 ## Open questions

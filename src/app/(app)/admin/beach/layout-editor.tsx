@@ -408,7 +408,7 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
         <h2 className="text-lg font-semibold">{t("mapTitle")}</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">{t("mapHint")}</p>
         <div
-          className={`grid grid-cols-1 gap-4 lg:items-start ${selected ? "lg:grid-cols-[minmax(0,1fr)_18rem]" : ""}`}
+          className={`grid grid-cols-1 gap-4 side:items-start ${selected ? "side:grid-cols-[minmax(0,1fr)_18rem]" : ""}`}
         >
           <div className="min-w-0">
             <BeachMap
@@ -420,7 +420,7 @@ export function LayoutEditor({ beach }: { beach: BeachLayout }) {
             />
           </div>
           {selected && (
-            <aside className="rounded border p-4 lg:sticky lg:top-4">
+            <aside className="rounded border p-4 side:sticky side:top-4">
               <SpotEditor
                 key={selected.id}
                 areaId={beach.areaId}
