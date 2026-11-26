@@ -96,6 +96,8 @@ test("the arrows, calendar and search are 44 px icon buttons that keep their nam
   }
   await expect(buttons[0]!).toHaveAttribute("title", "Giorno prima");
   await expect(buttons[3]!).toHaveAttribute("title", "Cerca");
+  await expect(buttons[1]!).toHaveAttribute("title", "Giorno dopo");
+  await expect(buttons[2]!).toHaveAttribute("title", "Calendario");
 });
 
 test("on a phone, another day's calendar button drops its icon so the bar fits", async ({
@@ -107,5 +109,6 @@ test("on a phone, another day's calendar button drops its icon so the bar fits",
   await page.waitForURL(/date=/);
   const nav = page.getByTestId("date-nav");
   await expect(nav.locator("label svg")).toBeHidden();
+  await expect(nav.locator("label")).not.toHaveAttribute("title");
   expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
 });
