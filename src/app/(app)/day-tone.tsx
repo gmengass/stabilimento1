@@ -27,7 +27,7 @@ export const dayNavClass = {
   next: FUTURE_OUTLINE,
 } as const;
 
-/** The calendar button takes the colour of the day it shows; on today only its icon is green. */
+/** The calendar button takes the colour of the day it shows; on today only its icon is coloured: green (orange in Sera). */
 export const calendarToneClass: Record<DayTone, string> = {
   past: PAST,
   today: "sun:[&>svg]:text-[#1f3d2b] sun:dark:[&>svg]:text-[#e8862a]",
@@ -49,6 +49,7 @@ function stripText(t: Translate, tone: Exclude<DayTone, "today">, day: string, c
 }
 
 interface StripProps {
+  tone: DayTone;
   date: string;
   today: string;
   /** The day being viewed, in full ("mercoledì 25 nov 2026"). */
@@ -59,8 +60,7 @@ interface StripProps {
  * Says which day is on the map when it isn't today, so a booking never lands on the wrong day
  * unnoticed. On today, Arturo and Sera show a thin green rule instead; Light and Dark show nothing.
  */
-export async function DayStrip({ date, today, day }: StripProps) {
-  const tone = dayTone(date, today);
+export async function DayStrip({ tone, date, today, day }: StripProps) {
   if (tone === "today") {
     return <div aria-hidden className="hidden h-1.5 sun:block sun:bg-[#1f3d2b]" />;
   }
@@ -68,6 +68,7 @@ export async function DayStrip({ date, today, day }: StripProps) {
   const count = Math.abs(daysBetween(today, date));
   return (
     <p
+      role="status"
       data-testid="day-strip"
       data-tone={tone}
       className={`border-l-[6px] px-3 py-1.5 text-sm ${STRIP[tone]}`}
