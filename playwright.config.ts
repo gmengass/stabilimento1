@@ -18,7 +18,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
-      testIgnore: /(phone|stock)\.spec\.ts/,
+      testIgnore: /(phone|stock|area-menu)\.spec\.ts/,
     },
     {
       name: "phone",
@@ -30,6 +30,13 @@ export default defineConfig({
       },
       dependencies: ["setup"],
       testMatch: /phone\.spec\.ts/,
+    },
+    {
+      // After the others: a second beach space changes the banner and tab order they check.
+      name: "spaces",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["chromium", "phone"],
+      testMatch: /area-menu\.spec\.ts/,
     },
     {
       // After every other spec: a stock set here would warn their bookings too (ADR 0021).
