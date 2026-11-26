@@ -3,6 +3,9 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.19.1] - 2026-11-26
+Update with `scripts/update.sh v0.19.1` (no migration; no new APK).
 ### Changed
 - On a shared tablet, the tablet's name stays at the far right of the banner; "Operatore: …" and
   "Non sono io" now sit just before it (#128).
