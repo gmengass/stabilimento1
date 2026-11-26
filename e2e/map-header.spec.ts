@@ -75,3 +75,40 @@ test("a typed date opens only on Enter, never half-typed", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.waitForURL(/date=2090-07-10/);
 });
+
+test("the arrows, calendar and search are 44 px icon buttons that keep their names", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByTestId("date-nav");
+  const buttons = [
+    nav.getByRole("link", { name: "Giorno prima" }),
+    nav.getByRole("link", { name: "Giorno dopo" }),
+    nav.locator("label", { hasText: "Calendario" }),
+    page.getByRole("search").getByRole("button", { name: "Cerca" }),
+  ];
+  for (const button of buttons) {
+    await expect(button).toBeVisible();
+    await expect(button.locator("svg")).toBeVisible();
+    const box = (await button.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  await expect(buttons[0]!).toHaveAttribute("title", "Giorno prima");
+  await expect(buttons[3]!).toHaveAttribute("title", "Cerca");
+  await expect(buttons[1]!).toHaveAttribute("title", "Giorno dopo");
+  await expect(buttons[2]!).toHaveAttribute("title", "Calendario");
+});
+
+test("on a phone, another day's calendar button drops its icon so the bar fits", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  // A Wednesday: the longest Italian weekday, so the widest the bar gets.
+  await page.goto("/?date=2090-07-12");
+  const nav = page.getByTestId("date-nav");
+  await expect(nav.locator("label").getByText("mer 12 lug", { exact: true })).toBeVisible();
+  await expect(nav.locator("label svg")).toBeHidden();
+  await expect(nav.locator("label")).not.toHaveAttribute("title");
+  expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+});

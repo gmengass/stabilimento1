@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { SearchIcon } from "./icons";
 
 interface Props {
   /** The day and space being viewed: results open there when the booking holds that day. */
@@ -24,8 +25,13 @@ export async function BookingSearch({ date, areaId, query }: Props) {
         autoComplete="off"
         className="min-h-11 min-w-0 flex-1 rounded border px-3"
       />
-      <button type="submit" className="min-h-11 rounded border px-4 font-medium">
-        {t("submit")}
+      <button
+        type="submit"
+        title={t("submit")}
+        className="flex min-h-11 w-11 shrink-0 items-center justify-center rounded border"
+      >
+        <SearchIcon />
+        <span className="sr-only">{t("submit")}</span>
       </button>
     </form>
   );

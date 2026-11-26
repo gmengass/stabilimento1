@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRef, type KeyboardEvent } from "react";
 import { isBookingDate } from "@/i18n/format";
+import { CalendarIcon } from "./icons";
 
 /** Keys that edit the field. Space, Alt+Down and the like open the picker instead. */
 const TYPING_KEYS = /^(\d|Arrow(Up|Down|Left|Right)|Backspace|Delete)$/;
@@ -50,10 +51,12 @@ export function DateJump({ date, areaId, label, toneClass = "" }: Props) {
 
   return (
     <label
-      className={`relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded border px-3 focus-within:ring-2 focus-within:ring-sky-700 ${toneClass}`}
+      title={label ? undefined : t("calendar")}
+      className={`relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded border px-2.5 focus-within:ring-2 focus-within:ring-sky-700 ${toneClass}`}
     >
-      <CalendarIcon />
-      {label ? <DayText label={label} /> : <span>{t("calendar")}</span>}
+      {/* On phones a shown day leaves no room for the icon: the date says it is the calendar. */}
+      <CalendarIcon className={label ? "max-md:hidden" : ""} />
+      {label ? <DayText label={label} /> : <span className="sr-only">{t("calendar")}</span>}
       <input
         type="date"
         aria-label={label ? t("calendarOn", { day: label.full }) : undefined}
@@ -87,21 +90,5 @@ export function DayText({ label }: { label: DayLabel }) {
       <span className="md:hidden">{label.short}</span>
       <span className="max-md:hidden">{label.full}</span>
     </>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
   );
 }

@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { AreaTabs } from "@/components/area-tabs";
 import { BookingSearch } from "@/components/booking-search";
 import { DateJump, DayText } from "@/components/date-jump";
+import { ArrowLeftIcon, ArrowRightIcon } from "@/components/icons";
 import { LiveRefresh } from "@/components/live-refresh";
 import { getDb } from "@/db/client";
 import { isLocale } from "@/i18n/config";
@@ -106,9 +107,11 @@ export default async function Home(props: PageProps<"/">) {
         >
           <Link
             href={at(addDays(date, -1))}
-            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.previous}`}
+            title={t("previousDay")}
+            className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.previous}`}
           >
-            {t("previousDay")}
+            <ArrowLeftIcon />
+            <span className="sr-only">{t("previousDay")}</span>
           </Link>
           {isToday ? (
             <Link
@@ -130,9 +133,11 @@ export default async function Home(props: PageProps<"/">) {
           )}
           <Link
             href={at(addDays(date, 1))}
-            className={`flex min-h-11 items-center rounded border px-3 ${dayNavClass.next}`}
+            title={t("nextDay")}
+            className={`flex min-h-11 w-11 shrink-0 items-center justify-center rounded border ${dayNavClass.next}`}
           >
-            {t("nextDay")}
+            <ArrowRightIcon />
+            <span className="sr-only">{t("nextDay")}</span>
           </Link>
           <DateJump
             key={date}

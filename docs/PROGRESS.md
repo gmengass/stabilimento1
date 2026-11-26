@@ -5,11 +5,13 @@
   APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
 - `v0.18.3` tagged 2026-11-26 on the #114 merge (#111, #113, #114); deploy not confirmed.
 ## Done this session
-- #116 (open, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
+- #116 (merged, `feat/day-nav-colour`): date bar coloured by day in Arturo/Sera (past sand, today green,
   ahead orange, "Torna a oggi" yellow, calendar in the day's colour); in every theme a strip names a
   day other than today (ieri/domani/N giorni). Owner chose options A + B, 2026-11-26. 1572 unit/integration pass, 7 new e2e; reviewer approved, notes fixed.
+- #117 (open, `feat/date-bar-icons`, CI green): arrows, calendar and magnifying-glass icon buttons (44 px,
+  sr-only names + tooltips); phones show a short weekday ("mer 25 nov") so the bar fits. Reviewer approved.
 ## Next up
-1. Owner: merge #116 once CI is green; deploy v0.18.3 (or the next tag with #116) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
+1. Owner: merge #117; tag and deploy (v0.18.3 deploy unconfirmed; #116 and #117 are untagged) and try the side panel on the SM-T220 in landscape; put the new logo as `logo.png` + `logo-dark.png` (PNG, ~800 px, transparent) in `BRANDING_DIR`, add `CLUB_NAME`/`BRANDING_DIR` to `.env`.
 2. Cabins (`feat/cabins`, Milestone 2; payments shelved), blocked on the owner's description (how many, day or season, tied to an umbrella?). Unblocked: Regular-customer history (`feat/customer-history`).
 3. Owner: try Arturo/Sera outdoors (date bar and day strip too); 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
 ## Open questions

@@ -88,14 +88,18 @@ export function formatWeekdayDate(date: string, locale: Locale): string {
   return weekdayFormat(locale, true).format(parseBookingDate(date));
 }
 
-/** The same without the year, for narrow screens: "mercoledì 18 nov". */
+/** Short weekday, no year, for narrow screens: "mer 18 nov". */
 export function formatShortWeekdayDate(date: string, locale: Locale): string {
-  return weekdayFormat(locale, false).format(parseBookingDate(date));
+  return weekdayFormat(locale, false, "short").format(parseBookingDate(date));
 }
 
-function weekdayFormat(locale: Locale, withYear: boolean): Intl.DateTimeFormat {
+function weekdayFormat(
+  locale: Locale,
+  withYear: boolean,
+  weekday: "long" | "short" = "long",
+): Intl.DateTimeFormat {
   return new Intl.DateTimeFormat(intlTag[locale], {
-    weekday: "long",
+    weekday,
     day: "numeric",
     month: "short",
     year: withYear ? "numeric" : undefined,
