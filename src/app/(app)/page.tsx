@@ -19,8 +19,8 @@ import {
 } from "@/i18n/format";
 import { currentActing, viewerFor } from "@/lib/auth/acting";
 import { requireUser } from "@/lib/auth/session";
-import { AREA_COOKIE } from "@/lib/beach/area-cookie";
-import { loadBeach, parseAreaId } from "@/lib/beach/layout";
+import { AREA_COOKIE, pickArea } from "@/lib/beach/area-cookie";
+import { listAreas, loadBeach } from "@/lib/beach/layout";
 import { listActivity } from "@/lib/booking/audit";
 import { loadNoShows, loadOccupancy, loadReleased } from "@/lib/booking/bookings";
 import { loadDayCounts } from "@/lib/booking/counts";
@@ -39,10 +39,14 @@ export default async function Home(props: PageProps<"/">) {
   const { date: requested, area, booking } = await props.searchParams;
   const today = venueToday();
   const date = isBookingDate(requested) ? requested : today;
-  const requestedArea = parseAreaId(area);
-  // No space in the URL: the one last viewed on this device (a stale cookie falls back to the first).
-  const remembered = parseAreaId((await cookies()).get(AREA_COOKIE)?.value);
-  const beach = await loadBeach(getDb(), requestedArea ?? remembered);
+  // The space in the URL, else the one last viewed on this device, else the first: the same rule
+  // as the banner's space menu, so both always name the same space.
+  const picked = pickArea(
+    await listAreas(getDb()),
+    typeof area === "string" ? area : null,
+    (await cookies()).get(AREA_COOKIE)?.value,
+  );
+  const beach = await loadBeach(getDb(), picked?.id);
 
   if (!beach) {
     return (
@@ -73,7 +77,7 @@ export default async function Home(props: PageProps<"/">) {
     return `/?${query}`;
   };
   // A stale link to a removed space: show the URL of the space actually shown, never mix them up.
-  if (area !== undefined && beach.areaId !== requestedArea) redirect(at(date));
+  if (area !== undefined && area !== String(beach.areaId)) redirect(at(date));
   const dayLocale = isLocale(locale) ? locale : "it";
   const day = formatBookingDate(date, dayLocale);
   const tone = dayTone(date, today);

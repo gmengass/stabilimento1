@@ -17,7 +17,6 @@ export function UserMenu({ label, children }: Props) {
       <button
         ref={button}
         type="button"
-        aria-haspopup="true"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}

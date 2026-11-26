@@ -93,7 +93,6 @@ function Picker({ areas, current, hrefOf, logo, labels }: PickerProps) {
         ref={button}
         type="button"
         data-testid="area-menu-toggle"
-        aria-haspopup="true"
         aria-expanded={open}
         aria-controls={panelId}
         title={labels.pick}

@@ -27,6 +27,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const choices = user.communal ? await listActingChoices(getDb()) : [];
   const acting = await currentActing(getDb(), user);
   const branding = await getBranding();
+  // Read on a full load or refresh only: a space added elsewhere shows up in the menu after the
+  // next reload, and a removed one just redirects to the first space.
   const areas = await listAreas(getDb());
   return (
     <ActingProvider communal={user.communal} choices={choices} initialName={acting?.name ?? null}>
