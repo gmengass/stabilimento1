@@ -3,6 +3,9 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.18.4] - 2026-11-26
+Update with `scripts/update.sh v0.18.4` (no migration; no new APK).
 ### Added
 - When the map shows a day other than today, a line under the date bar names it: "Stai guardando
   mercoledì 25 nov 2026 (ieri)", "(domani)", "(3 giorni fa)", "(tra 3 giorni)".
