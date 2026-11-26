@@ -64,22 +64,25 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             </Link>
           </>
         )}
-        <UserMenu name={user.name} label={t("signedInAs", { name: user.name })}>
-          <div className="flex flex-col gap-3">
-            <LanguageSwitcher />
-            <ThemeSwitcher current={theme} />
-            <form action={logout} className="border-t pt-3">
-              <button
-                type="submit"
-                className="flex min-h-11 w-full items-center gap-2 rounded border px-3"
-              >
-                <LogoutIcon />
-                {t("logout")}
-              </button>
-            </form>
-          </div>
-        </UserMenu>
-        <ActingBadge />
+        {/* Pushed to the far right; the user's name is always last, after "Acting as …". */}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+          <ActingBadge />
+          <UserMenu name={user.name} label={t("signedInAs", { name: user.name })}>
+            <div className="flex flex-col gap-3">
+              <LanguageSwitcher />
+              <ThemeSwitcher current={theme} />
+              <form action={logout} className="border-t pt-3">
+                <button
+                  type="submit"
+                  className="flex min-h-11 w-full items-center gap-2 rounded border px-3"
+                >
+                  <LogoutIcon />
+                  {t("logout")}
+                </button>
+              </form>
+            </div>
+          </UserMenu>
+        </div>
       </nav>
       {children}
     </ActingProvider>

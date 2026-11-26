@@ -16,7 +16,7 @@ interface Props {
 export function UserMenu({ name, label, children }: Props) {
   const { open, setOpen, button, panelId, wrapperProps } = usePopover();
   return (
-    <div {...wrapperProps} className="relative ml-auto">
+    <div {...wrapperProps} className="relative">
       <button
         ref={button}
         type="button"
