@@ -48,8 +48,10 @@ screens within seconds. Customers never use the app. They are contact details on
   writes `no_show`, and only for today (ADR 0015). Check-in, restore and the job lock the booking
   row first, so a check-in that commits first always wins.
 - On the beach map, the date controls (previous day, today, next day, calendar) stay on one
-  line: they wrap below the space tabs as one group, never apart, and scroll sideways on a
-  screen too narrow for them (`e2e/map-header.spec.ts`).
+  line: they stay together as one group, never apart, and scroll sideways on a screen too narrow
+  for them (`e2e/map-header.spec.ts`).
+- The beach space is picked from the banner's map link (`src/components/area-menu.tsx`, ADR 0032);
+  the map page and the menu share one rule for which space is shown (`pickArea`).
 
 ## Directory layout
 - `src/app/`: Next.js routes (App Router), incl. `/health`
