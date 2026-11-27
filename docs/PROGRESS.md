@@ -15,8 +15,8 @@
 - Also: CI race fixed in `acting-dialog.test.ts`. 1600 unit/integration pass; 148 e2e (2026-11-26).
 ## Next up
 1. Regular-customer history (`feat/customer-history`, Milestone 2, unblocked). Cabins (`feat/cabins`) still need the owner's description (how many, day or season, tied to an umbrella?).
-2. Owner: add `e2e`, `deploy-scripts`, `android` to ruleset `rulset1`; delete tag/release `v.0.18.1`; GDPR retention and phone masking. On hold (owner, 2026-11-27): backups (RUNBOOK; delete `feat/backups`), the till's make and model.
-   Owner confirmed 2026-11-27: space menu and search fine on SM-T220 and OnePlus; logo and `CLUB_NAME` on the box; Arturo/Sera fine outdoors; 2027 prices entered.
+2. Owner: GDPR retention and phone masking. On hold (owner, 2026-11-27): backups (RUNBOOK; delete `feat/backups`), the till's make and model.
+   Owner confirmed 2026-11-27: space menu and search fine on SM-T220 and OnePlus; logo and `CLUB_NAME` on the box; Arturo/Sera fine outdoors; 2027 prices entered; ruleset `rulset1` now requires `e2e`, `deploy-scripts`, `android`; tag `v.0.18.1` deleted.
 ## Open questions
 - Themes: with a panel open on a 1280px tablet the map scrolls sideways, and tiles reflow when the panel opens (a quick second tap can miss); fixed track widths? Theme the activity list's "Ripristina" buttons? Day colours on the date bar in Light/Dark too? Remove Light/Dark later? Android full brightness in sun themes (APK rebuild)?
 - Till (fiscal receipts): can the app send each sale to the club's registered till (RT) on the local network? Needs the till's make and model (owner).
