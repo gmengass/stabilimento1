@@ -3,9 +3,12 @@
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.19.2] - 2026-11-26
+Update with `scripts/update.sh v0.19.2` (no migration; new APK).
 ### Fixed
 - Android app: on Android 15 and later (e.g. OnePlus 13) the status bar icons (time, battery) were
-  white on white; they are now dark. Older tablets are unchanged. Needs a new APK.
+  white on white; they are now dark. Older tablets are unchanged (#130).
 
 ## [0.19.1] - 2026-11-26
 Update with `scripts/update.sh v0.19.1` (no migration; no new APK).
