@@ -3,7 +3,7 @@
 ## Current state
 - `v0.19.2` tagged 2026-11-26 on the #130 merge (Android 15+ dark status bar icons), deployed on the box with a new APK, built and tested (owner, 2026-11-27).
   Also deployed: `v0.19.1` (#128), `v0.19.0` (waves #124, search #125, user button #126), `v0.18.7` (#123), `v0.18.6`, `v0.18.4`, `v0.18.3`. `v0.18.5`: docs-only, tagged by mistake.
-  No migration, APK as v0.19.2. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
+  No migration, APK as v0.19.2. No backups on the box yet.
 ## Done this session
 - #123 (`feat/area-menu`): banner map link names the space with a ▾ list (keeps the day); sea band name large and pinned;
   last space per device in an `area` cookie, one rule on server and menu (`pickArea`, ADR 0032). e2e project `spaces` before `stock`.
@@ -14,9 +14,9 @@
 - #130 (`fix/android-status-bar`): dark status bar icons on Android 15+ (white on white on the OnePlus 13).
 - Also: CI race fixed in `acting-dialog.test.ts`. 1600 unit/integration pass; 148 e2e (2026-11-26).
 ## Next up
-1. Owner: try the space menu and search on the SM-T220 and OnePlus; logo files in `BRANDING_DIR`, `CLUB_NAME`/`BRANDING_DIR` in `.env`.
-2. Regular-customer history (`feat/customer-history`, Milestone 2, unblocked). Cabins (`feat/cabins`) still need the owner's description (how many, day or season, tied to an umbrella?).
-3. Owner: try Arturo/Sera outdoors; 2027 prices on the box; backups (RUNBOOK; delete `feat/backups`); GDPR retention and phone masking.
+1. Regular-customer history (`feat/customer-history`, Milestone 2, unblocked). Cabins (`feat/cabins`) still need the owner's description (how many, day or season, tied to an umbrella?).
+2. Owner: GDPR retention and phone masking. On hold (owner, 2026-11-27): backups (RUNBOOK; delete `feat/backups`), the till's make and model.
+   Owner confirmed 2026-11-27: space menu and search fine on SM-T220 and OnePlus; logo and `CLUB_NAME` on the box; Arturo/Sera fine outdoors; 2027 prices entered; ruleset `rulset1` now requires `e2e`, `deploy-scripts`, `android`; tag `v.0.18.1` deleted.
 ## Open questions
 - Themes: with a panel open on a 1280px tablet the map scrolls sideways, and tiles reflow when the panel opens (a quick second tap can miss); fixed track widths? Theme the activity list's "Ripristina" buttons? Day colours on the date bar in Light/Dark too? Remove Light/Dark later? Android full brightness in sun themes (APK rebuild)?
 - Till (fiscal receipts): can the app send each sale to the club's registered till (RT) on the local network? Needs the till's make and model (owner).
@@ -34,7 +34,7 @@
 - Live map: midnight "today" rolls over at the next refresh. Phones: portrait-tablet sheet? Android: DayNight, min 7.0, auto-retry? Tailscale terms: who signs up?
 - Also open: two no-shows on one umbrella/day show as one; bookings vs area spots; FK restrict; "Ripristina" undo; initials for cancelled names; quick book "Another suggestion" resets the form.
 - Space menu: free counts per space in the list? Its space list refreshes only on a reload. Map search now needs JS; iOS closes an empty search on "Cerca". Logo (#113, low): Caddy re-compresses PNGs; no per-response sandbox CSP on `/branding/logo`.
-- Ruleset `rulset1`: add `e2e`, `deploy-scripts`, `android`. RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
+- RUNBOOK firewall `192.168.1.0/24` (box `.0.0/24`). New specs that sign in need their own `ownSignInBucket`.
 ## Known issues
 - Sessions can't pull Docker images, reach Google Maven or push tags. e2e: local Postgres 16 (`service postgresql start`), `.env` from the example, migrate + `db:seed-admin` only (the demo seed's 18-umbrella lines break `quick-book.spec`), export `.env` before `npx playwright test`; symlink `/opt/pw-browsers/*-1243` to `-1254`. Full e2e run: 148 passed (2026-11-26, setup project included). Stop leftover `next-server` on :3000 (`fuser -k 3000/tcp`) before a new build.
 - Re-running e2e on a used database: once a day's first line is full, a just-booked umbrella's panel closes with "no longer free"; reset the database between full runs. `check-in.spec` takes the last free umbrella; the others take the first. Session background processes (Postgres, `npm run dev`) stop between turns: restart before tests.
