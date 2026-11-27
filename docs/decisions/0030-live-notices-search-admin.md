@@ -1,6 +1,6 @@
 # 0030. Live notices on search and admin pages
 
-- Status: Proposed
+- Status: Accepted (shipped in #104, v0.18.0)
 - Date: 2026-11-24
 - Amends: [ADR 0019](0019-live-map-updates.md) (its scope line: "the map page only")
 
