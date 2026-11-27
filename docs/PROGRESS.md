@@ -1,9 +1,9 @@
 # Progress
 > Rewritten (not appended) at every `/wrap-up`. Keep under 40 lines. Git history keeps old versions.
 ## Current state
-- `v0.19.1` tagged 2026-11-26 on the #127 merge (adds #128, operator badge before the user's name), deployed on the box (owner, 2026-11-26).
-  Also deployed: `v0.19.0` (waves #124, search #125, user button #126), `v0.18.7` (#123), `v0.18.6`, `v0.18.4`, `v0.18.3`. `v0.18.5`: docs-only, tagged by mistake.
-  No migration, APK as v0.16.0. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
+- `v0.19.2` tagged 2026-11-26 on the #130 merge (Android 15+ dark status bar icons), deployed on the box with a new APK, built and tested (owner, 2026-11-27).
+  Also deployed: `v0.19.1` (#128), `v0.19.0` (waves #124, search #125, user button #126), `v0.18.7` (#123), `v0.18.6`, `v0.18.4`, `v0.18.3`. `v0.18.5`: docs-only, tagged by mistake.
+  No migration, APK as v0.19.2. No backups on the box yet. Tag `v.0.18.1`: mistaken duplicate of `v0.18.1` (owner may delete).
 ## Done this session
 - #123 (`feat/area-menu`): banner map link names the space with a ▾ list (keeps the day); sea band name large and pinned;
   last space per device in an `area` cookie, one rule on server and menu (`pickArea`, ADR 0032). e2e project `spaces` before `stock`.
@@ -11,6 +11,7 @@
 - #125 (`feat/search-toggle`, canvas draft approved): search row gone; magnifier after the calendar opens the field (tablet: same
   row; phone: replaces the date bar). ✕/Escape return focus; an empty field closes on blur. Phones show "Oggi" for "Torna a oggi".
 - #126: user button shows icon + name ("Accesso come …" as aria-label/title). #128: "Operatore: …"/"Non sono io" before it on shared tablets.
+- #130 (`fix/android-status-bar`): dark status bar icons on Android 15+ (white on white on the OnePlus 13).
 - Also: CI race fixed in `acting-dialog.test.ts`. 1600 unit/integration pass; 148 e2e (2026-11-26).
 ## Next up
 1. Owner: try the space menu and search on the SM-T220 and OnePlus; logo files in `BRANDING_DIR`, `CLUB_NAME`/`BRANDING_DIR` in `.env`.
